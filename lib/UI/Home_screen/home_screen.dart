@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:simple/Bloc/demo/demo_bloc.dart';
 import 'package:simple/ModelClass/product_model.dart';
 import 'package:simple/Reusable/color.dart';
+import 'package:simple/Reusable/responsive.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({
@@ -114,16 +115,32 @@ class HomeScreenViewState extends State<HomeScreenView> {
           padding: const EdgeInsets.all(4),
           child: ElevatedButton(
             onPressed: () {},
-            style: ElevatedButton.styleFrom(backgroundColor: color),
-            child: Text(label),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: color,
+              shape: const StadiumBorder(),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                softWrap: false,
+              ),
+            ),
           ),
         ),
       );
     }
 
     Widget mainContainer() {
-      return Scaffold(
-        body: Row(
+      return ResponsiveBuilder(desktopBuilder: (context, constraints) {
+        debugPrint("welcome desktop view");
+        return Row(
           children: [
             // Sidebar (Categories)
             Container(
@@ -386,8 +403,274 @@ class HomeScreenViewState extends State<HomeScreenView> {
               ),
             ),
           ],
-        ),
-      );
+        );
+      }, tabletBuilder: (context, constraints) {
+        debugPrint("welcome tablet view");
+        return Row(
+          children: [
+            // Sidebar (Categories)
+            Container(
+              width: size.width * 0.18,
+              color: greyColor200,
+              child: ListView(
+                children: categories.map((cat) {
+                  final isSelected = selectedCategory == cat;
+                  return ListTile(
+                    title: Container(
+                      padding: const EdgeInsets.all(10),
+                      width: size.width * 0.1,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: isSelected ? appPrimaryColor : whiteColor,
+                      ),
+                      child: Text(
+                        cat,
+                        style: TextStyle(
+                          color: isSelected ? whiteColor : blackColor,
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                    selected: isSelected,
+                    selectedTileColor:
+                        whiteColor, // Optional background highlight
+                    onTap: () {
+                      setState(() {
+                        selectedCategory = cat;
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+            ),
+
+            Expanded(
+              flex: 2,
+              child: Column(
+                children: [
+                  // search bar
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextField(
+                      cursorColor: appPrimaryColor,
+                      controller: searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Search for items...',
+                        prefixIcon: Icon(Icons.search),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          searchQuery = value;
+                        });
+                      },
+                    ),
+                  ),
+
+                  // Product Grid
+                  Expanded(
+                    flex: 2,
+                    child: filteredProducts.isEmpty
+                        ? Center(
+                            child: Text(
+                              'No item found',
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  color: appPrimaryColor,
+                                  fontWeight: FontWeight.w500),
+                            ),
+                          )
+                        : GridView.builder(
+                            padding: EdgeInsets.all(16),
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              childAspectRatio: 0.85,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
+                            ),
+                            itemCount: filteredProducts.length,
+                            itemBuilder: (context, index) {
+                              final product = filteredProducts[index];
+                              return Card(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                                elevation: 3,
+                                child: Column(
+                                  children: [
+                                    Expanded(
+                                      flex: 5,
+                                      child: SizedBox(
+                                        width: double.infinity,
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.only(
+                                            topLeft: Radius.circular(12),
+                                            topRight: Radius.circular(12),
+                                          ),
+                                          child: Image.asset(
+                                            product.image,
+                                            fit: BoxFit.fill,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(height: 4),
+                                    Text(product.name,
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                        textAlign: TextAlign.center,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis),
+                                    Text(
+                                        "₹${product.price.toStringAsFixed(2)}"),
+                                    SizedBox(height: 4),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10.0, vertical: 10.0),
+                                      child: Container(
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          border: Border.all(color: greyColor),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            IconButton(
+                                              iconSize: 18,
+                                              icon: Icon(Icons.remove),
+                                              onPressed: product.quantity > 0
+                                                  ? () {
+                                                      setState(() {
+                                                        product.quantity--;
+                                                      });
+                                                    }
+                                                  : null,
+                                            ),
+                                            Text(product.quantity.toString()),
+                                            IconButton(
+                                              iconSize: 18,
+                                              icon: Icon(Icons.add),
+                                              onPressed: () {
+                                                setState(() {
+                                                  product.quantity++;
+                                                });
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Cart Panel
+            Container(
+              width: size.width * 0.3,
+              color: whiteColor,
+              padding: EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("🛒 Cart",
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Divider(),
+                  ...products.where((p) => p.quantity > 0).map((p) {
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(p.name),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("₹${p.price.toStringAsFixed(2)} each"),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 15.0, vertical: 10.0),
+                            child: Container(
+                              height: 32,
+                              padding: EdgeInsets.symmetric(horizontal: 8),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: greyColor),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize
+                                    .min, // Prevents Row from expanding full width
+                                children: [
+                                  IconButton(
+                                    iconSize: 16,
+                                    padding: EdgeInsets
+                                        .zero, // Removes default padding around icon
+                                    constraints:
+                                        BoxConstraints(), // Shrinks button hitbox
+                                    icon: Icon(Icons.remove),
+                                    onPressed: () {
+                                      setState(() {
+                                        if (p.quantity > 0) p.quantity--;
+                                      });
+                                    },
+                                  ),
+                                  Text(
+                                    p.quantity.toString(),
+                                    style: TextStyle(fontSize: 14),
+                                  ),
+                                  IconButton(
+                                    iconSize: 16,
+                                    padding: EdgeInsets.zero,
+                                    constraints: BoxConstraints(),
+                                    icon: Icon(Icons.add),
+                                    onPressed: () {
+                                      setState(() {
+                                        p.quantity++;
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      trailing:
+                          Text("₹${(p.price * p.quantity).toStringAsFixed(2)}"),
+                    );
+                  }),
+                  Spacer(),
+                  Divider(),
+                  Text("Total: ₹${totalPrice.toStringAsFixed(2)}",
+                      style: TextStyle(fontSize: 18)),
+                  SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: totalPrice > 0 ? () {} : null,
+                    child: Text("Checkout"),
+                  ),
+                  SizedBox(height: 16),
+                  Row(
+                    children: [
+                      paymentButton("Cash", blueColor),
+                      paymentButton("Card", greenColor),
+                      paymentButton("UPI", orangeColor),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      });
     }
 
     return Scaffold(

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple/Reusable/color.dart';
 import 'package:simple/Reusable/image.dart';
-import 'package:simple/UI/Home_screen/home_screen.dart';
+import 'package:simple/UI/Authentication/login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -50,7 +50,7 @@ class _SplashScreenState extends State<SplashScreen>
     //       ))
     //      :
     Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
         (Route<dynamic> route) => false);
     // }
   }

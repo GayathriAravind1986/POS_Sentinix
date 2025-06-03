@@ -67,9 +67,10 @@ class CustomTextField extends StatelessWidget {
                 selectionHandleColor: appPrimaryColor,
               ),
               child: TextFormField(
-                style: MediaQuery.of(context).size.width < 650
-                    ? MyTextStyle.f16(blackColor, weight: FontWeight.w400)
-                    : MyTextStyle.f20(blackColor, weight: FontWeight.w400),
+                style: MediaQuery.of(context).size.width >= 650 &&
+                        MediaQuery.of(context).size.width < 1100
+                    ? MyTextStyle.f14(blackColor, weight: FontWeight.w400)
+                    : MyTextStyle.f16(blackColor, weight: FontWeight.w400),
                 controller: controller,
                 readOnly: readOnly,
                 obscureText: obscureText,
@@ -98,11 +99,13 @@ class CustomTextField extends StatelessWidget {
                   ),
                   counterText: "",
                   hintText: hint,
-                  hintStyle: MediaQuery.of(context).size.width < 650
+                  hintStyle: MediaQuery.of(context).size.width >= 650 &&
+                          MediaQuery.of(context).size.width < 1100
                       ? MyTextStyle.f14(greyColor, weight: FontWeight.w300)
                       : MyTextStyle.f18(greyColor, weight: FontWeight.w300),
                   prefixText: prefixText, // Add prefix text
-                  prefixStyle: MediaQuery.of(context).size.width < 650
+                  prefixStyle: MediaQuery.of(context).size.width >= 650 &&
+                          MediaQuery.of(context).size.width < 1100
                       ? MyTextStyle.f14(blackColor, weight: FontWeight.w300)
                       : MyTextStyle.f18(blackColor, weight: FontWeight.w300),
                   border: OutlineInputBorder(

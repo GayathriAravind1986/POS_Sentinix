@@ -16,6 +16,7 @@ const appGreenColor = Color(0xff147338);
 const orangeColor = Colors.orange;
 
 const blackColor = Colors.black;
+const blackColor12 = Colors.black12;
 const blueColor = Colors.blue;
 const whiteColor = Colors.white;
 const redColor = Colors.red;
@@ -23,3 +24,4 @@ const greyColor = Colors.grey;
 var greyColor200 = Colors.grey[200];
 const greenColor = Colors.green;
 const yellowColor = Colors.yellow;
+const pinkColor = Colors.pinkAccent;
