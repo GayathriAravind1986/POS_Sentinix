@@ -4,6 +4,7 @@ import 'package:simple/Bloc/demo/demo_bloc.dart';
 import 'package:simple/ModelClass/product_model.dart';
 import 'package:simple/Reusable/color.dart';
 import 'package:simple/Reusable/responsive.dart';
+import 'package:simple/UI/Payment/Razorpay_QR_Scanner.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({
@@ -396,7 +397,13 @@ class HomeScreenViewState extends State<HomeScreenView> {
                     children: [
                       paymentButton("Cash", blueColor),
                       paymentButton("Card", greenColor),
-                      paymentButton("UPI", orangeColor),
+                      InkWell(
+                          onTap: () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) => const RazorpayQRScreen(
+                                    paymentUrl: "paymentUrl")));
+                          },
+                          child: paymentButton("UPI", orangeColor)),
                     ],
                   ),
                 ],
@@ -662,7 +669,16 @@ class HomeScreenViewState extends State<HomeScreenView> {
                     children: [
                       paymentButton("Cash", blueColor),
                       paymentButton("Card", greenColor),
-                      paymentButton("UPI", orangeColor),
+                      InkWell(
+                          onTap: () {
+                            debugPrint("UPI Razorpay");
+                            // Navigator.of(context).push(MaterialPageRoute(
+                            //     builder: (context) => const RazorpayQRScreen(
+                            //         paymentUrl:
+                            //             " https://api.razorpay.com/v1/payment_links/21")));
+                            debugPrint("Navigating to Razorpay QR screen");
+                          },
+                          child: paymentButton("UPI", orangeColor)),
                     ],
                   ),
                 ],
