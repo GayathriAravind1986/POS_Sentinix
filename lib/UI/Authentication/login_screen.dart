@@ -195,7 +195,7 @@ class LoginScreenViewState extends State<LoginScreenView> {
                           if (_formKey.currentState!.validate()) {
                             Navigator.of(context).pushAndRemoveUntil(
                                 MaterialPageRoute(
-                                    builder: (context) => const HomeScreen()),
+                                    builder: (context) => const FoodOrderingScreen()),
                                 (Route<dynamic> route) => false);
                             //   setState(() {
                             //     loginLoad = true;
@@ -359,7 +359,7 @@ class LoginScreenViewState extends State<LoginScreenView> {
                           if (_formKey.currentState!.validate()) {
                             Navigator.of(context).pushAndRemoveUntil(
                                 MaterialPageRoute(
-                                    builder: (context) => const HomeScreen()),
+                                    builder: (context) => const FoodOrderingScreen()),
                                 (Route<dynamic> route) => false);
                             //   setState(() {
                             //     loginLoad = true;
