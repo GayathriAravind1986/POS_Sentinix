@@ -1,4 +1,4 @@
 ///
 class Constants {
-  static const baseUrl = "https://api.osjglobal.com/public/";
+  static const baseUrl = "http://192.168.18.47:5000/";
 }

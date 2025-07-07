@@ -4,6 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple/Bloc/Response/errorResponse.dart';
+import 'package:simple/ModelClass/Authentication/Post_login_model.dart';
+import 'package:simple/Reusable/constant.dart';
 
 /// All API Integration in ApiProvider
 class ApiProvider {
@@ -17,7 +19,52 @@ class ApiProvider {
     _dio = Dio(options);
   }
 
-  /// Register page API Integration
+  /// LoginWithOTP API Integration
+  Future<PostLoginModel> loginAPI(
+    String email,
+    String password,
+  ) async {
+    try {
+      final dataMap = {"email": email, "password": password};
+
+      debugPrint(json.encode(dataMap));
+      var data = json.encode(dataMap);
+      var dio = Dio();
+
+      var response = await dio.request(
+        '${Constants.baseUrl}auth/users/login'.trim(),
+        options: Options(
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        ),
+        data: data,
+      );
+      debugPrint("API baseUrl: ${Constants.baseUrl}auth/users/login");
+      debugPrint("API statuscode: ${response.statusCode}");
+
+      if (response.statusCode == 200 && response.data != null) {
+        if (response.data['success'] == true) {
+          debugPrint("API Response: ${json.encode(response.data)}");
+          PostLoginModel postLoginResponse =
+              PostLoginModel.fromJson(response.data);
+          SharedPreferences sharedPreferences =
+              await SharedPreferences.getInstance();
+          sharedPreferences.setString(
+            "token",
+            postLoginResponse.token.toString(),
+          );
+          return postLoginResponse;
+        }
+      }
+      return PostLoginModel()
+        ..errorResponse = ErrorResponse(message: "Unexpected error occurred.");
+    } catch (error) {
+      debugPrint("ErrorCatch: $error");
+      return PostLoginModel()..errorResponse = handleError(error);
+    }
+  }
 
   /// handle Error Response
   ErrorResponse handleError(Object error) {

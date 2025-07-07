@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// Application Colors
 //const appPrimaryColor = Color(0xff164B9A);
-const appPrimaryColor = Colors.deepPurple;
+const appPrimaryColor = Colors.brown;
 //Color(0xffF29A2F);
 const appBlueColor = Color(0xff648DDB);
 const appGreyColor = Color(0xffE1E1E1);

@@ -25,7 +25,7 @@ appButton(
       width: width,
       decoration: BoxDecoration(
         color: color ?? appPrimaryColor,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(25),
       ),
       child: Center(
         child: Text(

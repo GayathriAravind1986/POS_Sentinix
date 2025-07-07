@@ -46,6 +46,7 @@ class CategoryChipsViewState extends State<CategoryChipsView> {
     {'title': 'Salad Bowl', 'price': 90, 'category': 'Salads'},
     {'title': 'Gulab Jamun', 'price': 50, 'category': 'Desserts'},
   ];
+  Map<String, int> cart = {};
   @override
   void initState() {
     super.initState();
@@ -106,6 +107,9 @@ class CategoryChipsViewState extends State<CategoryChipsView> {
               itemCount: filteredProducts.length,
               itemBuilder: (_, index) {
                 final p = filteredProducts[index];
+                final title = p['title'];
+                final price = p['price'];
+                final quantity = cart[title] ?? 0;
                 return Card(
                   color: whiteColor,
                   shadowColor: greyColor,
@@ -118,15 +122,41 @@ class CategoryChipsViewState extends State<CategoryChipsView> {
                         Expanded(child: Placeholder()), // Replace with image
                         Text("${p['title']}"),
                         Text('₹ ${p['price']}'),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            IconButton(
-                                onPressed: () {}, icon: Icon(Icons.remove)),
-                            Text('1'),
-                            IconButton(onPressed: () {}, icon: Icon(Icons.add)),
-                          ],
-                        )
+                        quantity == 0
+                            ? ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    cart[title] = 1;
+                                  });
+                                },
+                                child: const Text('Add to Cart'),
+                              )
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        if (cart[title]! > 1) {
+                                          cart[title] = cart[title]! - 1;
+                                        } else {
+                                          cart.remove(title);
+                                        }
+                                      });
+                                    },
+                                    icon: const Icon(Icons.remove),
+                                  ),
+                                  Text('${cart[title]}'),
+                                  IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        cart[title] = cart[title]! + 1;
+                                      });
+                                    },
+                                    icon: const Icon(Icons.add),
+                                  ),
+                                ],
+                              )
                       ],
                     ),
                   ),

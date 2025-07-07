@@ -7,6 +7,7 @@ import 'package:simple/Reusable/color.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:simple/UI/SplashScreen/splash_screen.dart';
 
+//final Cart cart = Cart();
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([
@@ -49,7 +50,7 @@ class _MyAppState extends State<MyApp> {
       return OverlaySupport.global(
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
-          title: 'POS',
+          title: 'Roja Restaurant',
           theme: ThemeData(
             primaryColor: appPrimaryColor,
             unselectedWidgetColor: appPrimaryColor,

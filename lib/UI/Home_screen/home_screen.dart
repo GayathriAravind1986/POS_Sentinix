@@ -30,17 +30,7 @@ class FoodOrderingScreenView extends StatefulWidget {
 
 class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
   // PostLoginModel postLoginModel = PostLoginModel();
-  final List<Map<String, String>> categories = [
-    {'label': 'All', 'image': 'assets/icons/all.png'},
-    {'label': 'Fast Food', 'image': 'assets/icons/fast_food.png'},
-    {'label': 'Chinese', 'image': 'assets/icons/chinese.png'},
-    {'label': 'Salads', 'image': 'assets/icons/salads.png'},
-    {'label': 'Street Food', 'image': 'assets/icons/street_food.png'},
-    {'label': 'Desserts', 'image': 'assets/icons/desserts.png'},
-    {'label': 'Indian Snacks', 'image': 'assets/icons/indian_snacks.png'},
-    {'label': 'Pizza & Pasta', 'image': 'assets/icons/pizza_pasta.png'},
-    {'label': 'Sandwiches & Wraps', 'image': 'assets/icons/sandwich_wraps.png'},
-  ];
+
   @override
   void initState() {
     super.initState();

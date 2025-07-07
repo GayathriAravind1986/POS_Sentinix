@@ -24,17 +24,14 @@ class _SplashScreenState extends State<SplashScreen>
     super.dispose();
   }
 
-  dynamic userId;
-  dynamic roleId;
+  dynamic token;
 
   getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      userId = prefs.getString("userId");
-      roleId = prefs.getString("roleId");
+      token = prefs.getString("token");
     });
-    debugPrint("SplashUserId:$userId");
-    debugPrint("SplashRoleId:$roleId");
+    debugPrint("SplashToken:$token");
   }
 
   callApis() async {
@@ -42,18 +39,18 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void onTimerFinished() {
-    // if (mounted) {
-    //   userId == null || roleId == null
-    //       ? Navigator.pushReplacement(
-    //       context,
-    //       MaterialPageRoute(
-    //         builder: (context) => const LoginScreen(),
-    //       ))
-    //      :
-    Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const FoodOrderingScreen()),
-        (Route<dynamic> route) => false);
-    // }
+    if (mounted) {
+      token == null
+          ? Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const LoginScreen(),
+              ))
+          : Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                  builder: (context) => const FoodOrderingScreen()),
+              (Route<dynamic> route) => false);
+    }
   }
 
   @override
@@ -101,7 +98,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void initState() {
-    // callApis();
+    callApis();
     super.initState();
 
     _controller = AnimationController(
