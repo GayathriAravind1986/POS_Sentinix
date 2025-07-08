@@ -1,5 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:simple/Reusable/color.dart';
+import 'package:simple/Reusable/text_styles.dart';
 
 class CategoryCard extends StatelessWidget {
   final String label;
@@ -28,22 +31,34 @@ class CategoryCard extends StatelessWidget {
           color: isSelected ? whiteColor : greyColor.shade100,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? blackColor : greyColor.shade300,
-            width: 1.0,
+            color: isSelected ? blueGreyColor.shade300 : greyColor.shade300,
+            width: 1.5,
           ),
         ),
         child: Column(
           children: [
-            CircleAvatar(
-              radius: 24,
-              backgroundImage: AssetImage(imagePath),
-            ),
+            ClipOval(
+                child: CachedNetworkImage(
+              imageUrl: imagePath,
+              width: 60,
+              height: 60,
+              fit: BoxFit.cover,
+              errorWidget: (context, url, error) {
+                return const Icon(
+                  Icons.error,
+                  size: 30,
+                  color: appHomeTextColor,
+                );
+              },
+              progressIndicatorBuilder: (context, url, downloadProgress) =>
+                  const SpinKitCircle(color: appPrimaryColor, size: 30),
+            )),
             SizedBox(height: 6),
             Expanded(
               child: Text(
                 label,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12),
+                style: MyTextStyle.f12(blackColor),
                 maxLines: 3,
               ),
             ),

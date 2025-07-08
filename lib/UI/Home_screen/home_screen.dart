@@ -29,7 +29,7 @@ class FoodOrderingScreenView extends StatefulWidget {
 }
 
 class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
-  // PostLoginModel postLoginModel = PostLoginModel();
+
 
   @override
   void initState() {
@@ -67,31 +67,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Text("Choose Category",
-                              style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold)),
-                          SizedBox(width: size.width * 0.2),
-                          SizedBox(
-                            width: size.width * 0.25,
-                            child: TextField(
-                              decoration: InputDecoration(
-                                hintText: 'Search product',
-                                prefixIcon: Icon(Icons.search),
-                                contentPadding:
-                                    EdgeInsets.symmetric(horizontal: 16),
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(30)),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                     CategoryChips(),
                   ]),
             ),

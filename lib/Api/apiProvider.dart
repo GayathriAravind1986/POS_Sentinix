@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple/Bloc/Response/errorResponse.dart';
 import 'package:simple/ModelClass/Authentication/Post_login_model.dart';
+import 'package:simple/ModelClass/HomeScreen/Category&Product/Get_category_model.dart';
+import 'package:simple/ModelClass/HomeScreen/Category&Product/Get_product_by_catId_model.dart';
 import 'package:simple/Reusable/constant.dart';
 
 /// All API Integration in ApiProvider
@@ -60,9 +62,98 @@ class ApiProvider {
       }
       return PostLoginModel()
         ..errorResponse = ErrorResponse(message: "Unexpected error occurred.");
+    } on DioException catch (dioError) {
+      debugPrint("DioError: ${dioError.response?.statusCode}");
+      if (dioError.response?.statusCode == 401) {
+        // Unauthorized - handle token issues or login failure
+        return PostLoginModel()
+          ..errorResponse = ErrorResponse(message: "Invalid email or password");
+      } else {
+        return PostLoginModel()
+          ..errorResponse = handleError(dioError); // Your custom error handling
+      }
     } catch (error) {
       debugPrint("ErrorCatch: $error");
       return PostLoginModel()..errorResponse = handleError(error);
+    }
+  }
+
+  /// Category - Fetch API Integration
+  Future<GetCategoryModel> getCategoryAPI() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var token = sharedPreferences.getString("token");
+    debugPrint("token:$token");
+    try {
+      var dio = Dio();
+      var response = await dio.request(
+        '${Constants.baseUrl}api/categories',
+        options: Options(
+          method: 'GET',
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+      debugPrint("API statuscode: ${response.statusCode}");
+
+      if (response.statusCode == 200 && response.data != null) {
+        if (response.data['success'] == true) {
+          debugPrint("API Response: ${json.encode(response.data)}");
+          GetCategoryModel getCategoryResponse =
+              GetCategoryModel.fromJson(response.data);
+          return getCategoryResponse;
+        }
+      } else {
+        return GetCategoryModel()
+          ..errorResponse = ErrorResponse(
+            message: "Error: ${response.data['message'] ?? 'Unknown error'}",
+          );
+      }
+      return GetCategoryModel()
+        ..errorResponse = ErrorResponse(message: "Unexpected error occurred.");
+    } catch (error) {
+      debugPrint("ErrorCatch: $error");
+      return GetCategoryModel()..errorResponse = handleError(error);
+    }
+  }
+
+  /// product - Fetch API Integration
+  Future<GetProductByCatIdModel> getProductItemAPI(
+      String? catId, String? searchKey) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var token = sharedPreferences.getString("token");
+    debugPrint("token:$token");
+    try {
+      var dio = Dio();
+      var response = await dio.request(
+        '${Constants.baseUrl}api/products/pos/category-products-all?categoryId=$catId&search=$searchKey',
+        options: Options(
+          method: 'GET',
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+      debugPrint("API statuscode: ${response.statusCode}");
+
+      if (response.statusCode == 200 && response.data != null) {
+        if (response.data['success'] == true) {
+          debugPrint("API Response: ${json.encode(response.data)}");
+          GetProductByCatIdModel getProductByCatIdResponse =
+              GetProductByCatIdModel.fromJson(response.data);
+          return getProductByCatIdResponse;
+        }
+      } else {
+        return GetProductByCatIdModel()
+          ..errorResponse = ErrorResponse(
+            message: "Error: ${response.data['message'] ?? 'Unknown error'}",
+          );
+      }
+      return GetProductByCatIdModel()
+        ..errorResponse = ErrorResponse(message: "Unexpected error occurred.");
+    } catch (error) {
+      debugPrint("ErrorCatch: $error");
+      return GetProductByCatIdModel()..errorResponse = handleError(error);
     }
   }
 
@@ -79,45 +170,68 @@ class ApiProvider {
           errorDescription.code = "0";
           errorDescription.message = "Request Cancelled";
           break;
+
         case DioExceptionType.connectionTimeout:
           errorDescription.code = "522";
           errorDescription.message = "Connection Timeout";
           break;
+
         case DioExceptionType.sendTimeout:
           errorDescription.code = "408";
           errorDescription.message = "Send Timeout";
           break;
+
         case DioExceptionType.receiveTimeout:
           errorDescription.code = "408";
           errorDescription.message = "Receive Timeout";
           break;
+
         case DioExceptionType.badResponse:
-          if (error.response != null) {
-            errorDescription.code = error.response!.statusCode!.toString();
-            errorDescription.message = error.response!.statusCode == 500
-                ? "Internet Server Error"
-                : error.response!.data["errors"][0]["message"];
+          if (dioException.response != null) {
+            final statusCode = dioException.response!.statusCode!;
+            errorDescription.code = statusCode.toString();
+
+            if (statusCode == 401) {
+              errorDescription.message = "Unauthorized: Invalid credentials";
+            } else if (statusCode == 500) {
+              errorDescription.message = "Internal Server Error";
+            } else {
+              // fallback to API-provided message
+              try {
+                final message =
+                    dioException.response!.data["errors"][0]["message"];
+                errorDescription.message = message ?? "Something went wrong";
+              } catch (_) {
+                errorDescription.message = "Unexpected error response";
+              }
+            }
           } else {
             errorDescription.code = "500";
-            errorDescription.message = "Internet Server Error";
+            errorDescription.message = "Internal Server Error";
           }
           break;
+
         case DioExceptionType.unknown:
           errorDescription.code = "500";
-          errorDescription.message = "Internet Server Error";
+          errorDescription.message = "Unknown error occurred";
           break;
+
         case DioExceptionType.badCertificate:
           errorDescription.code = "495";
-          errorDescription.message = "Bad Request";
+          errorDescription.message = "Bad SSL Certificate";
           break;
+
         case DioExceptionType.connectionError:
           errorDescription.code = "500";
-          errorDescription.message = "Internet Server Error";
+          errorDescription.message = "Connection error occurred";
           break;
       }
+    } else {
+      errorDescription.code = "500";
+      errorDescription.message = "An unexpected error occurred";
     }
-    errorResponse.errors = [];
-    errorResponse.errors!.add(errorDescription);
+
+    errorResponse.errors = [errorDescription];
     return errorResponse;
   }
 }

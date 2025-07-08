@@ -210,11 +210,16 @@ class LoginScreenViewState extends State<LoginScreenView> {
                       builder: (context) => const FoodOrderingScreen()),
                   (Route<dynamic> route) => false,
                 );
-              } else if (postLoginModel.success == false) {
-                debugPrint("LoginError: ${postLoginModel.message}");
+              } else {
+                final errorMsg =
+                    postLoginModel.errorResponse?.errors?.first.message ??
+                        postLoginModel.message ??
+                        "Login failed. Please try again.";
+
+                debugPrint("Login error: $errorMsg");
+                showToast(errorMsg, context, color: false);
                 setState(() {
                   loginLoad = false;
-                  showToast('${postLoginModel.message}', context, color: false);
                 });
               }
               return true;
