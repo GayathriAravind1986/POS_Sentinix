@@ -3,8 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:simple/Bloc/observer/observer.dart';
 import 'package:simple/Bloc/theme_cubit.dart';
+import 'package:simple/ModelClass/HomeScreen/Billing_cart.dart';
 import 'package:simple/Reusable/color.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:simple/UI/Cart/food_add_cart.dart';
+import 'package:simple/UI/Home_screen/Widget/food_category_chips.dart';
+import 'package:simple/UI/Home_screen/home_screen.dart';
 import 'package:simple/UI/SplashScreen/splash_screen.dart';
 
 //final Cart cart = Cart();
@@ -68,7 +72,7 @@ class _MyAppState extends State<MyApp> {
               ),
             );
           },
-          home: const SplashScreen(),
+          home: const FoodOrderingScreen()
         ),
       );
     });

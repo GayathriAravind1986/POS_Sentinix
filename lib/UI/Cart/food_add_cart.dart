@@ -3,6 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:simple/Bloc/demo/demo_bloc.dart';
 import 'package:simple/Reusable/color.dart';
 import 'package:simple/UI/Cart/Widget/payment_option.dart';
+// import 'package:imin_printer/imin_printer.dart';
+// import 'package:imin_printer/enums.dart';
+// import 'package:imin_printer/imin_style.dart';
+import 'package:simple/services/printer_service.dart';
+import 'package:simple/services/mock_printer_service.dart';
+
+
 
 class CartSummary extends StatelessWidget {
   const CartSummary({
@@ -29,10 +36,13 @@ class CartSummaryView extends StatefulWidget {
 
 class CartSummaryViewState extends State<CartSummaryView> {
   // PostLoginModel postLoginModel = PostLoginModel();
+  late final PrinterService printer;
 
   @override
   void initState() {
     super.initState();
+    printer = MockPrinterService();
+
   }
 
   @override
@@ -209,20 +219,38 @@ class CartSummaryViewState extends State<CartSummaryView> {
               ),
             ),
             SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF522F1F),
-                minimumSize: Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30)),
-              ),
-              child: Text(
-                "Print Bills",
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ]),
+
+      ElevatedButton(
+                  onPressed: () async {
+                    print(' Button tapped');
+                    try {
+                      await printer.init();
+                      await printer.setAlignment("center"); // For mock, just a string
+                      await printer.printText("🍽️ HOTEL XYZ\n");
+                      await printer.setAlignment("left");
+                      await printer.printText("Item: Veg Burger x1\n");
+                      await printer.printText("Price: ₹59.32\n");
+                      await printer.printAndLineFeed();
+                      await printer.cut();
+                    } catch (e) {
+                      print("[MOCK] Print failed: $e");
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF522F1F),
+                    minimumSize: Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: Text(
+                    "Print Bills",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                )
+
+
+              ]),
         ),
       );
     }
@@ -259,7 +287,13 @@ class CartSummaryViewState extends State<CartSummaryView> {
         return false;
       }),
       builder: (context, dynamic) {
-        return mainContainer(context);
+        return Scaffold(
+          backgroundColor: Colors.grey.shade100,
+          body: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: mainContainer(context),
+          ),
+        );
       },
     );
   }
