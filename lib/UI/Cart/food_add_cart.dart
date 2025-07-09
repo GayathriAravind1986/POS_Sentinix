@@ -1,16 +1,14 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:simple/Bloc/demo/demo_bloc.dart';
 import 'package:simple/Reusable/color.dart';
+import 'package:simple/Reusable/text_styles.dart';
 import 'package:simple/UI/Cart/Widget/payment_option.dart';
-import 'package:simple/UI/Payment/Razorpay_QR_Scanner.dart';
 // import 'package:imin_printer/imin_printer.dart';
 // import 'package:imin_printer/enums.dart';
 // import 'package:imin_printer/imin_style.dart';
 import 'package:simple/services/printer_service.dart';
 import 'package:simple/services/mock_printer_service.dart';
-import 'package:flutter/material.dart';
-
-
 
 class CartSummary extends StatelessWidget {
   const CartSummary({
@@ -39,15 +37,11 @@ class CartSummaryViewState extends State<CartSummaryView> {
   // PostLoginModel postLoginModel = PostLoginModel();
   late final PrinterService printer;
   bool isSplitPayment = false;
-  bool isUpiSelected = false;
-
-
 
   @override
   void initState() {
     super.initState();
     printer = MockPrinterService();
-
   }
 
   @override
@@ -59,12 +53,12 @@ class CartSummaryViewState extends State<CartSummaryView> {
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
 
-    Widget mainContainer(BuildContext context) {
+    Widget mainContainer() {
       return Container(
         padding: EdgeInsets.all(10),
         height: double.infinity,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: whiteColor,
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
@@ -77,18 +71,18 @@ class CartSummaryViewState extends State<CartSummaryView> {
         ),
         child: SingleChildScrollView(
           child:
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(
               children: [
                 Expanded(
                   child: Container(
                     padding: EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
-                        color: Color(0xFF522F1F),
+                        color: appPrimaryColor,
                         borderRadius: BorderRadius.circular(30)),
                     child: Center(
-                      child: Text("Dine In",
-                          style: TextStyle(color: Colors.white)),
+                      child:
+                          Text("Dine In", style: MyTextStyle.f12(whiteColor)),
                     ),
                   ),
                 ),
@@ -97,14 +91,13 @@ class CartSummaryViewState extends State<CartSummaryView> {
                 )
               ],
             ),
-
-            SizedBox(height: 8), // instead of Spacer
+            SizedBox(height: 8),
             Row(
               children: [
                 const Spacer(),
-                const Text(
+                Text(
                   "Bills",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: MyTextStyle.f20(blackColor, weight: FontWeight.bold),
                 ),
                 IconButton(
                   onPressed: () {},
@@ -112,7 +105,6 @@ class CartSummaryViewState extends State<CartSummaryView> {
                 ),
               ],
             ),
-
             Divider(),
             Row(
               children: [
@@ -127,14 +119,16 @@ class CartSummaryViewState extends State<CartSummaryView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text("Veg Burger",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
+                          style: MyTextStyle.f12(blackColor,
+                              weight: FontWeight.bold)),
                       Text("x 1"),
                       SizedBox(height: 4),
                       Text("Base Price   ₹ 59.32"),
                       Text("SGST (9%)   ₹ 5.34"),
                       Text("CGST (9%)   ₹ 5.34"),
                       Text("Item Total   ₹ 59.32",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
+                          style: MyTextStyle.f12(blackColor,
+                              weight: FontWeight.bold)),
                     ],
                   ),
                 ),
@@ -155,25 +149,26 @@ class CartSummaryViewState extends State<CartSummaryView> {
             ),
             Divider(),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text("Subtotal", style: TextStyle(color: Colors.grey)),
+              Text("Subtotal", style: MyTextStyle.f12(greyColor)),
               SizedBox(height: 8),
               Text("₹ 50.00")
             ]),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text("Total Tax", style: TextStyle(color: Colors.grey)),
+              Text("Total Tax", style: MyTextStyle.f12(greyColor)),
               Text("₹ 10.68"),
             ]),
             SizedBox(height: 8),
             Divider(),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text("Total", style: TextStyle(fontWeight: FontWeight.bold)),
+              Text("Total",
+                  style: MyTextStyle.f12(blackColor, weight: FontWeight.bold)),
               Text("₹ 70.00",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  style: MyTextStyle.f18(blackColor, weight: FontWeight.bold)),
             ]),
             SizedBox(height: 12),
             Container(
               decoration: BoxDecoration(
-                color: Colors.grey.shade200,
+                color: greyColor200,
                 borderRadius: BorderRadius.circular(30),
               ),
               child: Row(
@@ -188,14 +183,15 @@ class CartSummaryViewState extends State<CartSummaryView> {
                       child: Container(
                         padding: EdgeInsets.symmetric(vertical: 8),
                         decoration: BoxDecoration(
-                          color: isSplitPayment ? Colors.grey.shade200 : Color(0xFF522F1F),
+                          color:
+                              isSplitPayment ? greyColor200 : appPrimaryColor,
                           borderRadius: BorderRadius.circular(30),
                         ),
                         child: Center(
                           child: Text(
                             "Full Payment",
-                            style: TextStyle(
-                              color: isSplitPayment ? Colors.black : Colors.white,
+                            style: MyTextStyle.f12(
+                              isSplitPayment ? blackColor : whiteColor,
                             ),
                           ),
                         ),
@@ -212,14 +208,15 @@ class CartSummaryViewState extends State<CartSummaryView> {
                       child: Container(
                         padding: EdgeInsets.symmetric(vertical: 8),
                         decoration: BoxDecoration(
-                          color: isSplitPayment ? Color(0xFF522F1F) : Colors.grey.shade200,
+                          color:
+                              isSplitPayment ? appPrimaryColor : greyColor200,
                           borderRadius: BorderRadius.circular(30),
                         ),
                         child: Center(
                           child: Text(
                             "Split Payment",
                             style: TextStyle(
-                              color: isSplitPayment ? Colors.white : Colors.black,
+                              color: isSplitPayment ? whiteColor : blackColor,
                             ),
                           ),
                         ),
@@ -229,103 +226,124 @@ class CartSummaryViewState extends State<CartSummaryView> {
                 ],
               ),
             ),
-
             isSplitPayment
                 ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 20,),
-                Text("Split Payment",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20),),
-                SizedBox(height: 20,),
-                Row(
-                  children: [
-                    SizedBox(width: 12),
-                    Expanded(
-                        child: DropdownButtonFormField<String>(
-                          decoration: InputDecoration(
-                            labelText: "Select ",
-                            labelStyle: TextStyle(
-                              color: Colors.grey.shade700,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        height: 20,
+                      ),
+                      Text(
+                        "Split Payment",
+                        style: MyTextStyle.f20(blackColor,
+                            weight: FontWeight.bold),
+                      ),
+                      SizedBox(
+                        height: 20,
+                      ),
+                      Row(
+                        children: [
+                          SizedBox(width: 12),
+                          Expanded(
+                              child: DropdownButtonFormField<String>(
+                            decoration: InputDecoration(
+                              labelText: "Select ",
+                              labelStyle: MyTextStyle.f12(
+                                weight: FontWeight.w500,
+                                greyColor.shade700,
+                              ),
+                              filled: true,
+                              fillColor: whiteColor,
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 10),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                    color: appPrimaryColor, width: 1.5),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                    color: appPrimaryColor, width: 2),
+                              ),
+                            ),
+                            dropdownColor: whiteColor,
+                            icon: Icon(Icons.keyboard_arrow_down_rounded,
+                                color: appPrimaryColor),
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: blackColor,
                               fontWeight: FontWeight.w500,
                             ),
-                            filled: true,
-                            fillColor: Colors.white,
-                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Color(0xFF522F1F), width: 1.5),
+                            items: const [
+                              DropdownMenuItem(
+                                  value: "Cash", child: Text("Cash")),
+                              DropdownMenuItem(
+                                  value: "Card", child: Text("Card")),
+                              DropdownMenuItem(
+                                  value: "UPI", child: Text("UPI")),
+                            ],
+                            onChanged: (value) {
+                              // handle change
+                            },
+                          )),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: TextField(
+                              decoration: InputDecoration(
+                                hintText: " ₹ Amount",
+                                filled: true,
+                                fillColor: whiteColor,
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(
+                                      color: appPrimaryColor, width: 1.5),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(
+                                      color: appPrimaryColor, width: 2),
+                                ),
+                              ),
                             ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Color(0xFF522F1F), width: 2),
-                            ),
                           ),
-                          dropdownColor: Colors.white,
-                          icon: Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF522F1F)),
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.black,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          items: const [
-                            DropdownMenuItem(value: "Cash", child: Text("Cash")),
-                            DropdownMenuItem(value: "Card", child: Text("Card")),
-                            DropdownMenuItem(value: "UPI", child: Text("UPI")),
-                          ],
-                          onChanged: (value) {
-                            // handle change
-                          },
-                        )
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: " ₹ Amount",
-                          filled: true,
-                          fillColor: Colors.white,
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Color(0xFF522F1F), width: 1.5),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: Color(0xFF522F1F), width: 2),
+                        ],
+                      ),
+                      SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "+ Add Another Payment",
+                          style: MyTextStyle.f14(
+                            textDecoration: TextDecoration.underline,
+                            decorationColor: blueColor,
+                            blueColor,
                           ),
                         ),
                       ),
-                    ),
-
-                  ],
-                ),
-                SizedBox(height: 12),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "+ Add Another Payment",
-                    style: TextStyle(
-                      decoration: TextDecoration.underline,
-                      decorationColor: Colors.blue,
-                      color: Colors.blue,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("Total Split:",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
-                    Text("₹0.00",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
-                  ],
-                ),
-              ],
-            )
+                      SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Total Split:",
+                            style: MyTextStyle.f17(blackColor,
+                                weight: FontWeight.bold),
+                          ),
+                          Text(
+                            "₹0.00",
+                            style: MyTextStyle.f17(blackColor,
+                                weight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ],
+                  )
                 : Container(),
-
-
             SizedBox(height: 12),
             Text("Payment Method",
-                style: TextStyle(fontWeight: FontWeight.bold)),
+                style: MyTextStyle.f14(blackColor, weight: FontWeight.bold)),
+            SizedBox(height: 12),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Wrap(
@@ -337,22 +355,7 @@ class CartSummaryViewState extends State<CartSummaryView> {
                   PaymentOption(
                       icon: Icons.credit_card, label: "Card", selected: false),
                   PaymentOption(
-                    icon: Icons.qr_code,
-                    label: "UPI",
-                    selected: isUpiSelected,
-                    onTap: () {
-                      setState(() => isUpiSelected = true);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => RazorpayQRScreen(
-                            paymentUrl: "http://rzp.io/l6MS",
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-
+                      icon: Icons.qr_code, label: "UPI", selected: false),
                 ],
               ),
             ),
@@ -361,30 +364,30 @@ class CartSummaryViewState extends State<CartSummaryView> {
               decoration: InputDecoration(
                 hintText: "Enter amount paid (₹)",
                 border:
-                OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                 suffixIcon: Icon(Icons.arrow_drop_down),
               ),
             ),
             SizedBox(height: 12),
-
             ElevatedButton(
               onPressed: () async {
-                print(' Button tapped');
+                debugPrint(' Button tapped');
                 try {
                   await printer.init();
-                  await printer.setAlignment("center"); // For mock, just a string
-                  await printer.printText("🍽️ HOTEL XYZ\n");
+                  await printer
+                      .setAlignment("center"); // For mock, just a string
+                  await printer.printText("🍽️ Roja Restaurant\n");
                   await printer.setAlignment("left");
                   await printer.printText("Item: Veg Burger x1\n");
                   await printer.printText("Price: ₹59.32\n");
                   await printer.printAndLineFeed();
                   await printer.cut();
                 } catch (e) {
-                  print("[MOCK] Print failed: $e");
+                  debugPrint("[MOCK] Print failed: $e");
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF522F1F),
+                backgroundColor: appPrimaryColor,
                 minimumSize: Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
@@ -392,11 +395,9 @@ class CartSummaryViewState extends State<CartSummaryView> {
               ),
               child: Text(
                 "Print Bills",
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: whiteColor),
               ),
             )
-
-
           ]),
         ),
       );
@@ -434,13 +435,7 @@ class CartSummaryViewState extends State<CartSummaryView> {
         return false;
       }),
       builder: (context, dynamic) {
-        return Scaffold(
-          backgroundColor: Colors.grey.shade100,
-          body: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: mainContainer(context),
-          ),
-        );
+        return mainContainer();
       },
     );
   }

@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:simple/Bloc/Category/category_bloc.dart';
+import 'package:simple/Bloc/demo/demo_bloc.dart';
 import 'package:simple/ModelClass/HomeScreen/Category&Product/Get_category_model.dart';
 import 'package:simple/ModelClass/HomeScreen/Category&Product/Get_product_by_catId_model.dart';
 
 import 'package:simple/Reusable/color.dart';
 import 'package:simple/Reusable/space.dart';
 import 'package:simple/Reusable/text_styles.dart';
+import 'package:simple/UI/Home_screen/Widget/addons_screen_widget.dart';
 import 'package:simple/UI/Home_screen/Widget/category_card.dart';
 
 class CategoryChips extends StatelessWidget {
@@ -40,16 +42,9 @@ class CategoryChipsViewState extends State<CategoryChipsView> {
   String? selectedCatId;
   GetCategoryModel getCategoryModel = GetCategoryModel();
   GetProductByCatIdModel getProductByCatIdModel = GetProductByCatIdModel();
-  final allProducts = [
-    {'title': 'Veg Burger', 'price': 70, 'category': 'Fast Food'},
-    {'title': 'Hot Dogs', 'price': 110, 'category': 'Fast Food'},
-    {'title': 'Fried Rice', 'price': 125, 'category': 'Chinese'},
-    {'title': 'Salad Bowl', 'price': 90, 'category': 'Salads'},
-    {'title': 'Gulab Jamun', 'price': 50, 'category': 'Desserts'},
-  ];
-
   String? errorMessage;
   bool categoryLoad = false;
+  bool isToppingSelected = false;
   @override
   void initState() {
     super.initState();
@@ -71,7 +66,7 @@ class CategoryChipsViewState extends State<CategoryChipsView> {
       final List<Category> displayedCategories = [
         Category(name: 'All', image: 'assets/images/all_icon.png', id: null),
         ...(getCategoryModel.data ?? []).map((data) => Category(
-              id: data.id, // ✅ FIX: include the ID
+              id: data.id,
               name: data.name,
               image: data.image,
             )),
@@ -164,325 +159,318 @@ class CategoryChipsViewState extends State<CategoryChipsView> {
                     SizedBox(
                       height: size.height * 0.6,
                       width: size.width * 0.6,
-                      child:
-                          getProductByCatIdModel.rows == null ||
-                                  getProductByCatIdModel.rows!.isEmpty
-                              ? const Center(child: Text('No products found'))
-                              : GridView.builder(
-                                  padding: EdgeInsets.all(12),
-                                  gridDelegate:
-                                      SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 3,
-                                    mainAxisExtent: 220,
-                                    crossAxisSpacing: 10,
-                                    mainAxisSpacing: 10,
-                                  ),
-                                  itemCount:
-                                      getProductByCatIdModel.rows!.length,
-                                  itemBuilder: (_, index) {
-                                    final p =
-                                        getProductByCatIdModel.rows![index];
-                                    // final title = p.name;
-                                    // final price = p.basePrice ?? 0;
-                                    final quantity = 0;
-                                    return Card(
-                                      color: whiteColor,
-                                      shadowColor: greyColor,
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12)),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(12),
-                                        child: Column(
-                                          children: [
-                                            SizedBox(
-                                              height: size.height * 0.14,
-                                              child: ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          15.0),
-                                                  child: CachedNetworkImage(
-                                                    imageUrl: p.image!,
-                                                    width: size.width * 0.2,
-                                                    height: size.height * 0.15,
-                                                    fit: BoxFit.cover,
-                                                    errorWidget:
-                                                        (context, url, error) {
-                                                      return const Icon(
-                                                        Icons.error,
-                                                        size: 30,
-                                                        color: appHomeTextColor,
-                                                      );
-                                                    },
-                                                    progressIndicatorBuilder: (context,
-                                                            url,
+                      child: getProductByCatIdModel.rows == null ||
+                              getProductByCatIdModel.rows!.isEmpty
+                          ? const Center(child: Text('No products found'))
+                          : GridView.builder(
+                              padding: EdgeInsets.all(12),
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3,
+                                mainAxisExtent: 220,
+                                crossAxisSpacing: 10,
+                                mainAxisSpacing: 10,
+                              ),
+                              itemCount: getProductByCatIdModel.rows!.length,
+                              itemBuilder: (_, index) {
+                                final p = getProductByCatIdModel.rows![index];
+                                return Card(
+                                  color: whiteColor,
+                                  shadowColor: greyColor,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Column(
+                                      children: [
+                                        SizedBox(
+                                          height: size.height * 0.14,
+                                          child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(15.0),
+                                              child: CachedNetworkImage(
+                                                imageUrl: p.image!,
+                                                width: size.width * 0.2,
+                                                height: size.height * 0.15,
+                                                fit: BoxFit.cover,
+                                                errorWidget:
+                                                    (context, url, error) {
+                                                  return const Icon(
+                                                    Icons.error,
+                                                    size: 30,
+                                                    color: appHomeTextColor,
+                                                  );
+                                                },
+                                                progressIndicatorBuilder:
+                                                    (context, url,
                                                             downloadProgress) =>
                                                         const SpinKitCircle(
                                                             color:
                                                                 appPrimaryColor,
                                                             size: 30),
-                                                  )),
-                                            ),
-                                            verticalSpace(height: 7),
-                                            Flexible(
-                                              child: Text(
-                                                "${p.name}",
-                                                textAlign: TextAlign.left,
-                                                style: MyTextStyle.f14(
-                                                    blackColor,
-                                                    weight: FontWeight.w500),
-                                                maxLines: 2,
-                                              ),
-                                            ),
-                                            verticalSpace(height: 5),
-                                            Flexible(
-                                              child: Text(
-                                                '₹ ${p.basePrice}',
-                                                textAlign: TextAlign.left,
-                                                style: MyTextStyle.f14(
-                                                    blackColor,
-                                                    weight: FontWeight.bold),
-                                                maxLines: 2,
-                                              ),
-                                            ),
-                                            verticalSpace(height: 5),
-                                            quantity == 0
-                                                ? ElevatedButton(
-                                                    onPressed: () {
-                                                      setState(() {
-                                                        //cart[productId] = 1;
-                                                        if (p.hasAddons ==
-                                                            true) {
-                                                          showDialog(
-                                                            context: context,
-                                                            builder: (context) {
-                                                              return Dialog(
-                                                                insetPadding: EdgeInsets
-                                                                    .symmetric(
-                                                                        horizontal:
-                                                                            40,
-                                                                        vertical:
-                                                                            24),
-                                                                shape:
-                                                                    RoundedRectangleBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius
-                                                                          .circular(
-                                                                              8),
-                                                                ),
-                                                                child:
-                                                                    Container(
-                                                                  constraints:
-                                                                      BoxConstraints(
-                                                                    maxWidth:
-                                                                        size.width *
-                                                                            0.4,
-                                                                    maxHeight:
-                                                                        size.height *
-                                                                            0.5,
-                                                                  ),
-                                                                  padding:
-                                                                      EdgeInsets
-                                                                          .all(
-                                                                              16),
-                                                                  child: Column(
-                                                                    crossAxisAlignment:
-                                                                        CrossAxisAlignment
-                                                                            .start,
-                                                                    mainAxisSize:
-                                                                        MainAxisSize
-                                                                            .min,
-                                                                    children: [
-                                                                      ClipRRect(
-                                                                          borderRadius: BorderRadius.circular(
-                                                                              15.0),
-                                                                          child:
-                                                                              CachedNetworkImage(
-                                                                            imageUrl:
-                                                                                p.image!,
-                                                                            width:
-                                                                                size.width * 0.5,
-                                                                            height:
-                                                                                size.height * 0.2,
-                                                                            fit:
-                                                                                BoxFit.cover,
-                                                                            errorWidget: (context,
-                                                                                url,
-                                                                                error) {
-                                                                              return const Icon(
-                                                                                Icons.error,
-                                                                                size: 30,
-                                                                                color: appHomeTextColor,
-                                                                              );
-                                                                            },
-                                                                            progressIndicatorBuilder: (context, url, downloadProgress) =>
-                                                                                const SpinKitCircle(color: appPrimaryColor, size: 30),
-                                                                          )),
-                                                                      SizedBox(
-                                                                          height:
-                                                                              16),
-                                                                      Text(
-                                                                        'Choose Add‑Ons for ${p.name}',
-                                                                        style: MyTextStyle
-                                                                            .f16(
-                                                                          weight:
-                                                                              FontWeight.bold,
-                                                                          blackColor,
-                                                                        ),
-                                                                        textAlign:
-                                                                            TextAlign.left,
-                                                                      ),
-                                                                      SizedBox(
-                                                                          height:
-                                                                              12),
-                                                                      TextField(
-                                                                        decoration:
-                                                                            InputDecoration(
-                                                                          labelText:
-                                                                              'Special instructions',
-                                                                          border:
-                                                                              OutlineInputBorder(),
-                                                                          isDense:
-                                                                              true,
-                                                                        ),
-                                                                      ),
-                                                                      SizedBox(
-                                                                          height:
-                                                                              20),
-                                                                      Row(
-                                                                        mainAxisAlignment:
-                                                                            MainAxisAlignment.end,
-                                                                        children: [
-                                                                          ElevatedButton(
-                                                                            onPressed: () =>
-                                                                                Navigator.of(context).pop(),
-                                                                            style:
-                                                                                ElevatedButton.styleFrom(
-                                                                              backgroundColor: greyColor.shade400,
-                                                                              minimumSize: Size(80, 40),
-                                                                              padding: EdgeInsets.all(20),
-                                                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                                                            ),
-                                                                            child:
-                                                                                Text('Cancel', style: MyTextStyle.f14(blackColor)),
-                                                                          ),
-                                                                          SizedBox(
-                                                                              width: 8),
-                                                                          ElevatedButton(
-                                                                            onPressed:
-                                                                                () {
-                                                                              Navigator.of(context).pop();
-                                                                            },
-                                                                            style:
-                                                                                ElevatedButton.styleFrom(
-                                                                              backgroundColor: Color(0xFF522F1F),
-                                                                              minimumSize: Size(80, 40),
-                                                                              padding: EdgeInsets.all(20),
-                                                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                                                            ),
-                                                                            child:
-                                                                                Text('Add to Bill', style: MyTextStyle.f14(whiteColor)),
-                                                                          ),
-                                                                        ],
-                                                                      ),
-                                                                    ],
-                                                                  ),
-                                                                ),
-                                                              );
-                                                            },
-                                                          );
-                                                        } else {
-                                                          debugPrint(
-                                                              "no addon");
-                                                        }
-                                                      });
-                                                    },
-                                                    style: ElevatedButton
-                                                        .styleFrom(
-                                                      backgroundColor:
-                                                          appPrimaryColor, // Customize your brown color
-                                                      shape:
-                                                          RoundedRectangleBorder(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(20),
-                                                      ),
-                                                      padding: const EdgeInsets
-                                                          .symmetric(
-                                                          horizontal: 20,
-                                                          vertical: 8),
-                                                    ),
-                                                    child: Text(
-                                                        "Add to Billing",
-                                                        style: MyTextStyle.f12(
-                                                            whiteColor,
-                                                            weight: FontWeight
-                                                                .bold)),
-                                                  )
-                                                : Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
-                                                    children: [
-                                                      CircleAvatar(
-                                                        radius: 16,
-                                                        backgroundColor:
-                                                            greyColor200,
-                                                        child: IconButton(
-                                                          icon: const Icon(
-                                                              Icons.remove,
-                                                              size: 16,
-                                                              color:
-                                                                  blackColor),
-                                                          onPressed: () {
-                                                            setState(() {
-                                                              // if (cart[productId]! > 1) {
-                                                              //   cart[productId] = cart[productId]! - 1;
-                                                              // } else {
-                                                              //   cart.remove(productId);
-                                                              // }
-                                                            });
-                                                          },
-                                                        ),
-                                                      ),
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .symmetric(
-                                                                horizontal: 12),
-                                                        child: Text(
-                                                          "1",
-                                                          // '${cart[productId]}',
-                                                          style:
-                                                              MyTextStyle.f16(
-                                                                  blackColor),
-                                                        ),
-                                                      ),
-                                                      CircleAvatar(
-                                                        radius: 16,
-                                                        backgroundColor:
-                                                            appPrimaryColor, // Customize brown color
-                                                        child: IconButton(
-                                                          icon: const Icon(
-                                                              Icons.add,
-                                                              size: 16,
-                                                              color:
-                                                                  whiteColor),
-                                                          onPressed: () {
-                                                            setState(() {
-                                                              //  cart[productId] = cart[productId]! + 1;
-                                                            });
-                                                          },
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  )
-                                          ],
+                                              )),
                                         ),
-                                      ),
-                                    );
-                                  },
-                                ),
+                                        verticalSpace(height: 7),
+                                        Flexible(
+                                          child: Text(
+                                            "${p.name}",
+                                            textAlign: TextAlign.left,
+                                            style: MyTextStyle.f14(blackColor,
+                                                weight: FontWeight.w500),
+                                            maxLines: 2,
+                                          ),
+                                        ),
+                                        verticalSpace(height: 5),
+                                        Flexible(
+                                          child: Text(
+                                            '₹ ${p.basePrice}',
+                                            textAlign: TextAlign.left,
+                                            style: MyTextStyle.f14(blackColor,
+                                                weight: FontWeight.bold),
+                                            maxLines: 2,
+                                          ),
+                                        ),
+                                        verticalSpace(height: 5),
+                                        p.counter == 0
+                                            ? ElevatedButton(
+                                                onPressed: () {
+                                                  setState(() {
+                                                    p.counter = 1;
+                                                    debugPrint(
+                                                        "counter:${p.counter}");
+                                                    if (p.hasAddons == true) {
+                                                      showDialog(
+                                                        context: context,
+                                                        builder: (context2) {
+                                                          return BlocProvider(
+                                                            create: (context) =>
+                                                                DemoBloc(),
+                                                            child: BlocProvider
+                                                                .value(
+                                                              value: BlocProvider.of<
+                                                                      DemoBloc>(
+                                                                  context,
+                                                                  listen:
+                                                                      false),
+                                                              child: StatefulBuilder(
+                                                                  builder: (context,
+                                                                      setState) {
+                                                                return Dialog(
+                                                                  insetPadding: EdgeInsets.symmetric(
+                                                                      horizontal:
+                                                                          40,
+                                                                      vertical:
+                                                                          24),
+                                                                  shape:
+                                                                      RoundedRectangleBorder(
+                                                                    borderRadius:
+                                                                        BorderRadius
+                                                                            .circular(8),
+                                                                  ),
+                                                                  child:
+                                                                      Container(
+                                                                    constraints:
+                                                                        BoxConstraints(
+                                                                      maxWidth:
+                                                                          size.width *
+                                                                              0.4,
+                                                                      maxHeight:
+                                                                          size.height *
+                                                                              0.6,
+                                                                    ),
+                                                                    padding:
+                                                                        EdgeInsets.all(
+                                                                            16),
+                                                                    child:
+                                                                        Column(
+                                                                      crossAxisAlignment:
+                                                                          CrossAxisAlignment
+                                                                              .start,
+                                                                      mainAxisSize:
+                                                                          MainAxisSize
+                                                                              .min,
+                                                                      children: [
+                                                                        ClipRRect(
+                                                                            borderRadius:
+                                                                                BorderRadius.circular(15.0),
+                                                                            child: CachedNetworkImage(
+                                                                              imageUrl: p.image!,
+                                                                              width: size.width * 0.5,
+                                                                              height: size.height * 0.2,
+                                                                              fit: BoxFit.cover,
+                                                                              errorWidget: (context, url, error) {
+                                                                                return const Icon(
+                                                                                  Icons.error,
+                                                                                  size: 30,
+                                                                                  color: appHomeTextColor,
+                                                                                );
+                                                                              },
+                                                                              progressIndicatorBuilder: (context, url, downloadProgress) => const SpinKitCircle(color: appPrimaryColor, size: 30),
+                                                                            )),
+                                                                        SizedBox(
+                                                                            height:
+                                                                                16),
+                                                                        Text(
+                                                                          'Choose Add‑Ons for ${p.name}',
+                                                                          style:
+                                                                              MyTextStyle.f16(
+                                                                            weight:
+                                                                                FontWeight.bold,
+                                                                            blackColor,
+                                                                          ),
+                                                                          textAlign:
+                                                                              TextAlign.left,
+                                                                        ),
+                                                                        SizedBox(
+                                                                            height:
+                                                                                12),
+                                                                        Column(
+                                                                            children: p.addons!
+                                                                                .map((e) => toppingOptionTile(
+                                                                                      title: e.name!,
+                                                                                      subtitle: "Free (1 max)",
+                                                                                      isSelected: isToppingSelected,
+                                                                                      onChanged: (value) {
+                                                                                        setState(() {
+                                                                                          isToppingSelected = value!;
+                                                                                          debugPrint("addonsSelected:$isToppingSelected");
+                                                                                        });
+                                                                                      },
+                                                                                    ))
+                                                                                .toList()),
+                                                                        SizedBox(
+                                                                            height:
+                                                                                20),
+                                                                        Row(
+                                                                          mainAxisAlignment:
+                                                                              MainAxisAlignment.end,
+                                                                          children: [
+                                                                            ElevatedButton(
+                                                                              onPressed: () {
+                                                                                isToppingSelected = false;
+                                                                                Navigator.of(context).pop();
+                                                                              },
+                                                                              style: ElevatedButton.styleFrom(
+                                                                                backgroundColor: greyColor.shade400,
+                                                                                minimumSize: Size(80, 40),
+                                                                                padding: EdgeInsets.all(20),
+                                                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                                                              ),
+                                                                              child: Text('Cancel', style: MyTextStyle.f14(blackColor)),
+                                                                            ),
+                                                                            SizedBox(width: 8),
+                                                                            ElevatedButton(
+                                                                              onPressed: () {
+                                                                                isToppingSelected = false;
+                                                                                Navigator.of(context).pop();
+                                                                              },
+                                                                              style: ElevatedButton.styleFrom(
+                                                                                backgroundColor: Color(0xFF522F1F),
+                                                                                minimumSize: Size(80, 40),
+                                                                                padding: EdgeInsets.all(20),
+                                                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                                                              ),
+                                                                              child: Text('Add to Bill', style: MyTextStyle.f14(whiteColor)),
+                                                                            ),
+                                                                          ],
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              }),
+                                                            ),
+                                                          );
+                                                        },
+                                                      );
+                                                    } else {
+                                                      debugPrint("no addon");
+                                                    }
+                                                  });
+                                                },
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      appPrimaryColor,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            20),
+                                                  ),
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 20,
+                                                      vertical: 8),
+                                                ),
+                                                child: Text("Add to Billing",
+                                                    style: MyTextStyle.f12(
+                                                        whiteColor,
+                                                        weight:
+                                                            FontWeight.bold)),
+                                              )
+                                            : Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  CircleAvatar(
+                                                    radius: 16,
+                                                    backgroundColor:
+                                                        greyColor200,
+                                                    child: IconButton(
+                                                      icon: const Icon(
+                                                          Icons.remove,
+                                                          size: 16,
+                                                          color: blackColor),
+                                                      onPressed: () {
+                                                        setState(() {
+                                                          if (p.counter > 1) {
+                                                            p.counter--;
+                                                            debugPrint(
+                                                                "counteDecre:${p.counter}");
+                                                          } else {
+                                                            p.counter = 0;
+                                                            debugPrint(
+                                                                "counteDecre:${p.counter}");
+                                                          }
+                                                        });
+                                                      },
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 12),
+                                                    child: Text(
+                                                      "${p.counter}",
+                                                      style: MyTextStyle.f16(
+                                                          blackColor),
+                                                    ),
+                                                  ),
+                                                  CircleAvatar(
+                                                    radius: 16,
+                                                    backgroundColor:
+                                                        appPrimaryColor, // Customize brown color
+                                                    child: IconButton(
+                                                      icon: const Icon(
+                                                          Icons.add,
+                                                          size: 16,
+                                                          color: whiteColor),
+                                                      onPressed: () {
+                                                        setState(() {
+                                                          p.counter++;
+                                                          debugPrint(
+                                                              "counterIncre:${p.counter}");
+                                                        });
+                                                      },
+                                                    ),
+                                                  ),
+                                                ],
+                                              )
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                     )
                   ],
                 );

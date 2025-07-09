@@ -77,7 +77,9 @@ class GetProductByCatIdModel {
 /// addons : [{"_id":"685d048f11d74caf4073f8d6","name":"Cream powder","maxQuantity":1,"price":20,"isAvailable":true,"isFree":false,"products":["685579649330a7ce88e92838","685b7f8f8753e2ece10465df","685b7fa98753e2ece10465e7"]}]
 
 class Rows {
+  int counter;
   Rows({
+    this.counter = 0,
     String? id,
     String? name,
     Category? category,
@@ -105,7 +107,7 @@ class Rows {
     _addons = addons;
   }
 
-  Rows.fromJson(dynamic json) {
+  Rows.fromJson(dynamic json) : counter = 0 {
     _id = json['_id'];
     _name = json['name'];
     _category =
@@ -182,6 +184,7 @@ class Rows {
     final map = <String, dynamic>{};
     map['_id'] = _id;
     map['name'] = _name;
+    map['counter'] = counter;
     if (_category != null) {
       map['category'] = _category?.toJson();
     }

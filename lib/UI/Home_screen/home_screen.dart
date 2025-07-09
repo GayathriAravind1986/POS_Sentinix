@@ -29,8 +29,6 @@ class FoodOrderingScreenView extends StatefulWidget {
 }
 
 class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
-
-
   @override
   void initState() {
     super.initState();
