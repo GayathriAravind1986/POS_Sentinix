@@ -55,7 +55,7 @@ class CartSummaryViewState extends State<CartSummaryView> {
 
     Widget mainContainer() {
       return Container(
-        padding: EdgeInsets.all(10),
+        padding: EdgeInsets.only(left: 10, right: 10),
         height: double.infinity,
         decoration: BoxDecoration(
           color: whiteColor,
@@ -97,7 +97,7 @@ class CartSummaryViewState extends State<CartSummaryView> {
                 const Spacer(),
                 Text(
                   "Bills",
-                  style: MyTextStyle.f20(blackColor, weight: FontWeight.bold),
+                  style: MyTextStyle.f16(blackColor, weight: FontWeight.bold),
                 ),
                 IconButton(
                   onPressed: () {},
@@ -110,19 +110,48 @@ class CartSummaryViewState extends State<CartSummaryView> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.asset('assets/image/almond.jpg',
-                      width: 10, height: 10),
+                  child: Image.asset(
+                    'assets/image/sentinix_logo.png',
+                    width: 50,
+                    height: 50,
+                  ),
                 ),
-                SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Veg Burger",
+                        style: MyTextStyle.f12(blackColor,
+                            weight: FontWeight.bold)),
+                    Text("x 1"),
+                  ],
+                ),
+                Flexible(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      IconButton(
+                          onPressed: () {},
+                          icon: Icon(Icons.remove_circle_outline)),
+                      Text("1"),
+                      IconButton(
+                          onPressed: () {},
+                          icon: Icon(Icons.add_circle_outline)),
+                      IconButton(
+                          onPressed: () {},
+                          icon: Icon(Icons.delete, color: Colors.red)),
+                    ],
+                  ),
+                )
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
                 Expanded(
+                  flex: 1,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Veg Burger",
-                          style: MyTextStyle.f12(blackColor,
-                              weight: FontWeight.bold)),
-                      Text("x 1"),
-                      SizedBox(height: 4),
                       Text("Base Price   ₹ 59.32"),
                       Text("SGST (9%)   ₹ 5.34"),
                       Text("CGST (9%)   ₹ 5.34"),
@@ -132,19 +161,6 @@ class CartSummaryViewState extends State<CartSummaryView> {
                     ],
                   ),
                 ),
-                Row(
-                  children: [
-                    IconButton(
-                        onPressed: () {},
-                        icon: Icon(Icons.remove_circle_outline)),
-                    Text("1"),
-                    IconButton(
-                        onPressed: () {}, icon: Icon(Icons.add_circle_outline)),
-                    IconButton(
-                        onPressed: () {},
-                        icon: Icon(Icons.delete, color: Colors.red)),
-                  ],
-                )
               ],
             ),
             Divider(),

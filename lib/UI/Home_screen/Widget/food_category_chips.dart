@@ -39,7 +39,7 @@ class CategoryChipsView extends StatefulWidget {
 class CategoryChipsViewState extends State<CategoryChipsView> {
   TextEditingController searchController = TextEditingController();
   String selectedCategory = "All";
-  String? selectedCatId;
+  String? selectedCatId = "";
   GetCategoryModel getCategoryModel = GetCategoryModel();
   GetProductByCatIdModel getProductByCatIdModel = GetProductByCatIdModel();
   String? errorMessage;
@@ -49,7 +49,9 @@ class CategoryChipsViewState extends State<CategoryChipsView> {
   void initState() {
     super.initState();
     context.read<FoodCategoryBloc>().add(FoodCategory());
-    // context.read<FoodCategoryBloc>().add(FoodProductItem(""));
+    context
+        .read<FoodCategoryBloc>()
+        .add(FoodProductItem(selectedCatId.toString(), searchController.text));
     categoryLoad = true;
   }
 
@@ -64,7 +66,7 @@ class CategoryChipsViewState extends State<CategoryChipsView> {
 
     Widget mainContainer() {
       final List<Category> displayedCategories = [
-        Category(name: 'All', image: 'assets/images/all_icon.png', id: null),
+        Category(name: 'All', image: 'assets/image/all.png', id: ""),
         ...(getCategoryModel.data ?? []).map((data) => Category(
               id: data.id,
               name: data.name,
@@ -103,11 +105,6 @@ class CategoryChipsViewState extends State<CategoryChipsView> {
                                     borderRadius: BorderRadius.circular(30)),
                               ),
                               onChanged: (value) {
-                                debugPrint("searchKey:$value");
-                                debugPrint(
-                                    "selectedCatIdSearch:$selectedCatId");
-                                debugPrint(
-                                    "selectedCatNameSearch:$selectedCategory");
                                 context.read<FoodCategoryBloc>().add(
                                       FoodProductItem(
                                           selectedCatId.toString(), value),
@@ -128,7 +125,7 @@ class CategoryChipsViewState extends State<CategoryChipsView> {
                         itemBuilder: (context, index) {
                           final category = displayedCategories[index];
                           final isSelected = category.name == selectedCategory;
-                          debugPrint("isSeleted:$isSelected");
+                          debugPrint("image:${category.image}");
                           return CategoryCard(
                             label: category.name!,
                             imagePath: category.image!,
@@ -137,19 +134,17 @@ class CategoryChipsViewState extends State<CategoryChipsView> {
                               setState(() {
                                 selectedCategory = category.name!;
                                 selectedCatId = category.id;
-                                // if (selectedCategory == 'All') {
-                                //   context
-                                //       .read<FoodCategoryBloc>()
-                                //       .add(FoodProductItem('all'));
-                                // } else {
-                                context.read<FoodCategoryBloc>().add(
+                                if (selectedCategory == 'All') {
+                                  context.read<FoodCategoryBloc>().add(
                                       FoodProductItem(selectedCatId.toString(),
-                                          searchController.text),
-                                    );
-                                // }
-                                debugPrint("onClick");
-                                debugPrint("selectedCatId:$selectedCatId");
-                                debugPrint("selectedCatName:$selectedCategory");
+                                          searchController.text));
+                                } else {
+                                  context.read<FoodCategoryBloc>().add(
+                                        FoodProductItem(
+                                            selectedCatId.toString(),
+                                            searchController.text),
+                                      );
+                                }
                               });
                             },
                           );
@@ -333,7 +328,6 @@ class CategoryChipsViewState extends State<CategoryChipsView> {
                                                                                       onChanged: (value) {
                                                                                         setState(() {
                                                                                           isToppingSelected = value!;
-                                                                                          debugPrint("addonsSelected:$isToppingSelected");
                                                                                         });
                                                                                       },
                                                                                     ))
@@ -365,7 +359,7 @@ class CategoryChipsViewState extends State<CategoryChipsView> {
                                                                                 Navigator.of(context).pop();
                                                                               },
                                                                               style: ElevatedButton.styleFrom(
-                                                                                backgroundColor: Color(0xFF522F1F),
+                                                                                backgroundColor: appPrimaryColor,
                                                                                 minimumSize: Size(80, 40),
                                                                                 padding: EdgeInsets.all(20),
                                                                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

@@ -28,11 +28,8 @@ class ApiProvider {
   ) async {
     try {
       final dataMap = {"email": email, "password": password};
-
-      debugPrint(json.encode(dataMap));
       var data = json.encode(dataMap);
       var dio = Dio();
-
       var response = await dio.request(
         '${Constants.baseUrl}auth/users/login'.trim(),
         options: Options(
@@ -43,12 +40,8 @@ class ApiProvider {
         ),
         data: data,
       );
-      debugPrint("API baseUrl: ${Constants.baseUrl}auth/users/login");
-      debugPrint("API statuscode: ${response.statusCode}");
-
       if (response.statusCode == 200 && response.data != null) {
         if (response.data['success'] == true) {
-          debugPrint("API Response: ${json.encode(response.data)}");
           PostLoginModel postLoginResponse =
               PostLoginModel.fromJson(response.data);
           SharedPreferences sharedPreferences =
@@ -63,17 +56,13 @@ class ApiProvider {
       return PostLoginModel()
         ..errorResponse = ErrorResponse(message: "Unexpected error occurred.");
     } on DioException catch (dioError) {
-      debugPrint("DioError: ${dioError.response?.statusCode}");
       if (dioError.response?.statusCode == 401) {
-        // Unauthorized - handle token issues or login failure
         return PostLoginModel()
           ..errorResponse = ErrorResponse(message: "Invalid email or password");
       } else {
-        return PostLoginModel()
-          ..errorResponse = handleError(dioError); // Your custom error handling
+        return PostLoginModel()..errorResponse = handleError(dioError);
       }
     } catch (error) {
-      debugPrint("ErrorCatch: $error");
       return PostLoginModel()..errorResponse = handleError(error);
     }
   }
@@ -82,7 +71,6 @@ class ApiProvider {
   Future<GetCategoryModel> getCategoryAPI() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var token = sharedPreferences.getString("token");
-    debugPrint("token:$token");
     try {
       var dio = Dio();
       var response = await dio.request(
@@ -94,11 +82,8 @@ class ApiProvider {
           },
         ),
       );
-      debugPrint("API statuscode: ${response.statusCode}");
-
       if (response.statusCode == 200 && response.data != null) {
         if (response.data['success'] == true) {
-          debugPrint("API Response: ${json.encode(response.data)}");
           GetCategoryModel getCategoryResponse =
               GetCategoryModel.fromJson(response.data);
           return getCategoryResponse;
@@ -111,8 +96,14 @@ class ApiProvider {
       }
       return GetCategoryModel()
         ..errorResponse = ErrorResponse(message: "Unexpected error occurred.");
+    } on DioException catch (dioError) {
+      if (dioError.response?.statusCode == 401) {
+        return GetCategoryModel()
+          ..errorResponse = ErrorResponse(message: "Invalid Credential");
+      } else {
+        return GetCategoryModel()..errorResponse = handleError(dioError);
+      }
     } catch (error) {
-      debugPrint("ErrorCatch: $error");
       return GetCategoryModel()..errorResponse = handleError(error);
     }
   }
@@ -122,7 +113,6 @@ class ApiProvider {
       String? catId, String? searchKey) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var token = sharedPreferences.getString("token");
-    debugPrint("token:$token");
     try {
       var dio = Dio();
       var response = await dio.request(
@@ -134,11 +124,8 @@ class ApiProvider {
           },
         ),
       );
-      debugPrint("API statuscode: ${response.statusCode}");
-
       if (response.statusCode == 200 && response.data != null) {
         if (response.data['success'] == true) {
-          debugPrint("API Response: ${json.encode(response.data)}");
           GetProductByCatIdModel getProductByCatIdResponse =
               GetProductByCatIdModel.fromJson(response.data);
           return getProductByCatIdResponse;
@@ -151,8 +138,14 @@ class ApiProvider {
       }
       return GetProductByCatIdModel()
         ..errorResponse = ErrorResponse(message: "Unexpected error occurred.");
+    } on DioException catch (dioError) {
+      if (dioError.response?.statusCode == 401) {
+        return GetProductByCatIdModel()
+          ..errorResponse = ErrorResponse(message: "Invalid Credential");
+      } else {
+        return GetProductByCatIdModel()..errorResponse = handleError(dioError);
+      }
     } catch (error) {
-      debugPrint("ErrorCatch: $error");
       return GetProductByCatIdModel()..errorResponse = handleError(error);
     }
   }
