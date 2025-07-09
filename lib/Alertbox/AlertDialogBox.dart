@@ -131,7 +131,7 @@ class CustomNavigate {
         message,
         style: MediaQuery.of(context).size.width < 650
             ? MyTextStyle.f16(whiteColor, weight: FontWeight.w400)
-            : MyTextStyle.f22(whiteColor, weight: FontWeight.w400),
+            : MyTextStyle.f20(whiteColor, weight: FontWeight.w400),
       ),
       background: color ? greenColor : redColor,
       position: NotificationPosition.top,

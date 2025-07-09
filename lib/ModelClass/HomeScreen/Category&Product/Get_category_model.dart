@@ -1,3 +1,5 @@
+import 'package:simple/Bloc/Response/errorResponse.dart';
+
 /// success : true
 /// data : [{"id":"685b7f628753e2ece10465be","name":"Juice","isAvailable":true,"image":"https://res.cloudinary.com/dm6wrm7vf/image/upload/v1750826850/categories/ananghrlrx4igveboime.webp","createdBy":"Saranya","createdAt":"2025-06-25","updatedAt":"2025-06-25T04:47:30.233Z","statusText":"Available","productCount":5},{"id":"6855420d400f8fb4c8c8c7f2","name":"Ice Creams","isAvailable":true,"image":"https://res.cloudinary.com/dm6wrm7vf/image/upload/v1750925043/categories/rkck9gp0mt6xczzrj1ot.webp","createdBy":"Saranya","createdAt":"2025-06-20","updatedAt":"2025-06-26T08:04:22.256Z","statusText":"Available","productCount":2},{"id":"685541db400f8fb4c8c8c7ee","name":"Cakes","isAvailable":true,"image":"https://res.cloudinary.com/dm6wrm7vf/image/upload/v1750826817/categories/grxwq0v6cxzaqi4kp2up.jpg","createdBy":"Saranya","createdAt":"2025-06-20","updatedAt":"2025-06-25T04:46:57.879Z","statusText":"Available","productCount":3}]
 /// totalCount : 3
@@ -7,6 +9,7 @@ class GetCategoryModel {
     bool? success,
     List<Data>? data,
     num? totalCount,
+    ErrorResponse? errorResponse,
   }) {
     _success = success;
     _data = data;
@@ -22,10 +25,16 @@ class GetCategoryModel {
       });
     }
     _totalCount = json['totalCount'];
+    if (json['errors'] != null && json['errors'] is Map<String, dynamic>) {
+      errorResponse = ErrorResponse.fromJson(json['errors']);
+    } else {
+      errorResponse = null;
+    }
   }
   bool? _success;
   List<Data>? _data;
   num? _totalCount;
+  ErrorResponse? errorResponse;
   GetCategoryModel copyWith({
     bool? success,
     List<Data>? data,
@@ -47,6 +56,9 @@ class GetCategoryModel {
       map['data'] = _data?.map((v) => v.toJson()).toList();
     }
     map['totalCount'] = _totalCount;
+    if (errorResponse != null) {
+      map['errors'] = errorResponse!.toJson();
+    }
     return map;
   }
 }

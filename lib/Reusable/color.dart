@@ -18,6 +18,7 @@ const orangeColor = Colors.orange;
 const blackColor = Colors.black;
 const blackColor12 = Colors.black12;
 const blueColor = Colors.blue;
+const blueGreyColor = Colors.blueGrey;
 const whiteColor = Colors.white;
 const redColor = Colors.red;
 const greyColor = Colors.grey;
