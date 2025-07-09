@@ -37,6 +37,8 @@ class CartSummaryView extends StatefulWidget {
 class CartSummaryViewState extends State<CartSummaryView> {
   // PostLoginModel postLoginModel = PostLoginModel();
   late final PrinterService printer;
+ bool isSplitPayment = false;
+
 
   @override
   void initState() {
@@ -166,32 +168,159 @@ class CartSummaryViewState extends State<CartSummaryView> {
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
             ]),
             SizedBox(height: 12),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                          color: Color(0xFF522F1F),
-                          borderRadius: BorderRadius.circular(30)),
-                      child: Center(
-                        child: Text("Full Payment",
-                            style: TextStyle(color: Colors.white)),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              isSplitPayment = false;
+                            });
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            decoration: BoxDecoration(
+                              color: isSplitPayment ? Colors.grey.shade200 : Color(0xFF522F1F),
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: Center(
+                              child: Text(
+                                "Full Payment",
+                                style: TextStyle(
+                                  color: isSplitPayment ? Colors.black : Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              isSplitPayment = true;
+                            });
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            decoration: BoxDecoration(
+                              color: isSplitPayment ? Color(0xFF522F1F) : Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: Center(
+                              child: Text(
+                                "Split Payment",
+                                style: TextStyle(
+                                  color: isSplitPayment ? Colors.white : Colors.black,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                isSplitPayment
+                    ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 20,),
+                    Text("Split Payment",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20),),
+                    SizedBox(height: 20,),
+                    Row(
+                      children: [
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: DropdownButtonFormField<String>(
+                            decoration: InputDecoration(
+                              labelText: "Select ",
+                              labelStyle: TextStyle(
+                                color: Colors.grey.shade700,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: Color(0xFF522F1F), width: 1.5),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: Color(0xFF522F1F), width: 2),
+                              ),
+                            ),
+                            dropdownColor: Colors.white,
+                            icon: Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF522F1F)),
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            items: const [
+                              DropdownMenuItem(value: "Cash", child: Text("Cash")),
+                              DropdownMenuItem(value: "Card", child: Text("Card")),
+                              DropdownMenuItem(value: "UPI", child: Text("UPI")),
+                            ],
+                            onChanged: (value) {
+                              // handle change
+                            },
+                          )
+                        ),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: TextField(
+                            decoration: InputDecoration(
+                              hintText: " ₹ Amount",
+                              filled: true,
+                              fillColor: Colors.white,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: Color(0xFF522F1F), width: 1.5),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: Color(0xFF522F1F), width: 2),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      ],
+                    ),
+                    SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "+ Add Another Payment",
+                        style: TextStyle(
+                          decoration: TextDecoration.underline,
+                          decorationColor: Colors.blue,
+                          color: Colors.blue,
+                        ),
                       ),
                     ),
-                  ),
-                  Expanded(
-                    child: Center(child: Text("Split Payment")),
-                  )
-                ],
-              ),
-            ),
-            SizedBox(height: 12),
+                    SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("Total Split:",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
+                        Text("₹0.00",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
+                      ],
+                    ),
+                  ],
+                )
+                    : Container(),
+
+
+                SizedBox(height: 12),
             Text("Payment Method",
                 style: TextStyle(fontWeight: FontWeight.bold)),
             SingleChildScrollView(

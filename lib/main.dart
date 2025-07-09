@@ -8,6 +8,8 @@ import 'package:simple/Reusable/color.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:simple/UI/Cart/food_add_cart.dart';
 import 'package:simple/UI/Home_screen/Widget/food_category_chips.dart';
+import 'package:simple/UI/Home_screen/Widget/mocking_test.dart';
+import 'package:simple/UI/Home_screen/Widget/split_payment_mockingtest.dart';
 import 'package:simple/UI/Home_screen/home_screen.dart';
 import 'package:simple/UI/SplashScreen/splash_screen.dart';
 
@@ -72,7 +74,7 @@ class _MyAppState extends State<MyApp> {
               ),
             );
           },
-          home: const FoodOrderingScreen()
+          home: const SplashScreen()
         ),
       );
     });
