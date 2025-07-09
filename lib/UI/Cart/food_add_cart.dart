@@ -1,13 +1,14 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:simple/Bloc/demo/demo_bloc.dart';
 import 'package:simple/Reusable/color.dart';
 import 'package:simple/UI/Cart/Widget/payment_option.dart';
+import 'package:simple/UI/Payment/Razorpay_QR_Scanner.dart';
 // import 'package:imin_printer/imin_printer.dart';
 // import 'package:imin_printer/enums.dart';
 // import 'package:imin_printer/imin_style.dart';
 import 'package:simple/services/printer_service.dart';
 import 'package:simple/services/mock_printer_service.dart';
+import 'package:flutter/material.dart';
 
 
 
@@ -37,7 +38,9 @@ class CartSummaryView extends StatefulWidget {
 class CartSummaryViewState extends State<CartSummaryView> {
   // PostLoginModel postLoginModel = PostLoginModel();
   late final PrinterService printer;
- bool isSplitPayment = false;
+  bool isSplitPayment = false;
+  bool isUpiSelected = false;
+
 
 
   @override
@@ -74,7 +77,7 @@ class CartSummaryViewState extends State<CartSummaryView> {
         ),
         child: SingleChildScrollView(
           child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(
               children: [
                 Expanded(
@@ -168,159 +171,159 @@ class CartSummaryViewState extends State<CartSummaryView> {
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
             ]),
             SizedBox(height: 12),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              isSplitPayment = false;
-                            });
-                          },
-                          child: Container(
-                            padding: EdgeInsets.symmetric(vertical: 8),
-                            decoration: BoxDecoration(
-                              color: isSplitPayment ? Colors.grey.shade200 : Color(0xFF522F1F),
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            child: Center(
-                              child: Text(
-                                "Full Payment",
-                                style: TextStyle(
-                                  color: isSplitPayment ? Colors.black : Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          isSplitPayment = false;
+                        });
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        decoration: BoxDecoration(
+                          color: isSplitPayment ? Colors.grey.shade200 : Color(0xFF522F1F),
+                          borderRadius: BorderRadius.circular(30),
                         ),
-                      ),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              isSplitPayment = true;
-                            });
-                          },
-                          child: Container(
-                            padding: EdgeInsets.symmetric(vertical: 8),
-                            decoration: BoxDecoration(
-                              color: isSplitPayment ? Color(0xFF522F1F) : Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            child: Center(
-                              child: Text(
-                                "Split Payment",
-                                style: TextStyle(
-                                  color: isSplitPayment ? Colors.white : Colors.black,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                isSplitPayment
-                    ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: 20,),
-                    Text("Split Payment",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20),),
-                    SizedBox(height: 20,),
-                    Row(
-                      children: [
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: DropdownButtonFormField<String>(
-                            decoration: InputDecoration(
-                              labelText: "Select ",
-                              labelStyle: TextStyle(
-                                color: Colors.grey.shade700,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              filled: true,
-                              fillColor: Colors.white,
-                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: Color(0xFF522F1F), width: 1.5),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: Color(0xFF522F1F), width: 2),
-                              ),
-                            ),
-                            dropdownColor: Colors.white,
-                            icon: Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF522F1F)),
+                        child: Center(
+                          child: Text(
+                            "Full Payment",
                             style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.black,
+                              color: isSplitPayment ? Colors.black : Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          isSplitPayment = true;
+                        });
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        decoration: BoxDecoration(
+                          color: isSplitPayment ? Color(0xFF522F1F) : Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Center(
+                          child: Text(
+                            "Split Payment",
+                            style: TextStyle(
+                              color: isSplitPayment ? Colors.white : Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            isSplitPayment
+                ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 20,),
+                Text("Split Payment",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20),),
+                SizedBox(height: 20,),
+                Row(
+                  children: [
+                    SizedBox(width: 12),
+                    Expanded(
+                        child: DropdownButtonFormField<String>(
+                          decoration: InputDecoration(
+                            labelText: "Select ",
+                            labelStyle: TextStyle(
+                              color: Colors.grey.shade700,
                               fontWeight: FontWeight.w500,
                             ),
-                            items: const [
-                              DropdownMenuItem(value: "Cash", child: Text("Cash")),
-                              DropdownMenuItem(value: "Card", child: Text("Card")),
-                              DropdownMenuItem(value: "UPI", child: Text("UPI")),
-                            ],
-                            onChanged: (value) {
-                              // handle change
-                            },
-                          )
-                        ),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: TextField(
-                            decoration: InputDecoration(
-                              hintText: " ₹ Amount",
-                              filled: true,
-                              fillColor: Colors.white,
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: Color(0xFF522F1F), width: 1.5),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: Color(0xFF522F1F), width: 2),
-                              ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Color(0xFF522F1F), width: 1.5),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Color(0xFF522F1F), width: 2),
                             ),
                           ),
-                        ),
-
-                      ],
+                          dropdownColor: Colors.white,
+                          icon: Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF522F1F)),
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.black,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          items: const [
+                            DropdownMenuItem(value: "Cash", child: Text("Cash")),
+                            DropdownMenuItem(value: "Card", child: Text("Card")),
+                            DropdownMenuItem(value: "UPI", child: Text("UPI")),
+                          ],
+                          onChanged: (value) {
+                            // handle change
+                          },
+                        )
                     ),
-                    SizedBox(height: 12),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "+ Add Another Payment",
-                        style: TextStyle(
-                          decoration: TextDecoration.underline,
-                          decorationColor: Colors.blue,
-                          color: Colors.blue,
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: " ₹ Amount",
+                          filled: true,
+                          fillColor: Colors.white,
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Color(0xFF522F1F), width: 1.5),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Color(0xFF522F1F), width: 2),
+                          ),
                         ),
                       ),
                     ),
-                    SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("Total Split:",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
-                        Text("₹0.00",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
-                      ],
-                    ),
+
                   ],
-                )
-                    : Container(),
-
-
+                ),
                 SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "+ Add Another Payment",
+                    style: TextStyle(
+                      decoration: TextDecoration.underline,
+                      decorationColor: Colors.blue,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Total Split:",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
+                    Text("₹0.00",style: TextStyle(fontSize: 17,fontWeight: FontWeight.bold),),
+                  ],
+                ),
+              ],
+            )
+                : Container(),
+
+
+            SizedBox(height: 12),
             Text("Payment Method",
                 style: TextStyle(fontWeight: FontWeight.bold)),
             SingleChildScrollView(
@@ -334,7 +337,22 @@ class CartSummaryViewState extends State<CartSummaryView> {
                   PaymentOption(
                       icon: Icons.credit_card, label: "Card", selected: false),
                   PaymentOption(
-                      icon: Icons.qr_code, label: "UPI", selected: false),
+                    icon: Icons.qr_code,
+                    label: "UPI",
+                    selected: isUpiSelected,
+                    onTap: () {
+                      setState(() => isUpiSelected = true);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => RazorpayQRScreen(
+                            paymentUrl: "http://rzp.io/l6MS",
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
                 ],
               ),
             ),
@@ -343,43 +361,43 @@ class CartSummaryViewState extends State<CartSummaryView> {
               decoration: InputDecoration(
                 hintText: "Enter amount paid (₹)",
                 border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                 suffixIcon: Icon(Icons.arrow_drop_down),
               ),
             ),
             SizedBox(height: 12),
 
-      ElevatedButton(
-                  onPressed: () async {
-                    print(' Button tapped');
-                    try {
-                      await printer.init();
-                      await printer.setAlignment("center"); // For mock, just a string
-                      await printer.printText("🍽️ HOTEL XYZ\n");
-                      await printer.setAlignment("left");
-                      await printer.printText("Item: Veg Burger x1\n");
-                      await printer.printText("Price: ₹59.32\n");
-                      await printer.printAndLineFeed();
-                      await printer.cut();
-                    } catch (e) {
-                      print("[MOCK] Print failed: $e");
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF522F1F),
-                    minimumSize: Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  child: Text(
-                    "Print Bills",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                )
+            ElevatedButton(
+              onPressed: () async {
+                print(' Button tapped');
+                try {
+                  await printer.init();
+                  await printer.setAlignment("center"); // For mock, just a string
+                  await printer.printText("🍽️ HOTEL XYZ\n");
+                  await printer.setAlignment("left");
+                  await printer.printText("Item: Veg Burger x1\n");
+                  await printer.printText("Price: ₹59.32\n");
+                  await printer.printAndLineFeed();
+                  await printer.cut();
+                } catch (e) {
+                  print("[MOCK] Print failed: $e");
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF522F1F),
+                minimumSize: Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              child: Text(
+                "Print Bills",
+                style: TextStyle(color: Colors.white),
+              ),
+            )
 
 
-              ]),
+          ]),
         ),
       );
     }

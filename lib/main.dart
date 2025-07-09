@@ -11,6 +11,7 @@ import 'package:simple/UI/Home_screen/Widget/food_category_chips.dart';
 import 'package:simple/UI/Home_screen/Widget/mocking_test.dart';
 import 'package:simple/UI/Home_screen/Widget/split_payment_mockingtest.dart';
 import 'package:simple/UI/Home_screen/home_screen.dart';
+import 'package:simple/UI/Payment/Razorpay_QR_Scanner.dart';
 import 'package:simple/UI/SplashScreen/splash_screen.dart';
 
 //final Cart cart = Cart();
@@ -74,7 +75,7 @@ class _MyAppState extends State<MyApp> {
               ),
             );
           },
-          home: const SplashScreen()
+          home: const FoodOrderingScreen()
         ),
       );
     });
