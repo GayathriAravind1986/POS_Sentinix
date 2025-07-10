@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple/Bloc/Response/errorResponse.dart';
 import 'package:simple/ModelClass/Authentication/Post_login_model.dart';
+import 'package:simple/ModelClass/Cart/Post_Add_to_billing_model.dart';
 import 'package:simple/ModelClass/HomeScreen/Category&Product/Get_category_model.dart';
 import 'package:simple/ModelClass/HomeScreen/Category&Product/Get_product_by_catId_model.dart';
 import 'package:simple/Reusable/constant.dart';
@@ -147,6 +148,56 @@ class ApiProvider {
       }
     } catch (error) {
       return GetProductByCatIdModel()..errorResponse = handleError(error);
+    }
+  }
+
+  /// Add to Billing - Post API Integration
+  Future<PostAddToBillingModel> postAddToBillingAPI(
+      List<Map<String, dynamic>> billingItems) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var token = sharedPreferences.getString("token");
+    try {
+      final dataMap = {"items": billingItems};
+      var data = json.encode(dataMap);
+      debugPrint("data:$data");
+      var dio = Dio();
+      var response = await dio.request(
+        '${Constants.baseUrl}api/generate-order/billing/calculate',
+        options: Options(
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        ),
+        data: data,
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        try {
+          PostAddToBillingModel postAddToBillingResponse =
+          PostAddToBillingModel.fromJson(response.data);
+          return postAddToBillingResponse;
+        } catch (e) {
+          return PostAddToBillingModel()
+            ..errorResponse = ErrorResponse(
+              message: "Failed to parse response: $e",
+            );
+        }
+      } else {
+        return PostAddToBillingModel()
+          ..errorResponse = ErrorResponse(
+              message: "Unexpected error occurred.");
+      }
+
+    } on DioException catch (dioError) {
+      if (dioError.response?.statusCode == 401) {
+        return PostAddToBillingModel()
+          ..errorResponse = ErrorResponse(message: "Invalid Credential");
+      } else {
+        return PostAddToBillingModel()..errorResponse = handleError(dioError);
+      }
+    } catch (error) {
+      return PostAddToBillingModel()..errorResponse = handleError(error);
     }
   }
 

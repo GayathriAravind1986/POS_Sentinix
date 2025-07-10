@@ -220,6 +220,7 @@ class Addons {
     bool? isAvailable,
     bool? isFree,
     List<String>? products,
+    this.isSelected = false,
   }) {
     _id = id;
     _name = name;
@@ -230,7 +231,7 @@ class Addons {
     _products = products;
   }
 
-  Addons.fromJson(dynamic json) {
+  Addons.fromJson(dynamic json) : isSelected = false {
     _id = json['_id'];
     _name = json['name'];
     _maxQuantity = json['maxQuantity'];
@@ -246,6 +247,7 @@ class Addons {
   bool? _isAvailable;
   bool? _isFree;
   List<String>? _products;
+  bool isSelected;
   Addons copyWith({
     String? id,
     String? name,
@@ -254,16 +256,17 @@ class Addons {
     bool? isAvailable,
     bool? isFree,
     List<String>? products,
+    bool? isSelected,
   }) =>
       Addons(
-        id: id ?? _id,
-        name: name ?? _name,
-        maxQuantity: maxQuantity ?? _maxQuantity,
-        price: price ?? _price,
-        isAvailable: isAvailable ?? _isAvailable,
-        isFree: isFree ?? _isFree,
-        products: products ?? _products,
-      );
+          id: id ?? _id,
+          name: name ?? _name,
+          maxQuantity: maxQuantity ?? _maxQuantity,
+          price: price ?? _price,
+          isAvailable: isAvailable ?? _isAvailable,
+          isFree: isFree ?? _isFree,
+          products: products ?? _products,
+          isSelected: isSelected ?? this.isSelected);
   String? get id => _id;
   String? get name => _name;
   num? get maxQuantity => _maxQuantity;

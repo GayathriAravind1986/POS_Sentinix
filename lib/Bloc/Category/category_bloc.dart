@@ -8,7 +8,12 @@ class FoodCategory extends FoodCategoryEvent {}
 class FoodProductItem extends FoodCategoryEvent {
   String catId;
   String searchKey;
-  FoodProductItem(this.catId,this.searchKey);
+  FoodProductItem(this.catId, this.searchKey);
+}
+
+class AddToBilling extends FoodCategoryEvent {
+  List<Map<String, dynamic>> billingItems;
+  AddToBilling(this.billingItems);
 }
 
 class FoodCategoryBloc extends Bloc<FoodCategoryEvent, dynamic> {
@@ -21,7 +26,16 @@ class FoodCategoryBloc extends Bloc<FoodCategoryEvent, dynamic> {
       });
     });
     on<FoodProductItem>((event, emit) async {
-      await ApiProvider().getProductItemAPI(event.catId,event.searchKey).then((value) {
+      await ApiProvider()
+          .getProductItemAPI(event.catId, event.searchKey)
+          .then((value) {
+        emit(value);
+      }).catchError((error) {
+        emit(error);
+      });
+    });
+    on<AddToBilling>((event, emit) async {
+      await ApiProvider().postAddToBillingAPI(event.billingItems).then((value) {
         emit(value);
       }).catchError((error) {
         emit(error);
