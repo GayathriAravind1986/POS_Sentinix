@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:simple/Bloc/demo/demo_bloc.dart';
+import 'package:simple/ModelClass/payment_split/split.dart';
 import 'package:simple/Reusable/color.dart';
 import 'package:simple/Reusable/text_styles.dart';
 import 'package:simple/UI/Cart/Widget/payment_option.dart';
@@ -37,6 +39,9 @@ class CartSummaryViewState extends State<CartSummaryView> {
   // PostLoginModel postLoginModel = PostLoginModel();
   late final PrinterService printer;
   bool isSplitPayment = false;
+  bool isDineIn = true;
+  String selectedFullPaymentMethod = "Cash";
+
 
   @override
   void initState() {
@@ -71,26 +76,56 @@ class CartSummaryViewState extends State<CartSummaryView> {
         ),
         child: SingleChildScrollView(
           child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(
               children: [
                 Expanded(
-                  child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    decoration: BoxDecoration(
-                        color: appPrimaryColor,
-                        borderRadius: BorderRadius.circular(30)),
-                    child: Center(
-                      child:
-                          Text("Dine In", style: MyTextStyle.f12(whiteColor)),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        isDineIn = true;
+                      });
+                    },
+                    child: Container(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isDineIn ? appPrimaryColor : greyColor200,
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: Center(
+                        child: Text(
+                          "Dine In",
+                          style: MyTextStyle.f12(isDineIn ? whiteColor : blackColor),
+                        ),
+                      ),
                     ),
                   ),
                 ),
                 Expanded(
-                  child: Center(child: Text("Take Away")),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        isDineIn = false;
+                      });
+                    },
+                    child: Container(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: !isDineIn ? appPrimaryColor : greyColor200,
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: Center(
+                        child: Text(
+                          "Take Away",
+                          style: MyTextStyle.f12(!isDineIn ? whiteColor : blackColor),
+                        ),
+                      ),
+                    ),
+                  ),
                 )
               ],
             ),
+
             SizedBox(height: 8),
             Row(
               children: [
@@ -107,57 +142,88 @@ class CartSummaryViewState extends State<CartSummaryView> {
             ),
             Divider(),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.asset(
-                    'assets/image/sentinix_logo.png',
-                    width: 50,
-                    height: 50,
-                  ),
+                Image.asset(
+                  'assets/image/sentinix_logo.png',
+                  width: 50,
+                  height: 50,
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Veg Burger",
-                        style: MyTextStyle.f12(blackColor,
-                            weight: FontWeight.bold)),
-                    Text("x 1"),
-                  ],
-                ),
-                Flexible(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      IconButton(
-                          onPressed: () {},
-                          icon: Icon(Icons.remove_circle_outline)),
-                      Text("1"),
-                      IconButton(
-                          onPressed: () {},
-                          icon: Icon(Icons.add_circle_outline)),
-                      IconButton(
-                          onPressed: () {},
-                          icon: Icon(Icons.delete, color: Colors.red)),
-                    ],
-                  ),
-                )
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+                SizedBox(width: 12),
                 Expanded(
-                  flex: 1,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Base Price   ₹ 59.32"),
-                      Text("SGST (9%)   ₹ 5.34"),
-                      Text("CGST (9%)   ₹ 5.34"),
-                      Text("Item Total   ₹ 59.32",
-                          style: MyTextStyle.f12(blackColor,
-                              weight: FontWeight.bold)),
+                      // Title + Quantity Controls in One Row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // "Noodles x1"
+                          Row(
+                            children: [
+                              Text(
+                                "Noodles",
+                                style: MyTextStyle.f12(blackColor, weight: FontWeight.bold),
+                              ),
+                              SizedBox(width: 6),
+                              Text(
+                                "x1",
+                                style: MyTextStyle.f12(greyColor),
+                              ),
+                            ],
+                          ),
+                          // Quantity & Delete Icons
+                          Row(
+                            children: [
+                              IconButton(
+                                onPressed: () {},
+                                icon: Icon(Icons.remove_circle_outline, color: blackColor),
+                                iconSize: 20,
+                              ),
+                              Text("1", style: MyTextStyle.f12(blackColor)),
+                              IconButton(
+                                onPressed: () {},
+                                icon: Icon(Icons.add_circle_outline, color: blackColor),
+                                iconSize: 20,
+                              ),
+                              IconButton(
+                                onPressed: () {},
+                                icon: Icon(Icons.delete, color: Colors.red),
+                                iconSize: 20,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("Base Price", style: MyTextStyle.f12(greyColor)),
+                          Text("₹ 127.12", style: MyTextStyle.f12(blackColor)),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("SGST (9%)", style: MyTextStyle.f12(greyColor)),
+                          Text("₹ 11.44", style: MyTextStyle.f12(blackColor)),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("CGST (9%)", style: MyTextStyle.f12(greyColor)),
+                          Text("₹ 11.44", style: MyTextStyle.f12(blackColor)),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("Item Total", style: MyTextStyle.f12(blackColor, weight: FontWeight.bold)),
+                          Text("₹ 127.12", style: MyTextStyle.f12(blackColor, weight: FontWeight.bold)),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -165,13 +231,14 @@ class CartSummaryViewState extends State<CartSummaryView> {
             ),
             Divider(),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text("Subtotal", style: MyTextStyle.f12(greyColor)),
-              SizedBox(height: 8),
-              Text("₹ 50.00")
+              Text("Subtotal",style:  MyTextStyle.f12(greyColor)),
+              SizedBox(height: 12),
+              Text("₹ 50.00",style: MyTextStyle.f12(blackColor, weight: FontWeight.bold)),
             ]),
+            SizedBox(height: 8),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               Text("Total Tax", style: MyTextStyle.f12(greyColor)),
-              Text("₹ 10.68"),
+              Text("₹ 10.68",style: MyTextStyle.f12(blackColor, weight: FontWeight.bold)),
             ]),
             SizedBox(height: 8),
             Divider(),
@@ -200,7 +267,7 @@ class CartSummaryViewState extends State<CartSummaryView> {
                         padding: EdgeInsets.symmetric(vertical: 8),
                         decoration: BoxDecoration(
                           color:
-                              isSplitPayment ? greyColor200 : appPrimaryColor,
+                          isSplitPayment ? greyColor200 : appPrimaryColor,
                           borderRadius: BorderRadius.circular(30),
                         ),
                         child: Center(
@@ -225,7 +292,7 @@ class CartSummaryViewState extends State<CartSummaryView> {
                         padding: EdgeInsets.symmetric(vertical: 8),
                         decoration: BoxDecoration(
                           color:
-                              isSplitPayment ? appPrimaryColor : greyColor200,
+                          isSplitPayment ? appPrimaryColor : greyColor200,
                           borderRadius: BorderRadius.circular(30),
                         ),
                         child: Center(
@@ -242,148 +309,198 @@ class CartSummaryViewState extends State<CartSummaryView> {
                 ],
               ),
             ),
+            !isSplitPayment ? Column(
+             crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 12),
+                Text("Payment Method", style: MyTextStyle.f14(blackColor, weight: FontWeight.bold)),
+                SizedBox(height: 12),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedFullPaymentMethod = "Cash";
+                          });
+                        },
+                        child: PaymentOption(
+                          icon: Icons.money,
+                          label: "Cash",
+                          selected: selectedFullPaymentMethod == "Cash",
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedFullPaymentMethod = "Card";
+                          });
+                        },
+                        child: PaymentOption(
+                          icon: Icons.credit_card,
+                          label: "Card",
+                          selected: selectedFullPaymentMethod == "Card",
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedFullPaymentMethod = "UPI";
+                          });
+                        },
+                        child: PaymentOption(
+                          icon: Icons.qr_code,
+                          label: "UPI",
+                          selected: selectedFullPaymentMethod == "UPI",
+                        ),
+                      ),
+                    ],
+                  ),
+
+                ),
+              ],
+            ) : Container(),
+            if (!isSplitPayment && selectedFullPaymentMethod == "Cash") ...[
+              SizedBox(height: 12),
+              TextField(
+                decoration: InputDecoration(
+                  hintText: "Enter amount paid (₹)",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  suffixIcon: Icon(Icons.arrow_drop_down),
+                ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              ),
+            ],
+
+
+
             isSplitPayment
                 ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  height: 20,
+                ),
+                Text(
+                  "Split Payment",
+                  style: MyTextStyle.f20(blackColor,
+                      weight: FontWeight.bold),
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Row(
                     children: [
-                      SizedBox(
-                        height: 20,
-                      ),
-                      Text(
-                        "Split Payment",
-                        style: MyTextStyle.f20(blackColor,
-                            weight: FontWeight.bold),
-                      ),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      Row(
-                        children: [
-                          SizedBox(width: 12),
-                          Expanded(
-                              child: DropdownButtonFormField<String>(
-                            decoration: InputDecoration(
-                              labelText: "Select ",
-                              labelStyle: MyTextStyle.f12(
-                                weight: FontWeight.w500,
-                                greyColor.shade700,
-                              ),
-                              filled: true,
-                              fillColor: whiteColor,
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 10),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                    color: appPrimaryColor, width: 1.5),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                    color: appPrimaryColor, width: 2),
-                              ),
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          decoration: InputDecoration(
+                            labelText: "Select",
+                            filled: true,
+                            fillColor: Colors.white,
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Color(0xFF522F1F), width: 1.5),
                             ),
-                            dropdownColor: whiteColor,
-                            icon: Icon(Icons.keyboard_arrow_down_rounded,
-                                color: appPrimaryColor),
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: blackColor,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            items: const [
-                              DropdownMenuItem(
-                                  value: "Cash", child: Text("Cash")),
-                              DropdownMenuItem(
-                                  value: "Card", child: Text("Card")),
-                              DropdownMenuItem(
-                                  value: "UPI", child: Text("UPI")),
-                            ],
-                            onChanged: (value) {
-                              // handle change
-                            },
-                          )),
-                          SizedBox(width: 10),
-                          Expanded(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                hintText: " ₹ Amount",
-                                filled: true,
-                                fillColor: whiteColor,
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(
-                                      color: appPrimaryColor, width: 1.5),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(
-                                      color: appPrimaryColor, width: 2),
-                                ),
-                              ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Color(0xFF522F1F), width: 2),
                             ),
                           ),
-                        ],
+                          dropdownColor: Colors.white,
+                          icon: Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF522F1F)),
+                          style: TextStyle(fontSize: 16, color: Colors.black, fontWeight: FontWeight.w500),
+                          items: const [
+                            DropdownMenuItem(value: "Cash", child: Text("Cash")),
+                            DropdownMenuItem(value: "Card", child: Text("Card")),
+                            DropdownMenuItem(value: "UPI", child: Text("UPI")),
+                          ],
+                          onChanged: (value) {},
+                        ),
                       ),
-                      SizedBox(height: 12),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          "+ Add Another Payment",
-                          style: MyTextStyle.f14(
-                            textDecoration: TextDecoration.underline,
-                            decorationColor: blueColor,
-                            blueColor,
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextField(
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          decoration: InputDecoration(
+                            hintText: "₹ Amount",
+                            filled: true,
+                            fillColor: Colors.white,
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Color(0xFF522F1F), width: 1.5),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Color(0xFF522F1F), width: 2),
+                            ),
                           ),
                         ),
                       ),
-                      SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Total Split:",
-                            style: MyTextStyle.f17(blackColor,
-                                weight: FontWeight.bold),
-                          ),
-                          Text(
-                            "₹0.00",
-                            style: MyTextStyle.f17(blackColor,
-                                weight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
                     ],
-                  )
+                  ),
+                ),
+
+
+                PaymentFields(),
+                // Align(
+                //   alignment: Alignment.centerLeft,
+                //   child: Text(
+                //     "+ Add Another Payment",
+                //     style: MyTextStyle.f14(
+                //       textDecoration: TextDecoration.underline,
+                //       decorationColor: blueColor,
+                //       blueColor,
+                //     ),
+                //   ),
+                // ),
+                SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Total Split:",
+                      style: MyTextStyle.f17(blackColor,
+                          weight: FontWeight.bold),
+                    ),
+                    Text(
+                      "₹0.00",
+                      style: MyTextStyle.f17(blackColor,
+                          weight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ],
+            )
                 : Container(),
             SizedBox(height: 12),
-            Text("Payment Method",
-                style: MyTextStyle.f14(blackColor, weight: FontWeight.bold)),
-            SizedBox(height: 12),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  PaymentOption(
-                      icon: Icons.money, label: "Cash", selected: true),
-                  PaymentOption(
-                      icon: Icons.credit_card, label: "Card", selected: false),
-                  PaymentOption(
-                      icon: Icons.qr_code, label: "UPI", selected: false),
-                ],
-              ),
-            ),
-            SizedBox(height: 12),
-            TextField(
-              decoration: InputDecoration(
-                hintText: "Enter amount paid (₹)",
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                suffixIcon: Icon(Icons.arrow_drop_down),
-              ),
-            ),
+            // Text("Payment Method",
+            //     style: MyTextStyle.f14(blackColor, weight: FontWeight.bold)),
+            // SizedBox(height: 12),
+            // SingleChildScrollView(
+            //   scrollDirection: Axis.horizontal,
+            //   child: Wrap(
+            //     spacing: 12,
+            //     runSpacing: 12,
+            //     children: [
+            //       PaymentOption(
+            //           icon: Icons.money, label: "Cash", selected: true),
+            //       PaymentOption(
+            //           icon: Icons.credit_card, label: "Card", selected: false),
+            //       PaymentOption(
+            //           icon: Icons.qr_code, label: "UPI", selected: false),
+            //     ],
+            //   ),
+            // ),
+
             SizedBox(height: 12),
             ElevatedButton(
               onPressed: () async {
