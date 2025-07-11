@@ -25,7 +25,7 @@ class CategoryCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: size.width * 0.1,
-        height: size.height * 0.35,
+        height: size.height * 0.15,
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
         decoration: BoxDecoration(
           color: isSelected ? whiteColor : greyColor.shade100,
@@ -40,8 +40,8 @@ class CategoryCard extends StatelessWidget {
             ClipOval(
                 child: CachedNetworkImage(
               imageUrl: imagePath,
-              width: 60,
-              height: 60,
+              width: 35,
+              height: 35,
               fit: BoxFit.cover,
               errorWidget: (context, url, error) {
                 return const Icon(

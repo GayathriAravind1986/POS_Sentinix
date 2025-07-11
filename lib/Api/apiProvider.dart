@@ -72,6 +72,8 @@ class ApiProvider {
   Future<GetCategoryModel> getCategoryAPI() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var token = sharedPreferences.getString("token");
+    debugPrint("token:$token");
+    debugPrint("url:${Constants.baseUrl}api/categories");
     try {
       var dio = Dio();
       var response = await dio.request(
@@ -84,6 +86,8 @@ class ApiProvider {
         ),
       );
       if (response.statusCode == 200 && response.data != null) {
+        debugPrint("statusCat:${response.statusCode}");
+        debugPrint("statusCat:${response.data}");
         if (response.data['success'] == true) {
           GetCategoryModel getCategoryResponse =
               GetCategoryModel.fromJson(response.data);
@@ -156,6 +160,7 @@ class ApiProvider {
       List<Map<String, dynamic>> billingItems) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var token = sharedPreferences.getString("token");
+    debugPrint("billingItemInAPI:$billingItems");
     try {
       final dataMap = {"items": billingItems};
       var data = json.encode(dataMap);
@@ -175,7 +180,7 @@ class ApiProvider {
       if (response.statusCode == 200 && response.data != null) {
         try {
           PostAddToBillingModel postAddToBillingResponse =
-          PostAddToBillingModel.fromJson(response.data);
+              PostAddToBillingModel.fromJson(response.data);
           return postAddToBillingResponse;
         } catch (e) {
           return PostAddToBillingModel()
@@ -185,10 +190,9 @@ class ApiProvider {
         }
       } else {
         return PostAddToBillingModel()
-          ..errorResponse = ErrorResponse(
-              message: "Unexpected error occurred.");
+          ..errorResponse =
+              ErrorResponse(message: "Unexpected error occurred.");
       }
-
     } on DioException catch (dioError) {
       if (dioError.response?.statusCode == 401) {
         return PostAddToBillingModel()
