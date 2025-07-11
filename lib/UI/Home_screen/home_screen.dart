@@ -303,8 +303,8 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                             p.counter = 1;
                                                             debugPrint(
                                                                 "counter:${p.counter}");
-                                                            if (p.hasAddons ==
-                                                                true) {
+                                                            if (p.addons!
+                                                                .isNotEmpty) {
                                                               showDialog(
                                                                 context:
                                                                     context,
@@ -376,7 +376,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                                     children: p.addons!
                                                                                         .map((e) => toppingOptionTile(
                                                                                               title: e.name!,
-                                                                                              subtitle: "Free (1 max)",
+                                                                                              subtitle: "e.Free (1 max)",
                                                                                               isSelected: e.isSelected,
                                                                                               onChanged: (value) {
                                                                                                 setState(() {
@@ -391,6 +391,14 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                                   children: [
                                                                                     ElevatedButton(
                                                                                       onPressed: () {
+                                                                                        setState(() {
+                                                                                          debugPrint("counterincancelbefore:${p.counter}");
+                                                                                          if (p.counter > 1 || p.counter == 1) {
+                                                                                            p.counter--;
+                                                                                          }
+                                                                                          debugPrint("counterincancelafter:${p.counter}");
+                                                                                        });
+
                                                                                         Navigator.of(context).pop();
                                                                                       },
                                                                                       style: ElevatedButton.styleFrom(
@@ -493,7 +501,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                           .addons!
                                                                           .where((addon) =>
                                                                               addon.isSelected ==
-                                                                              true) // Your own flag
+                                                                              true)
                                                                           .map((addon) =>
                                                                               {
                                                                                 "_id": addon.id,
@@ -575,10 +583,9 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                       if (existingIndex !=
                                                                           -1) {
                                                                         billingItems[existingIndex]['qty'] =
-                                                                            p.counter; // ✅ Update qty
+                                                                            p.counter;
                                                                       }
                                                                     } else {
-                                                                      // Remove item if qty reaches 0
                                                                       p.counter =
                                                                           0;
                                                                       debugPrint(
