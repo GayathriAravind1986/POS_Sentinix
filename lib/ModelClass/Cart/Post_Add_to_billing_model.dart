@@ -83,6 +83,7 @@ class PostAddToBillingModel {
 
 class Items {
   Items({
+    String? id,
     String? name,
     num? qty,
     num? basePrice,
@@ -92,6 +93,7 @@ class Items {
     num? total,
     List<AppliedTaxes>? appliedTaxes,
   }) {
+    _id = id;
     _name = name;
     _qty = qty;
     _basePrice = basePrice;
@@ -103,6 +105,7 @@ class Items {
   }
 
   Items.fromJson(dynamic json) {
+    _id = json['_id'];
     _name = json['name'];
     _qty = json['qty'];
     _basePrice = json['basePrice'];
@@ -117,6 +120,7 @@ class Items {
       });
     }
   }
+  String? _id;
   String? _name;
   num? _qty;
   num? _basePrice;
@@ -126,6 +130,7 @@ class Items {
   num? _total;
   List<AppliedTaxes>? _appliedTaxes;
   Items copyWith({
+    String? id,
     String? name,
     num? qty,
     num? basePrice,
@@ -136,6 +141,7 @@ class Items {
     List<AppliedTaxes>? appliedTaxes,
   }) =>
       Items(
+        id: id ?? _id,
         name: name ?? _name,
         qty: qty ?? _qty,
         basePrice: basePrice ?? _basePrice,
@@ -145,6 +151,7 @@ class Items {
         total: total ?? _total,
         appliedTaxes: appliedTaxes ?? _appliedTaxes,
       );
+  String? get id => _id;
   String? get name => _name;
   num? get qty => _qty;
   num? get basePrice => _basePrice;
@@ -156,6 +163,7 @@ class Items {
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
+    map['_id'] = _id;
     map['name'] = _name;
     map['qty'] = _qty;
     map['basePrice'] = _basePrice;
