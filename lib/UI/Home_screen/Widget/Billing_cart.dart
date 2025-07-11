@@ -1,17 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'package:simple/Alertbox/AlertDialogBox.dart';
-import 'package:imin_printer/imin_printer.dart';
-import 'package:imin_printer/enums.dart';
-import 'package:imin_printer/imin_style.dart';
+import 'package:simple/Bloc/demo/demo_bloc.dart';
+import 'package:simple/UI/Cart/Widget/payment_option.dart';
 import 'package:simple/services/printer_service.dart';
 import 'package:simple/services/mock_printer_service.dart';
-
-
-
-import '../../../Bloc/demo/demo_bloc.dart';
-import '../../Cart/Widget/payment_option.dart';
 
 class Pop extends StatelessWidget {
   const Pop({super.key});
@@ -26,9 +18,7 @@ class Pop extends StatelessWidget {
 }
 
 class Popview extends StatefulWidget {
-
   const Popview({super.key});
-
 
   @override
   State<Popview> createState() => _PopviewState();
@@ -47,7 +37,6 @@ class _PopviewState extends State<Popview> {
   @override
   void dispose() {
     super.dispose();
-
   }
 
   @override
@@ -113,8 +102,7 @@ class _PopviewState extends State<Popview> {
                     ),
                   ),
 
-
-              SizedBox(height: 8), // instead of Spacer
+                  SizedBox(height: 8), // instead of Spacer
 
                   const Text(
                     "Bills",
@@ -128,100 +116,96 @@ class _PopviewState extends State<Popview> {
               ),
               SizedBox(height: 25), // instead of Spacer
 
-              Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("No.items in bill", style: TextStyle(color: Colors.grey)),
-                    SizedBox(height: 8), Text("₹ 00.00") ]),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Text("No.items in bill", style: TextStyle(color: Colors.grey)),
+                SizedBox(height: 8),
+                Text("₹ 00.00")
+              ]),
               Divider(),
-      Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-      Text("Subtotal", style: TextStyle(color: Colors.grey)),
-      SizedBox(height: 8), Text("₹ 00.00") ]),
-      Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-      Text("Total Tax", style: TextStyle(color: Colors.grey)),
-      Text("₹ 00.00"),
-      ]),
-      SizedBox(height: 8),
-      Divider(),
-      Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-      Text("Total",
-      style: TextStyle(fontWeight: FontWeight.bold)),
-      Text("₹ 00.00",
-      style: TextStyle(
-      fontWeight: FontWeight.bold, fontSize: 18)),
-      ]),
-      SizedBox(height: 12),
-      Container(
-      decoration: BoxDecoration(
-      color: Colors.grey.shade200,
-      borderRadius: BorderRadius.circular(30),
-      ),
-      child: Row(
-      children: [
-      Expanded(
-      child: Container(
-      padding: EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-      color: Color(0xFF522F1F),
-      borderRadius: BorderRadius.circular(30)),
-      child: Center(
-      child: Text("Full Payment",
-      style: TextStyle(color: Colors.white)),
-      ),
-      ),
-      ),
-      Expanded(
-      child: Center(child: Text("Split Payment")),
-      )
-      ],
-      ),
-      ),
-      SizedBox(height: 12),
-      Text("Payment Method",
-      style: TextStyle(fontWeight: FontWeight.bold)),
-      SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: [
-      PaymentOption(
-      icon: Icons.money, label: "Cash", selected: true),
-      PaymentOption(
-      icon: Icons.credit_card,
-      label: "Card",
-      selected: false),
-      PaymentOption(
-      icon: Icons.qr_code, label: "UPI", selected: false),
-      ],
-      ),
-      ),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Text("Subtotal", style: TextStyle(color: Colors.grey)),
+                SizedBox(height: 8),
+                Text("₹ 00.00")
+              ]),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Text("Total Tax", style: TextStyle(color: Colors.grey)),
+                Text("₹ 00.00"),
+              ]),
+              SizedBox(height: 8),
+              Divider(),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Text("Total", style: TextStyle(fontWeight: FontWeight.bold)),
+                Text("₹ 00.00",
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              ]),
+              SizedBox(height: 12),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        decoration: BoxDecoration(
+                            color: Color(0xFF522F1F),
+                            borderRadius: BorderRadius.circular(30)),
+                        child: Center(
+                          child: Text("Full Payment",
+                              style: TextStyle(color: Colors.white)),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Center(child: Text("Split Payment")),
+                    )
+                  ],
+                ),
+              ),
+              SizedBox(height: 12),
+              Text("Payment Method",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    PaymentOption(
+                        icon: Icons.money, label: "Cash", selected: true),
+                    PaymentOption(
+                        icon: Icons.credit_card,
+                        label: "Card",
+                        selected: false),
+                    PaymentOption(
+                        icon: Icons.qr_code, label: "UPI", selected: false),
+                  ],
+                ),
+              ),
 
-          SizedBox(height: 12),
-              ElevatedButton(onPressed: () async {
-                try {
-                  print("🟡 Button tapped");
-                  // await printer.setAlignment("center");
-                  // await printer.printText("🍽️ HOTEL XYZ");
-                  // await printer.setAlignment("left");
-                  // await printer.printText("Item: Veg Burger x1");
-                  // await printer.printText("Price: ₹59.32");
-                  // await printer.printAndLineFeed();
-                  // await printer.cut();
-                  // print("✅ Mock print complete");
-                } catch (e) {
-                  print("❌ Print error: $e");
-                }
-              },
+              SizedBox(height: 12),
+              ElevatedButton(
+                  onPressed: () async {
+                    try {
+                      print("🟡 Button tapped");
+                      // await printer.setAlignment("center");
+                      // await printer.printText("🍽️ HOTEL XYZ");
+                      // await printer.setAlignment("left");
+                      // await printer.printText("Item: Veg Burger x1");
+                      // await printer.printText("Price: ₹59.32");
+                      // await printer.printAndLineFeed();
+                      // await printer.cut();
+                      // print("✅ Mock print complete");
+                    } catch (e) {
+                      print("❌ Print error: $e");
+                    }
+                  },
                   child: Text("Print"))
             ],
-        ),
+          ),
         ),
       );
     }
