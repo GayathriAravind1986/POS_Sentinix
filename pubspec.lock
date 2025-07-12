@@ -525,14 +525,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.10.1"
-  spinner_input_plus:
-    dependency: "direct main"
-    description:
-      name: spinner_input_plus
-      sha256: "901601e2b493d4a6fc526be2a0eddf291ec6a11860f9694ed1c617aaf19c02c1"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.4"
   sprintf:
     dependency: transitive
     description:

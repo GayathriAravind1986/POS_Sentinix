@@ -130,6 +130,9 @@ class ApiProvider {
         ),
       );
       if (response.statusCode == 200 && response.data != null) {
+        debugPrint("statusPrd:${response.statusCode}");
+        debugPrint("statusPrdSuccess:${response.data['success']}");
+        debugPrint("statusPrd:${response.data}");
         if (response.data['success'] == true) {
           GetProductByCatIdModel getProductByCatIdResponse =
               GetProductByCatIdModel.fromJson(response.data);
