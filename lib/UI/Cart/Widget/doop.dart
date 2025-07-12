@@ -2,14 +2,12 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:simple/Bloc/Category/category_bloc.dart';
 import 'package:simple/ModelClass/Cart/Post_Add_to_billing_model.dart';
 import 'package:simple/ModelClass/HomeScreen/Category&Product/Get_category_model.dart';
 import 'package:simple/ModelClass/HomeScreen/Category&Product/Get_product_by_catId_model.dart';
-import 'package:simple/ModelClass/payment_split/split.dart';
 import 'package:simple/Reusable/color.dart';
 import 'package:simple/Reusable/space.dart';
 import 'package:simple/Reusable/text_styles.dart';
@@ -140,7 +138,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
         context.read<FoodCategoryBloc>().add(AddToBilling(updatedItems));
       }
       @override
-      Widget price(String label, String value, {bool isBold = false}) {
+      Widget priceRowStack(String label, String value, {bool isBold = false}) {
         return SizedBox(
           height: 20,
           child: Stack(
@@ -167,7 +165,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
           ),
         );
       }
-
 
       return categoryLoad
           ? Container(
@@ -774,64 +771,81 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                       postAddToBillingModel.items!.isEmpty ||
                       postAddToBillingModel.items == []
                       ? SingleChildScrollView(
-                    child: Container(
-                      margin: EdgeInsets.only(top: 30),
-                      child: Column(
-                        crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    child:  Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          const SizedBox(height: 30),
                           Row(
                             children: [
                               Expanded(
                                 child: GestureDetector(
                                   onTap: () {
+                                    isDineIn = true;
                                     // Add functionality for "Dine In" button
                                   },
                                   child: Container(
                                     padding: EdgeInsets.symmetric(
                                         vertical: 10),
                                     decoration: BoxDecoration(
-                                      color: appPrimaryColor,
+                                      color: isDineIn ? appPrimaryColor : greyColor200,
                                       borderRadius:
                                       BorderRadius.circular(30),
                                     ),
                                     child: Center(
                                       child: Text(
                                         "Dine In",
-                                        style: MyTextStyle.f14(
-                                            whiteColor),
+                                        style: MyTextStyle.f12(
+                                          isDineIn ? whiteColor : blackColor,),
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: GestureDetector(
-                                  onTap: () {},
+                                  onTap: () {
+                                    setState(() {
+                                      isDineIn = false;
+                                    });
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: !isDineIn ? appPrimaryColor : greyColor200,
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
                                   child: Center(
                                     child: Text("Take Away",
-                                        style: MyTextStyle.f14(
-                                            blackColor,
-                                            weight:
-                                            FontWeight.bold)),
+                                      style: MyTextStyle.f12(
+                                        !isDineIn ? whiteColor : blackColor,
+                                      ),
                                   ),
                                 ),
                               ),
-
-                              SizedBox(
-                                  height: 8), // instead of Spacer
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          // ✅ Title & Refresh
+                          Row(
+                            children: [
                               Text(
                                 "Bills",
-                                style: MyTextStyle.f16(blackColor,
-                                    weight: FontWeight.bold),
+                                style: MyTextStyle.f16(
+                                  blackColor,
+                                  weight: FontWeight.bold,
+                                ),
                               ),
+                              const Spacer(),
                               IconButton(
                                 onPressed: () {},
                                 icon: const Icon(Icons.refresh),
                               ),
                             ],
                           ),
-                          SizedBox(height: 25),
+                          const Divider(),
                           Row(
                               mainAxisAlignment:
                               MainAxisAlignment.spaceBetween,
@@ -1015,117 +1029,221 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                             ],
                           ),
                           Divider(),
-                Column(
-                  children: postAddToBillingModel.items!
-                      .map(
-                        (e) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10.0),
-                            child: CachedNetworkImage(
-                              imageUrl: e.image!,
-                              width: size.width * 0.04,
-                              height: size.height * 0.05,
-                              fit: BoxFit.cover,
-                              errorWidget: (context, url, error) {
-                                return const Icon(
-                                  Icons.error,
-                                  size: 30,
-                                  color: appHomeTextColor,
-                                );
-                              },
-                              progressIndicatorBuilder: (context, url, downloadProgress) =>
-                              const SpinKitCircle(color: appPrimaryColor, size: 30),
-                            ),
+                          Column(
+                            children: postAddToBillingModel.items!
+                                .map(
+                                  (e) => Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      ClipRRect(
+                                          borderRadius:
+                                          BorderRadius
+                                              .circular(
+                                              10.0),
+                                          child:
+                                          CachedNetworkImage(
+                                            imageUrl: e.image!,
+                                            width: size.width *
+                                                0.04,
+                                            height:
+                                            size.height *
+                                                0.05,
+                                            fit: BoxFit.cover,
+                                            errorWidget:
+                                                (context, url,
+                                                error) {
+                                              return const Icon(
+                                                Icons.error,
+                                                size: 30,
+                                                color:
+                                                appHomeTextColor,
+                                              );
+                                            },
+                                            progressIndicatorBuilder: (context,
+                                                url,
+                                                downloadProgress) =>
+                                            const SpinKitCircle(
+                                                color:
+                                                appPrimaryColor,
+                                                size: 30),
+                                          )),
+                                      SizedBox(width: 5),
+                                      Column(
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment
+                                            .start,
+                                        children: [
+                                          Text("${e.name}",
+                                              style: MyTextStyle.f12(
+                                                  blackColor,
+                                                  weight:
+                                                  FontWeight
+                                                      .bold)),
+                                          Text("x ${e.qty} "),
+                                        ],
+                                      ),
+                                      Spacer(),
+                                      Column(
+                                        children:
+                                        getProductByCatIdModel
+                                            .rows!
+                                            .map<Widget>(
+                                                (p) {
+                                              return p.id == e.id
+                                                  ? Row(
+                                                children: [
+                                                  IconButton(
+                                                    icon: Icon(
+                                                        Icons
+                                                            .remove_circle_outline),
+                                                    onPressed:
+                                                        () {
+                                                      setState(
+                                                              () {
+                                                            if (p.counter >
+                                                                1) {
+                                                              p.counter--;
+                                                            } else {
+                                                              p.counter =
+                                                              0;
+                                                            }
+                                                            updateBilling();
+                                                          });
+                                                    },
+                                                  ),
+                                                  Text(
+                                                      "${p.counter}"),
+                                                  IconButton(
+                                                    icon: Icon(
+                                                        Icons
+                                                            .add_circle_outline),
+                                                    onPressed:
+                                                        () {
+                                                      setState(
+                                                              () {
+                                                            p.counter++;
+                                                            updateBilling();
+                                                          });
+                                                    },
+                                                  ),
+                                                  IconButton(
+                                                    icon: Icon(
+                                                        Icons
+                                                            .delete,
+                                                        color:
+                                                        Colors.red),
+                                                    onPressed:
+                                                        () {
+                                                      setState(
+                                                              () {
+                                                            p.counter =
+                                                            0;
+                                                            updateBilling();
+                                                          });
+                                                    },
+                                                  ),
+                                                ],
+                                              )
+                                                  : Container();
+                                            }).toList(),
+                                      )
+                                    ],
+                                  ),
+                                  Row(
+                                    mainAxisAlignment:
+                                    MainAxisAlignment
+                                        .spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        flex: 1,
+                                        child: Column(
+                                          crossAxisAlignment:
+                                          CrossAxisAlignment
+                                              .start,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                              MainAxisAlignment
+                                                  .spaceBetween,
+                                              children: [
+                                                Text(
+                                                    "Base Price",
+                                                    style: MyTextStyle
+                                                        .f12(
+                                                        greyColor)),
+                                                Text(
+                                                    "₹ ${e.basePrice}",
+                                                    style: MyTextStyle
+                                                        .f12(
+                                                        blackColor)),
+                                              ],
+                                            ),
+                                            Row(
+                                              mainAxisAlignment:
+                                              MainAxisAlignment
+                                                  .spaceBetween,
+                                              children: [
+                                                Text(
+                                                    "SGST (${e.appliedTaxes!.last.percentage}%)",
+                                                    style: MyTextStyle
+                                                        .f12(
+                                                        greyColor)),
+                                                Text(
+                                                    "₹ ${e.appliedTaxes!.last.amount}",
+                                                    style: MyTextStyle
+                                                        .f12(
+                                                        blackColor)),
+                                              ],
+                                            ),
+                                            Row(
+                                              mainAxisAlignment:
+                                              MainAxisAlignment
+                                                  .spaceBetween,
+                                              children: [
+                                                Text(
+                                                    "CGST (${e.appliedTaxes!.first.percentage}%)",
+                                                    style: MyTextStyle
+                                                        .f12(
+                                                        greyColor)),
+                                                Text(
+                                                    "₹ ${e.appliedTaxes!.first.amount}",
+                                                    style: MyTextStyle
+                                                        .f12(
+                                                        blackColor)),
+                                              ],
+                                            ),
+                                            Row(
+                                              mainAxisAlignment:
+                                              MainAxisAlignment
+                                                  .spaceBetween,
+                                              children: [
+                                                Text(
+                                                    "Item Total",
+                                                    style: MyTextStyle.f12(
+                                                        blackColor,
+                                                        weight:
+                                                        FontWeight.bold)),
+                                                Text(
+                                                    "₹ ${e.basePrice}",
+                                                    style: MyTextStyle.f12(
+                                                        blackColor,
+                                                        weight:
+                                                        FontWeight.bold)),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Divider(),
+                                ],
+                              ),
+                            )
+                                .toList(),
                           ),
-                          SizedBox(width: 5),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text("${e.name}", style: MyTextStyle.f12(blackColor, weight: FontWeight.bold)),
-
-                                Builder(
-                                  builder: (_) {
-                                    final rows = getProductByCatIdModel.rows;
-
-                                    if (rows == null || rows.isEmpty) {
-                                      return SizedBox.shrink(); // return empty space if null or empty
-                                    }
-
-                                    final match = rows.where((item) => item.id == e.id).toList();
-
-                                    if (match.isEmpty) return SizedBox.shrink(); // no match
-
-                                    final p = match.first;
-
-                                    return Row(
-                                      children: [
-                                        Text("x ${e.qty} "),
-                                        const Spacer(),
-                                        IconButton(
-                                          icon: Icon(Icons.remove_circle_outline),
-                                          onPressed: () {
-                                            setState(() {
-                                              if (p.counter > 1) {
-                                                p.counter--;
-                                              } else {
-                                                p.counter = 0;
-                                              }
-                                              updateBilling();
-                                            });
-                                          },
-                                        ),
-                                        Text("${p.counter}"),
-                                        IconButton(
-                                          icon: Icon(Icons.add_circle_outline),
-                                          onPressed: () {
-                                            setState(() {
-                                              p.counter++;
-                                              updateBilling();
-                                            });
-                                          },
-                                        ),
-                                        IconButton(
-                                          icon: Icon(Icons.delete, color: Colors.red),
-                                          onPressed: () {
-                                            setState(() {
-                                              p.counter = 0;
-                                              updateBilling();
-                                            });
-                                          },
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                ),
-
-                                price("Base Price:", "₹ ${e.basePrice}"),
-                                price(
-                                  "CGST (${e.appliedTaxes?.first.percentage ?? 0}%):",
-                                  "₹ ${e.appliedTaxes?.first.amount?.toStringAsFixed(2) ?? '0.00'}",
-                                ),
-                                price(
-                                  "SGST (${e.appliedTaxes?.last.percentage ?? 0}%):",
-                                  "₹ ${e.appliedTaxes?.last.amount?.toStringAsFixed(2) ?? '0.00'}",
-                                ),
-                                price("Item Total:", "₹ ${e.basePrice}", isBold: true),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                      .toList(), // ✅ This fixes the error
-                ),
-
-
-                Divider(thickness: 2),
-                        Row(
+                          Row(
                               mainAxisAlignment:
                               MainAxisAlignment.spaceBetween,
                               children: [
@@ -1233,153 +1351,152 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                     ),
                                   ),
                                 ),
-
                               ],
                             ),
                           ),
-                    !isSplitPayment ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(height: 12),
-                        Text("Payment Method", style: MyTextStyle.f14(blackColor, weight: FontWeight.bold)),
-                        SizedBox(height: 12),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Wrap(
-                            spacing: 12,
-                            runSpacing: 12,
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    selectedFullPaymentMethod = "Cash";
-                                  });
-                                },
-                                child: PaymentOption(
-                                  icon: Icons.money,
-                                  label: "Cash",
-                                  selected: selectedFullPaymentMethod == "Cash",
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    selectedFullPaymentMethod = "Card";
-                                  });
-                                },
-                                child: PaymentOption(
-                                  icon: Icons.credit_card,
-                                  label: "Card",
-                                  selected: selectedFullPaymentMethod == "Card",
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    selectedFullPaymentMethod = "UPI";
-                                  });
-                                },
-                                child: PaymentOption(
-                                  icon: Icons.qr_code,
-                                  label: "UPI",
-                                  selected: selectedFullPaymentMethod == "UPI",
-                                ),
-                              ),
-                            ],
-                          ),
-
-                        ),
-                ]
-                    ) : Container(),
-      !isSplitPayment && selectedFullPaymentMethod == "Cash"
-      ? Column(
-      children: [
-      SizedBox(height: 12),
-      TextField(
-      decoration: InputDecoration(
-      hintText: "Enter amount paid (₹)",
-      border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      ),
-      suffixIcon: Icon(Icons.arrow_drop_down),
-      ),
-      keyboardType: TextInputType.number,
-      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      ),
-      ],
-      )
-          : SizedBox.shrink(),
-
-      isSplitPayment
+                          isSplitPayment
                               ? Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment:
+                            CrossAxisAlignment.start,
                             children: [
                               SizedBox(
                                 height: 20,
                               ),
                               Text(
                                 "Split Payment",
-                                style: MyTextStyle.f20(blackColor,
+                                style: MyTextStyle.f20(
+                                    blackColor,
                                     weight: FontWeight.bold),
                               ),
                               SizedBox(
                                 height: 20,
                               ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 6),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: DropdownButtonFormField<String>(
-                                        decoration: InputDecoration(
-                                          labelText: "Select",
-                                          filled: true,
-                                          fillColor: Colors.white,
-                                          enabledBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(12),
-                                            borderSide: BorderSide(color: Color(0xFF522F1F), width: 1.5),
+                              Row(
+                                children: [
+                                  SizedBox(width: 12),
+                                  Expanded(
+                                      child:
+                                      DropdownButtonFormField<
+                                          String>(
+                                        decoration:
+                                        InputDecoration(
+                                          labelText: "Select ",
+                                          labelStyle:
+                                          MyTextStyle.f12(
+                                            weight:
+                                            FontWeight.w500,
+                                            greyColor.shade700,
                                           ),
-                                          focusedBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(12),
-                                            borderSide: BorderSide(color: Color(0xFF522F1F), width: 2),
+                                          filled: true,
+                                          fillColor: whiteColor,
+                                          contentPadding:
+                                          EdgeInsets
+                                              .symmetric(
+                                              horizontal:
+                                              12,
+                                              vertical:
+                                              10),
+                                          enabledBorder:
+                                          OutlineInputBorder(
+                                            borderRadius:
+                                            BorderRadius
+                                                .circular(12),
+                                            borderSide: BorderSide(
+                                                color:
+                                                appPrimaryColor,
+                                                width: 1.5),
+                                          ),
+                                          focusedBorder:
+                                          OutlineInputBorder(
+                                            borderRadius:
+                                            BorderRadius
+                                                .circular(12),
+                                            borderSide: BorderSide(
+                                                color:
+                                                appPrimaryColor,
+                                                width: 2),
                                           ),
                                         ),
-                                        dropdownColor: Colors.white,
-                                        icon: Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF522F1F)),
-                                        style: TextStyle(fontSize: 16, color: Colors.black, fontWeight: FontWeight.w500),
+                                        dropdownColor: whiteColor,
+                                        icon: Icon(
+                                            Icons
+                                                .keyboard_arrow_down_rounded,
+                                            color:
+                                            appPrimaryColor),
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: blackColor,
+                                          fontWeight:
+                                          FontWeight.w500,
+                                        ),
                                         items: const [
-                                          DropdownMenuItem(value: "Cash", child: Text("Cash")),
-                                          DropdownMenuItem(value: "Card", child: Text("Card")),
-                                          DropdownMenuItem(value: "UPI", child: Text("UPI")),
+                                          DropdownMenuItem(
+                                              value: "Cash",
+                                              child:
+                                              Text("Cash")),
+                                          DropdownMenuItem(
+                                              value: "Card",
+                                              child:
+                                              Text("Card")),
+                                          DropdownMenuItem(
+                                              value: "UPI",
+                                              child: Text("UPI")),
                                         ],
-                                        onChanged: (value) {},
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: TextField(
-                                        keyboardType: TextInputType.number,
-                                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                                        decoration: InputDecoration(
-                                          hintText: "₹ Amount",
-                                          filled: true,
-                                          fillColor: Colors.white,
-                                          enabledBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(8),
-                                            borderSide: BorderSide(color: Color(0xFF522F1F), width: 1.5),
-                                          ),
-                                          focusedBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(8),
-                                            borderSide: BorderSide(color: Color(0xFF522F1F), width: 2),
-                                          ),
+                                        onChanged: (value) {
+                                          // handle change
+                                        },
+                                      )),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    child: TextField(
+                                      decoration:
+                                      InputDecoration(
+                                        hintText: " ₹ Amount",
+                                        filled: true,
+                                        fillColor: whiteColor,
+                                        enabledBorder:
+                                        OutlineInputBorder(
+                                          borderRadius:
+                                          BorderRadius
+                                              .circular(
+                                              8),
+                                          borderSide: BorderSide(
+                                              color:
+                                              appPrimaryColor,
+                                              width: 1.5),
+                                        ),
+                                        focusedBorder:
+                                        OutlineInputBorder(
+                                          borderRadius:
+                                          BorderRadius
+                                              .circular(
+                                              8),
+                                          borderSide: BorderSide(
+                                              color:
+                                              appPrimaryColor,
+                                              width: 2),
                                         ),
                                       ),
                                     ),
-                                  ],
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 12),
+                              Align(
+                                alignment:
+                                Alignment.centerLeft,
+                                child: Text(
+                                  "+ Add Another Payment",
+                                  style: MyTextStyle.f14(
+                                    textDecoration:
+                                    TextDecoration
+                                        .underline,
+                                    decorationColor:
+                                    blueColor,
+                                    blueColor,
+                                  ),
                                 ),
                               ),
-
-                              PaymentFields(),
                               SizedBox(height: 12),
                               Row(
                                 mainAxisAlignment:
@@ -1406,7 +1523,43 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                           )
                               : Container(),
                           SizedBox(height: 12),
-
+                          Text("Payment Method",
+                              style: MyTextStyle.f14(blackColor,
+                                  weight: FontWeight.bold)),
+                          SizedBox(height: 12),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Wrap(
+                              spacing: 12,
+                              runSpacing: 12,
+                              children: [
+                                PaymentOption(
+                                    icon: Icons.money,
+                                    label: "Cash",
+                                    selected: true),
+                                PaymentOption(
+                                    icon: Icons.credit_card,
+                                    label: "Card",
+                                    selected: false),
+                                PaymentOption(
+                                    icon: Icons.qr_code,
+                                    label: "UPI",
+                                    selected: false),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: 12),
+                          TextField(
+                            decoration: InputDecoration(
+                              hintText: "Enter amount paid (₹)",
+                              border: OutlineInputBorder(
+                                  borderRadius:
+                                  BorderRadius.circular(8)),
+                              suffixIcon:
+                              Icon(Icons.arrow_drop_down),
+                            ),
+                          ),
+                          SizedBox(height: 12),
                           ElevatedButton(
                             onPressed: () async {
                               await printerService.init();
@@ -1454,15 +1607,14 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                               style: TextStyle(color: whiteColor),
                             ),
                           )
-      ])
-                  )
-                )
-              )
-            )]
-            )
+                        ]),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       );
-
-
     }
 
     return SafeArea(
