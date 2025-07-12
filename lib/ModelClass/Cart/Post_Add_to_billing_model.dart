@@ -85,6 +85,7 @@ class Items {
   Items({
     String? id,
     String? name,
+    String? image,
     num? qty,
     num? basePrice,
     num? addonTotal,
@@ -95,6 +96,7 @@ class Items {
   }) {
     _id = id;
     _name = name;
+    _image = image;
     _qty = qty;
     _basePrice = basePrice;
     _addonTotal = addonTotal;
@@ -107,6 +109,7 @@ class Items {
   Items.fromJson(dynamic json) {
     _id = json['_id'];
     _name = json['name'];
+    _image = json['image'];
     _qty = json['qty'];
     _basePrice = json['basePrice'];
     _addonTotal = json['addonTotal'];
@@ -122,6 +125,7 @@ class Items {
   }
   String? _id;
   String? _name;
+  String? _image;
   num? _qty;
   num? _basePrice;
   num? _addonTotal;
@@ -132,6 +136,7 @@ class Items {
   Items copyWith({
     String? id,
     String? name,
+    String? image,
     num? qty,
     num? basePrice,
     num? addonTotal,
@@ -143,6 +148,7 @@ class Items {
       Items(
         id: id ?? _id,
         name: name ?? _name,
+        image: image ?? _image,
         qty: qty ?? _qty,
         basePrice: basePrice ?? _basePrice,
         addonTotal: addonTotal ?? _addonTotal,
@@ -153,6 +159,7 @@ class Items {
       );
   String? get id => _id;
   String? get name => _name;
+  String? get image => _image;
   num? get qty => _qty;
   num? get basePrice => _basePrice;
   num? get addonTotal => _addonTotal;
@@ -165,6 +172,7 @@ class Items {
     final map = <String, dynamic>{};
     map['_id'] = _id;
     map['name'] = _name;
+    map['image'] = _image;
     map['qty'] = _qty;
     map['basePrice'] = _basePrice;
     map['addonTotal'] = _addonTotal;
