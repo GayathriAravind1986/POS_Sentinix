@@ -5,6 +5,9 @@ import 'package:simple/Reusable/color.dart';
 import 'package:simple/Reusable/image.dart';
 import 'package:simple/UI/Authentication/login_screen.dart';
 import 'package:simple/UI/Home_screen/home_screen.dart';
+import 'package:simple/UI/Home_screen/home_screen.dart';
+
+import '../Cart/Widget/add_cart.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
