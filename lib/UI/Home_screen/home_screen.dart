@@ -12,14 +12,8 @@ import 'package:simple/Reusable/text_styles.dart';
 import 'package:simple/UI/Cart/Widget/payment_option.dart';
 import 'package:simple/UI/Home_screen/Widget/addons_screen_widget.dart';
 import 'package:simple/UI/Home_screen/Widget/category_card.dart';
-import 'package:simple/services/imin_printer_service.dart';
+import 'package:simple/services/mock_printer_service.dart';
 import 'package:simple/services/printer_service.dart';
-import 'package:imin_printer/imin_printer.dart';
-import 'package:imin_printer/enums.dart';
-import 'package:imin_printer/imin_style.dart';
-
-import '../../services/mock_printer_service.dart';
-
 
 class FoodOrderingScreen extends StatelessWidget {
   const FoodOrderingScreen({
@@ -62,7 +56,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
   @override
   void initState() {
     super.initState();
-    printer =IminPrinterService();
+    printer = MockPrinterService();
     context.read<FoodCategoryBloc>().add(FoodCategory());
     context
         .read<FoodCategoryBloc>()
@@ -727,8 +721,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                     blackColor),
                                                 onPressed: () {
                                                   setState(() {
-                                                    final id = p.id;
-
                                                     if (p.counter >
                                                         1) {
                                                       p.counter--;
@@ -746,10 +738,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                         billingItems[existingIndex]['qty'] =
                                                             p.counter;
                                                       }
-                                                      final productIndex = getProductByCatIdModel.rows?.indexWhere((item) => item.id == id);
-                                                      if (productIndex != null && productIndex != -1) {
-                                                        getProductByCatIdModel.rows![productIndex].counter = p.counter;
-                                                      }
                                                     } else {
                                                       p.counter =
                                                       0;
@@ -757,12 +745,11 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                           "counterDecrproduct: ${p
                                                               .counter}");
 
-                                                      billingItems.removeWhere((item) => item['_id'] == p.id);
-                                                      final productIndex = uniqueProducts.indexWhere((item) => item.id == id);
-                                                      if (productIndex != -1) {
-                                                        uniqueProducts[productIndex].counter = 0;
-                                                      }
-
+                                                      billingItems.removeWhere((
+                                                          item) =>
+                                                      item[
+                                                      '_id'] ==
+                                                          p.id);
                                                     }
 
                                                     debugPrint(
@@ -799,47 +786,68 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                     size: 16,
                                                     color:
                                                     whiteColor),
-                                              onPressed: () {
-                                                setState(() {
-                                                  final id = p.id;
-                                                  p.counter++;
-                                                  debugPrint("counterIncre:${p.counter}");
-
-                                                  final existingIndex = billingItems.indexWhere((item) => item['_id'] == id);
-                                                  if (existingIndex != -1) {
-                                                    billingItems[existingIndex]['qty'] = p.counter;
-                                                  } else {
-                                                    billingItems.add({
-                                                      "_id": id,
-                                                      "basePrice": p.basePrice,
-                                                      "qty": p.counter,
-                                                      "name": p.name,
-                                                      "selectedAddons": p.hasAddons == true
-                                                          ? p.addons!
-                                                          .where((addon) => addon.isSelected == true)
-                                                          .map((addon) => {
-                                                        "_id": addon.id,
-                                                        "price": addon.price,
-                                                        "quantity": 1,
-                                                        "name": addon.name,
-                                                        "isAvailable": addon.isAvailable,
-                                                        "maxQuantity": addon.maxQuantity,
-                                                        "isFree": addon.isFree,
-                                                      })
-                                                          .toList()
-                                                          : []
-                                                    });
-                                                  }
-
-                                                  final productIndex = getProductByCatIdModel.rows?.indexWhere((item) => item.id == id);
-                                                  if (productIndex != null && productIndex != -1) {
-                                                    getProductByCatIdModel.rows![productIndex].counter = p.counter;
-                                                  }
-
-                                                  context.read<FoodCategoryBloc>().add(AddToBilling(List.from(billingItems)));
-                                                });
-                                              },),
-                                          )],
+                                                onPressed: () {
+                                                  setState(() {
+                                                    p.counter++;
+                                                    debugPrint(
+                                                        "counterIncre:${p
+                                                            .counter}");
+                                                    final existingIndex =
+                                                    billingItems.indexWhere((
+                                                        item) =>
+                                                    item['_id'] ==
+                                                        p.id);
+                                                    if (existingIndex !=
+                                                        -1) {
+                                                      billingItems[existingIndex]
+                                                      [
+                                                      'qty'] =
+                                                          p.counter;
+                                                    } else {
+                                                      billingItems
+                                                          .add({
+                                                        "_id": p
+                                                            .id,
+                                                        "basePrice":
+                                                        p.basePrice,
+                                                        "qty": p
+                                                            .counter,
+                                                        "name":
+                                                        p.name,
+                                                        "selectedAddons": p
+                                                            .hasAddons ==
+                                                            true
+                                                            ? p.addons!
+                                                            .where((addon) =>
+                                                        addon.isSelected ==
+                                                            true)
+                                                            .map((addon) =>
+                                                        {
+                                                          "_id": addon.id,
+                                                          "price": addon.price,
+                                                          "quantity": 1,
+                                                          "name": addon.name,
+                                                          "isAvailable": addon
+                                                              .isAvailable,
+                                                          "maxQuantity": addon
+                                                              .maxQuantity,
+                                                          "isFree": addon
+                                                              .isFree,
+                                                        })
+                                                            .toList()
+                                                            : []
+                                                      });
+                                                    }
+                                                    context
+                                                        .read<
+                                                        FoodCategoryBloc>()
+                                                        .add(AddToBilling(
+                                                        List.from(
+                                                            billingItems)));
+                                                  });
+                                                }),
+                                          ),
+                                        ],
                                       )
                                     ],
                                   ),
@@ -1141,7 +1149,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                 onPressed: () {
                                                   setState(() {
                                                     if (e.id != null) {
-
                                                       final id = e.id!;
                                                       final currentQty = (productCounters[id] ??
                                                           e.qty ?? 1).toInt();
@@ -1932,20 +1939,22 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                           SizedBox(height: 12),
                           ElevatedButton(
                             onPressed: () async {
+                              debugPrint(' Button tapped');
                               try {
-                                await IminPrinter().initPrinter();
-                                await IminPrinter().setAlignment(IminPrintAlign.center); // ✅ valid
-                                await IminPrinter().setAlignment(IminPrintAlign.right);  // ✅ valid
-                                await IminPrinter().printText("🍽️ Roja Restaurant\n");
-                                await IminPrinter().setAlignment(IminPrintAlign.left);
-                                await IminPrinter().printText("Item: Veg Burger x1\n");
-                                await IminPrinter().printText("Price: ₹59.32\n");
-                                await IminPrinter().printAndFeedPaper(3);
-                                await IminPrinter().printAndFeedPaper(5); // ✅ Adds 5 blank lines
-
-
+                                await printer.init();
+                                await printer.setAlignment(
+                                    "center"); // For mock, just a string
+                                await printer
+                                    .printText("🍽️ Roja Restaurant\n");
+                                await printer.setAlignment("left");
+                                await printer
+                                    .printText("Item: Veg Burger x1\n");
+                                await printer
+                                    .printText("Price: ₹59.32\n");
+                                await printer.printAndLineFeed();
+                                await printer.cut();
                               } catch (e) {
-                                debugPrint("❌ Printing failed: $e");
+                                debugPrint("[MOCK] Print failed: $e");
                               }
                             },
                             style: ElevatedButton.styleFrom(
