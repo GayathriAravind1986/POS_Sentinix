@@ -5,8 +5,6 @@ import 'package:simple/Bloc/observer/observer.dart';
 import 'package:simple/Bloc/theme_cubit.dart';
 import 'package:simple/Reusable/color.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:simple/UI/Cart/Widget/add_cart.dart';
-import 'package:simple/UI/Home_screen/home_screen.dart';
 import 'package:simple/UI/SplashScreen/splash_screen.dart';
 
 Future<void> main() async {
@@ -15,7 +13,6 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  //await cart.loadCartItems();
   Bloc.observer = AppBlocObserver();
   runApp(const App());
 }

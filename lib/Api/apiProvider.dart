@@ -10,6 +10,8 @@ import 'package:simple/ModelClass/HomeScreen/Category&Product/Get_category_model
 import 'package:simple/ModelClass/HomeScreen/Category&Product/Get_product_by_catId_model.dart';
 import 'package:simple/Reusable/constant.dart';
 
+import '../ModelClass/Table/Get_table_model.dart';
+
 /// All API Integration in ApiProvider
 class ApiProvider {
   late Dio _dio;
@@ -155,6 +157,51 @@ class ApiProvider {
       }
     } catch (error) {
       return GetProductByCatIdModel()..errorResponse = handleError(error);
+    }
+  }
+
+  /// Table - Fetch API Integration
+  Future<GetTableModel> getTableAPI() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var token = sharedPreferences.getString("token");
+    debugPrint("token:$token");
+    debugPrint("url:${Constants.baseUrl}api/tables");
+    try {
+      var dio = Dio();
+      var response = await dio.request(
+        '${Constants.baseUrl}api/tables',
+        options: Options(
+          method: 'GET',
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        debugPrint("statusCat:${response.statusCode}");
+        debugPrint("statusCat:${response.data}");
+        if (response.data['success'] == true) {
+          GetTableModel getTableResponse =
+              GetTableModel.fromJson(response.data);
+          return getTableResponse;
+        }
+      } else {
+        return GetTableModel()
+          ..errorResponse = ErrorResponse(
+            message: "Error: ${response.data['message'] ?? 'Unknown error'}",
+          );
+      }
+      return GetTableModel()
+        ..errorResponse = ErrorResponse(message: "Unexpected error occurred.");
+    } on DioException catch (dioError) {
+      if (dioError.response?.statusCode == 401) {
+        return GetTableModel()
+          ..errorResponse = ErrorResponse(message: "Invalid Credential");
+      } else {
+        return GetTableModel()..errorResponse = handleError(dioError);
+      }
+    } catch (error) {
+      return GetTableModel()..errorResponse = handleError(error);
     }
   }
 

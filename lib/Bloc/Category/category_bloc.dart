@@ -16,6 +16,8 @@ class AddToBilling extends FoodCategoryEvent {
   AddToBilling(this.billingItems);
 }
 
+class TableDine extends FoodCategoryEvent {}
+
 class FoodCategoryBloc extends Bloc<FoodCategoryEvent, dynamic> {
   FoodCategoryBloc() : super(dynamic) {
     on<FoodCategory>((event, emit) async {
@@ -36,6 +38,13 @@ class FoodCategoryBloc extends Bloc<FoodCategoryEvent, dynamic> {
     });
     on<AddToBilling>((event, emit) async {
       await ApiProvider().postAddToBillingAPI(event.billingItems).then((value) {
+        emit(value);
+      }).catchError((error) {
+        emit(error);
+      });
+    });
+    on<TableDine>((event, emit) async {
+      await ApiProvider().getTableAPI().then((value) {
         emit(value);
       }).catchError((error) {
         emit(error);

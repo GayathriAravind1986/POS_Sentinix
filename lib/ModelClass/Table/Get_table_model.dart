@@ -1,3 +1,5 @@
+import 'package:simple/Bloc/Response/errorResponse.dart';
+
 /// success : true
 /// data : [{"id":"68721cb522da118ea8d7578b","name":"2","isAvailable":true,"createdBy":"Saranya","createdAt":"2025-07-12","updatedAt":"2025-07-12T08:28:37.818Z","statusText":"Available"},{"id":"68721cb022da118ea8d75783","name":"1","isAvailable":true,"createdBy":"Saranya","createdAt":"2025-07-12","updatedAt":"2025-07-12T08:28:32.374Z","statusText":"Available"}]
 /// totalCount : 2
@@ -7,6 +9,7 @@ class GetTableModel {
     bool? success,
     List<Data>? data,
     num? totalCount,
+    ErrorResponse? errorResponse,
   }) {
     _success = success;
     _data = data;
@@ -22,10 +25,16 @@ class GetTableModel {
       });
     }
     _totalCount = json['totalCount'];
+    if (json['errors'] != null && json['errors'] is Map<String, dynamic>) {
+      errorResponse = ErrorResponse.fromJson(json['errors']);
+    } else {
+      errorResponse = null;
+    }
   }
   bool? _success;
   List<Data>? _data;
   num? _totalCount;
+  ErrorResponse? errorResponse;
   GetTableModel copyWith({
     bool? success,
     List<Data>? data,
@@ -47,6 +56,9 @@ class GetTableModel {
       map['data'] = _data?.map((v) => v.toJson()).toList();
     }
     map['totalCount'] = _totalCount;
+    if (errorResponse != null) {
+      map['errors'] = errorResponse!.toJson();
+    }
     return map;
   }
 }

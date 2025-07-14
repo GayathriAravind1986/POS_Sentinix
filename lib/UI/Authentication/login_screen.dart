@@ -8,7 +8,7 @@ import 'package:simple/ModelClass/Authentication/Post_login_model.dart';
 import 'package:simple/Reusable/color.dart';
 import 'package:simple/Reusable/customTextfield.dart';
 import 'package:simple/Reusable/space.dart';
-import 'package:simple/UI/Home_screen/home_screen.dart';
+import 'package:simple/UI/DashBoard/custom_tabbar.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({
@@ -205,10 +205,11 @@ class LoginScreenViewState extends State<LoginScreenView> {
                 });
                 showToast('${postLoginModel.message}', context, color: true);
                 Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                      builder: (context) => const FoodOrderingScreen()),
-                  (Route<dynamic> route) => false,
-                );
+                    MaterialPageRoute(
+                        builder: (context) => const DashBoardScreen(
+                              selectTab: 0,
+                            )),
+                    (Route<dynamic> route) => false);
               } else {
                 final errorMsg =
                     postLoginModel.errorResponse?.errors?.first.message ??

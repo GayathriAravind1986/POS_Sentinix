@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:simple/Reusable/color.dart';
 
 class PaymentOption extends StatelessWidget {
   final IconData icon;
@@ -22,8 +23,9 @@ class PaymentOption extends StatelessWidget {
         width: 100,
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: selected ? Colors.brown.shade100 : Colors.white,
-          border: Border.all(color: Colors.grey.shade300),
+          color: selected ? appPrimaryColor.shade100 : whiteColor,
+          border: Border.all(
+              color: selected ? appPrimaryColor : greyColor.shade300),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
