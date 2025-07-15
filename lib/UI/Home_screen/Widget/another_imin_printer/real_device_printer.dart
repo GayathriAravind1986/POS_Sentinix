@@ -1,6 +1,4 @@
 import 'dart:io' show Platform;
-
-import 'package:another_imin_printer/enums/print_size_imin.dart';
 import 'package:another_imin_printer/imin_printer.dart';
 
 import 'imin_abstract.dart';
@@ -10,7 +8,7 @@ class RealPrinterService implements IPrinterService {
 
   @override
   Future<void> init() async {
-    await _printer.initPrinter(printSizeImin: PrintSizeImin.mm58);
+    await _printer.initPrinter();
   }
 
   @override

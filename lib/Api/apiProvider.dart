@@ -8,6 +8,8 @@ import 'package:simple/ModelClass/Authentication/Post_login_model.dart';
 import 'package:simple/ModelClass/Cart/Post_Add_to_billing_model.dart';
 import 'package:simple/ModelClass/HomeScreen/Category&Product/Get_category_model.dart';
 import 'package:simple/ModelClass/HomeScreen/Category&Product/Get_product_by_catId_model.dart';
+import 'package:simple/ModelClass/Order/Post_generate_order_model.dart';
+import 'package:simple/ModelClass/Order/get_order_list_today_model.dart';
 import 'package:simple/Reusable/constant.dart';
 
 import '../ModelClass/Table/Get_table_model.dart';
@@ -74,8 +76,6 @@ class ApiProvider {
   Future<GetCategoryModel> getCategoryAPI() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var token = sharedPreferences.getString("token");
-    debugPrint("token:$token");
-    debugPrint("url:${Constants.baseUrl}api/categories");
     try {
       var dio = Dio();
       var response = await dio.request(
@@ -88,8 +88,6 @@ class ApiProvider {
         ),
       );
       if (response.statusCode == 200 && response.data != null) {
-        debugPrint("statusCat:${response.statusCode}");
-        debugPrint("statusCat:${response.data}");
         if (response.data['success'] == true) {
           GetCategoryModel getCategoryResponse =
               GetCategoryModel.fromJson(response.data);
@@ -132,9 +130,6 @@ class ApiProvider {
         ),
       );
       if (response.statusCode == 200 && response.data != null) {
-        debugPrint("statusPrd:${response.statusCode}");
-        debugPrint("statusPrdSuccess:${response.data['success']}");
-        debugPrint("statusPrd:${response.data}");
         if (response.data['success'] == true) {
           GetProductByCatIdModel getProductByCatIdResponse =
               GetProductByCatIdModel.fromJson(response.data);
@@ -164,8 +159,6 @@ class ApiProvider {
   Future<GetTableModel> getTableAPI() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var token = sharedPreferences.getString("token");
-    debugPrint("token:$token");
-    debugPrint("url:${Constants.baseUrl}api/tables");
     try {
       var dio = Dio();
       var response = await dio.request(
@@ -178,8 +171,6 @@ class ApiProvider {
         ),
       );
       if (response.statusCode == 200 && response.data != null) {
-        debugPrint("statusCat:${response.statusCode}");
-        debugPrint("statusCat:${response.data}");
         if (response.data['success'] == true) {
           GetTableModel getTableResponse =
               GetTableModel.fromJson(response.data);
@@ -210,11 +201,9 @@ class ApiProvider {
       List<Map<String, dynamic>> billingItems) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var token = sharedPreferences.getString("token");
-    debugPrint("billingItemInAPI:$billingItems");
     try {
       final dataMap = {"items": billingItems};
       var data = json.encode(dataMap);
-      debugPrint("data:$data");
       var dio = Dio();
       var response = await dio.request(
         '${Constants.baseUrl}api/generate-order/billing/calculate',
@@ -252,6 +241,98 @@ class ApiProvider {
       }
     } catch (error) {
       return PostAddToBillingModel()..errorResponse = handleError(error);
+    }
+  }
+
+  /// orderToday - Fetch API Integration
+  Future<GetOrderListTodayModel> getOrderTodayAPI(
+      String? fromDate, String? toDate) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var token = sharedPreferences.getString("token");
+    try {
+      var dio = Dio();
+      var response = await dio.request(
+        '${Constants.baseUrl}api/generate-order?from_date=$fromDate&to_date=$toDate',
+        options: Options(
+          method: 'GET',
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        if (response.data['success'] == true) {
+          GetOrderListTodayModel getOrderListTodayResponse =
+              GetOrderListTodayModel.fromJson(response.data);
+          return getOrderListTodayResponse;
+        }
+      } else {
+        return GetOrderListTodayModel()
+          ..errorResponse = ErrorResponse(
+            message: "Error: ${response.data['message'] ?? 'Unknown error'}",
+          );
+      }
+      return GetOrderListTodayModel()
+        ..errorResponse = ErrorResponse(message: "Unexpected error occurred.");
+    } on DioException catch (dioError) {
+      if (dioError.response?.statusCode == 401) {
+        return GetOrderListTodayModel()
+          ..errorResponse = ErrorResponse(message: "Invalid Credential");
+      } else {
+        return GetOrderListTodayModel()..errorResponse = handleError(dioError);
+      }
+    } catch (error) {
+      return GetOrderListTodayModel()..errorResponse = handleError(error);
+    }
+  }
+
+  /// Generate Order - Post API Integration
+  Future<PostGenerateOrderModel> postGenerateOrderAPI(
+      List<Map<String, dynamic>> billingItems) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var token = sharedPreferences.getString("token");
+    debugPrint("payload:$billingItems");
+    try {
+      final dataMap = {"items": billingItems};
+      var data = json.encode(dataMap);
+      debugPrint("data:$data");
+      var dio = Dio();
+      var response = await dio.request(
+        '${Constants.baseUrl}api/generate-order/order',
+        options: Options(
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        ),
+        data: data,
+      );
+      if (response.statusCode == 201 && response.data != null) {
+        try {
+          PostGenerateOrderModel postGenerateOrderResponse =
+              PostGenerateOrderModel.fromJson(response.data);
+          return postGenerateOrderResponse;
+        } catch (e) {
+          return PostGenerateOrderModel()
+            ..errorResponse = ErrorResponse(
+              message: "Failed to parse response: $e",
+            );
+        }
+      } else {
+        return PostGenerateOrderModel()
+          ..errorResponse =
+              ErrorResponse(message: "Unexpected error occurred.");
+      }
+    } on DioException catch (dioError) {
+      if (dioError.response?.statusCode == 401) {
+        return PostGenerateOrderModel()
+          ..errorResponse = ErrorResponse(message: "Invalid Credential");
+      } else {
+        return PostGenerateOrderModel()..errorResponse = handleError(dioError);
+      }
+    } catch (error) {
+      return PostGenerateOrderModel()..errorResponse = handleError(error);
     }
   }
 

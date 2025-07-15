@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:simple/Bloc/Category/category_bloc.dart';
-import 'package:simple/Bloc/demo/demo_bloc.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:intl/intl.dart';
+import 'package:simple/Bloc/Order/order_list_bloc.dart';
+import 'package:simple/ModelClass/Order/get_order_list_today_model.dart';
 import 'package:simple/Reusable/color.dart';
 import 'package:simple/Reusable/text_styles.dart';
+import 'package:simple/UI/Order/Helper/time_formatter.dart';
 
 class OrderView extends StatelessWidget {
   final String type;
@@ -15,15 +18,19 @@ class OrderView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => DemoBloc(),
-      child: OrderViewView(),
+      create: (_) => OrderTodayBloc(),
+      child: OrderViewView(
+        type: type,
+      ),
     );
   }
 }
 
 class OrderViewView extends StatefulWidget {
+  final String type;
   const OrderViewView({
     super.key,
+    required this.type,
   });
 
   @override
@@ -31,13 +38,15 @@ class OrderViewView extends StatefulWidget {
 }
 
 class OrderViewViewState extends State<OrderViewView> {
-//  GetCategoryModel getCategoryModel = GetCategoryModel();
-
+  GetOrderListTodayModel getOrderListTodayModel = GetOrderListTodayModel();
+  bool orderLoad = false;
+  final todayDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+  String? type;
   @override
   void initState() {
     super.initState();
-
-    //context.read<FoodCategoryBloc>().add(FoodCategory());
+    context.read<OrderTodayBloc>().add(OrderTodayList(todayDate, todayDate));
+    orderLoad = true;
   }
 
   @override
@@ -47,96 +56,158 @@ class OrderViewViewState extends State<OrderViewView> {
 
   @override
   Widget build(BuildContext context) {
-    var size = MediaQuery.of(context).size;
+    debugPrint("orderType:${widget.type}");
+    type = widget.type == "Takeaway" ? "TAKE-AWAY" : "DINE-IN";
+    final filteredOrders = getOrderListTodayModel.data?.where((order) {
+          if (widget.type == "All") return true;
+          return order.orderType?.toUpperCase() == type;
+        }).toList() ??
+        [];
     Widget mainContainer() {
-      return Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: GridView.builder(
-          itemCount: 10,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3, // 2 per row
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 2.2,
-          ),
-          itemBuilder: (context, index) {
-            // final order = orders[index];
-            return Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("Order ID: ORD-20250714-0010",
-                            style: MyTextStyle.f14(appPrimaryColor,
-                                weight: FontWeight.bold)),
-                        Text("Total: ₹ 150.00",
-                            style: MyTextStyle.f14(appPrimaryColor,
-                                weight: FontWeight.bold)),
-                      ],
+      return orderLoad
+          ? Container(
+              padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).size.height * 0.1),
+              alignment: Alignment.center,
+              child: const SpinKitChasingDots(color: appPrimaryColor, size: 30))
+          : getOrderListTodayModel.data == null ||
+                  getOrderListTodayModel.data == [] ||
+                  getOrderListTodayModel.data!.isEmpty
+              ? Container(
+                  padding: EdgeInsets.only(
+                      top: MediaQuery.of(context).size.height * 0.1),
+                  alignment: Alignment.center,
+                  child: Text(
+                    "No Orders Today !!!",
+                    style: MyTextStyle.f16(
+                      greyColor,
+                      weight: FontWeight.w500,
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("Time: 02:23 PM"),
-                        Text("Payment: CASH: ₹150.00",
-                            style: MyTextStyle.f12(greyColor,
-                                weight: FontWeight.w400)),
-                      ],
+                  ))
+              : Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: GridView.builder(
+                    itemCount: filteredOrders.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      childAspectRatio: 2.0,
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("Type: DINE-IN"),
-                        Text("Status: COMPLETED",
-                            style: TextStyle(color: greenColor)),
-                      ],
-                    ),
-                    // if (order['table'] != null)
-                    Text("Table: 3"),
-                    SizedBox(height: 4),
-                    Spacer(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Icon(Icons.remove_red_eye, color: appPrimaryColor),
-                        Icon(Icons.edit, color: appPrimaryColor),
-                        Icon(Icons.copy, color: appPrimaryColor),
-                        Icon(Icons.delete, color: appPrimaryColor),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      );
+                    itemBuilder: (context, index) {
+                      final order = filteredOrders[index];
+                      final payment = order.payments?.isNotEmpty == true
+                          ? order.payments!.first
+                          : null;
+
+                      return Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // 🔹 Order ID & Total
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      "Order ID: ${order.orderNumber ?? '--'}",
+                                      style: MyTextStyle.f14(appPrimaryColor,
+                                          weight: FontWeight.bold),
+                                    ),
+                                  ),
+                                  Text(
+                                    "₹${order.total?.toStringAsFixed(2) ?? '0.00'}",
+                                    style: MyTextStyle.f14(appPrimaryColor,
+                                        weight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Time: ${formatTime(order.invoice?.date)}",
+                                  ),
+                                  Text(
+                                    payment?.paymentMethod != null &&
+                                            payment!.paymentMethod!.isNotEmpty
+                                        ? "Payment: ${payment.paymentMethod}: ₹${payment.amount?.toStringAsFixed(2) ?? '0.00'}"
+                                        : "Payment: N/A",
+                                    style: MyTextStyle.f12(greyColor),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 6),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text("Type: ${order.orderType ?? '--'}"),
+                                  Text(
+                                    "Status: ${order.orderStatus}",
+                                    style: TextStyle(
+                                      color: order.orderStatus == 'COMPLETED'
+                                          ? greenColor
+                                          : orangeColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 6),
+
+                              // 🔹 Table Info
+                              Text("Table: ${order.tableName ?? 'N/A'}"),
+
+                              const Spacer(),
+
+                              // 🔹 Action Icons
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Icon(Icons.remove_red_eye,
+                                      color: appPrimaryColor),
+                                  Icon(Icons.edit, color: appPrimaryColor),
+                                  Icon(Icons.copy, color: appPrimaryColor),
+                                  Icon(Icons.delete, color: appPrimaryColor),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
     }
 
-    return BlocBuilder<DemoBloc, dynamic>(
+    return BlocBuilder<OrderTodayBloc, dynamic>(
       buildWhen: ((previous, current) {
-        // if (current is GetCategoryModel) {
-        //   getCategoryModel = current;
-        //   if (getCategoryModel.success == true) {
-        //     debugPrint("category: ${getCategoryModel.data}");
-        //     setState(() {
-        //       categoryLoad = false;
-        //     });
-        //   } else {
-        //     setState(() {
-        //       categoryLoad = false;
-        //     });
-        //   }
-        //   return true;
-        // }
+        if (current is GetOrderListTodayModel) {
+          getOrderListTodayModel = current;
+          if (getOrderListTodayModel.success == true) {
+            debugPrint("orderToday: ${getOrderListTodayModel.data}");
+            setState(() {
+              orderLoad = false;
+            });
+          } else {
+            setState(() {
+              orderLoad = false;
+            });
+          }
+          return true;
+        }
 
         return false;
       }),

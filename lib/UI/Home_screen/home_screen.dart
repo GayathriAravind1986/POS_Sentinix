@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -9,11 +12,14 @@ import 'package:simple/Bloc/Category/category_bloc.dart';
 import 'package:simple/ModelClass/Cart/Post_Add_to_billing_model.dart';
 import 'package:simple/ModelClass/HomeScreen/Category&Product/Get_category_model.dart';
 import 'package:simple/ModelClass/HomeScreen/Category&Product/Get_product_by_catId_model.dart';
+import 'package:simple/ModelClass/Order/Post_generate_order_model.dart';
 import 'package:simple/ModelClass/Table/Get_table_model.dart';
 import 'package:simple/Reusable/color.dart';
+import 'package:simple/Reusable/image.dart';
 import 'package:simple/Reusable/space.dart';
 import 'package:simple/Reusable/text_styles.dart';
 import 'package:simple/UI/Cart/Widget/payment_option.dart';
+import 'package:simple/UI/Home_screen/Helper/order_helper.dart';
 import 'package:simple/UI/Home_screen/Widget/addons_screen_widget.dart';
 import 'package:simple/UI/Home_screen/Widget/another_imin_printer/imin_abstract.dart';
 import 'package:simple/UI/Home_screen/Widget/another_imin_printer/mock_imin_printer_chrome.dart';
@@ -47,6 +53,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
   GetCategoryModel getCategoryModel = GetCategoryModel();
   GetProductByCatIdModel getProductByCatIdModel = GetProductByCatIdModel();
   PostAddToBillingModel postAddToBillingModel = PostAddToBillingModel();
+  PostGenerateOrderModel postGenerateOrderModel = PostGenerateOrderModel();
   GetTableModel getTableModel = GetTableModel();
 
   TextEditingController searchController = TextEditingController();
@@ -88,11 +95,12 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
 
   String? errorMessage;
   bool categoryLoad = false;
+  bool orderLoad = false;
   bool cartLoad = false;
   bool isToppingSelected = false;
 
   int counter = 0;
-  String selectedFullPaymentMethod = "Cash";
+  String selectedFullPaymentMethod = "";
   double totalAmount = 0.0;
   double paidAmount = 0.0;
   double balanceAmount = 0.0;
@@ -103,13 +111,15 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
     super.initState();
     if (kIsWeb) {
       printerService = MockPrinterService();
+      debugPrint("Using MockPrinterService (Web)");
+    } else if (Platform.isAndroid) {
+      printerService = RealPrinterService();
+      debugPrint("Using RealPrinterService (Android)");
     } else {
-      try {
-        printerService = RealPrinterService();
-      } catch (e) {
-        printerService = MockPrinterService();
-      }
+      printerService = MockPrinterService();
+      debugPrint("Using fallback MockPrinterService");
     }
+
     context.read<FoodCategoryBloc>().add(FoodCategory());
     context
         .read<FoodCategoryBloc>()
@@ -138,7 +148,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
             (a, b) => a.name!.toLowerCase().compareTo(b.name!.toLowerCase()));
 
       final List<Category> displayedCategories = [
-        Category(name: 'All', image: 'assets/image/all.png', id: ""),
+        Category(name: 'All', image: Images.all, id: ""),
         ...sortedCategories,
       ];
 
@@ -311,7 +321,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                           gridDelegate:
                                               SliverGridDelegateWithFixedCrossAxisCount(
                                             crossAxisCount: 3,
-                                            mainAxisExtent: 220,
+                                            mainAxisExtent: 230,
                                             crossAxisSpacing: 10,
                                             mainAxisSpacing: 10,
                                           ),
@@ -375,33 +385,41 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                     size: 30),
                                                           )),
                                                     ),
-                                                    verticalSpace(height: 7),
-                                                    Flexible(
-                                                      child: Text(
-                                                        "${p.name}",
-                                                        textAlign:
-                                                            TextAlign.left,
-                                                        style: MyTextStyle.f14(
-                                                            blackColor,
-                                                            weight: FontWeight
-                                                                .w500),
-                                                        maxLines: 2,
+                                                    verticalSpace(height: 5),
+                                                    SizedBox(
+                                                      width: size.width * 0.25,
+                                                      child: FittedBox(
+                                                        fit: BoxFit.scaleDown,
+                                                        child: Text(
+                                                          p.name ?? '',
+                                                          style: MyTextStyle.f13(
+                                                              blackColor,
+                                                              weight: FontWeight
+                                                                  .w500),
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
                                                       ),
                                                     ),
                                                     verticalSpace(height: 5),
-                                                    Flexible(
-                                                      child: Text(
-                                                        '₹ ${p.basePrice}',
-                                                        textAlign:
-                                                            TextAlign.left,
-                                                        style: MyTextStyle.f14(
-                                                            blackColor,
-                                                            weight: FontWeight
-                                                                .bold),
-                                                        maxLines: 2,
+                                                    SizedBox(
+                                                      width: size.width * 0.25,
+                                                      child: FittedBox(
+                                                        fit: BoxFit.scaleDown,
+                                                        child: Text(
+                                                          '₹ ${p.basePrice}',
+                                                          style: MyTextStyle.f13(
+                                                              blackColor,
+                                                              weight: FontWeight
+                                                                  .w500),
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
                                                       ),
                                                     ),
-                                                    verticalSpace(height: 5),
+                                                    verticalSpace(height: 15),
                                                     counter == 0
                                                         ? ElevatedButton(
                                                             onPressed: () {
@@ -608,9 +626,8 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                             : []
                                                                       });
                                                                     }
-
                                                                     debugPrint(
-                                                                        "billingItems: $billingItems");
+                                                                        'billingItems: ${jsonEncode(billingItems)}');
                                                                     context
                                                                         .read<
                                                                             FoodCategoryBloc>()
@@ -1026,7 +1043,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                 PaymentOption(
                                                     icon: Icons.money,
                                                     label: "Cash",
-                                                    selected: true),
+                                                    selected: false),
                                                 PaymentOption(
                                                     icon: Icons.credit_card,
                                                     label: "Card",
@@ -1613,6 +1630,8 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                       onTap: () {
                                                         setState(() {
                                                           isSplitPayment = true;
+                                                          selectedFullPaymentMethod =
+                                                              "";
                                                           _paymentFieldCount =
                                                               1;
                                                           splitAmountControllers =
@@ -2079,7 +2098,39 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                     Expanded(
                                                       child: ElevatedButton(
                                                         onPressed: () async {
-                                                          // Save Order logic
+                                                          if (selectedValue ==
+                                                                  null &&
+                                                              selectDineIn ==
+                                                                  true) {
+                                                            showToast(
+                                                                "Table number is required for DINE-IN orders",
+                                                                context,
+                                                                color: false);
+                                                          } else {
+                                                            //   final orderPayload =
+                                                            //       buildOrderPayload(
+                                                            //     billingItems:
+                                                            //         billingItems,
+                                                            //     tableNo: tableId,
+                                                            //     orderStatus:
+                                                            //         'WAITLIST',
+                                                            //     orderType:
+                                                            //         selectDineIn ==
+                                                            //                 true
+                                                            //             ? 'DINE-IN'
+                                                            //             : 'TAKE-AWAY',
+                                                            //     paymentAmount:
+                                                            //         (postAddToBillingModel
+                                                            //                     .total ??
+                                                            //                 0)
+                                                            //             .toDouble(),
+                                                            //     paymentMethod:
+                                                            //         selectedFullPaymentMethod,
+                                                            //   );
+                                                            //   debugPrint(
+                                                            //       'Sending order: ${jsonEncode(orderPayload)}');
+                                                            //   //  context.read<FoodCategoryBloc>().add(SaveOrder(payload));
+                                                          }
                                                         },
                                                         style: ElevatedButton
                                                             .styleFrom(
@@ -2113,42 +2164,146 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                     Expanded(
                                                       child: ElevatedButton(
                                                         onPressed: () async {
-                                                          setState(() {
-                                                            if (selectedValue ==
-                                                                    null &&
-                                                                selectDineIn ==
-                                                                    true) {
-                                                              showToast(
-                                                                  "Table number is required for DINE-IN orders",
-                                                                  context,
-                                                                  color: false);
-                                                            } else {
+                                                          if (selectedValue ==
+                                                                  null &&
+                                                              selectDineIn ==
+                                                                  true) {
+                                                            showToast(
+                                                                "Table number is required for DINE-IN orders",
+                                                                context,
+                                                                color: false);
+                                                          } else {
+                                                            setState(() {
                                                               isCompleteOrder =
                                                                   true;
-                                                              if (amountController
-                                                                  .text
-                                                                  .isNotEmpty) {
-                                                                //// api call
-                                                              }
+                                                            });
+                                                            double
+                                                                enteredAmount =
+                                                                double.tryParse(
+                                                                        amountController
+                                                                            .text) ??
+                                                                    0.0;
+                                                            num totalAmount =
+                                                                postAddToBillingModel
+                                                                        .total ??
+                                                                    0.0;
+                                                            if ((amountController
+                                                                        .text
+                                                                        .isNotEmpty &&
+                                                                    selectedFullPaymentMethod ==
+                                                                        "Cash" &&
+                                                                    enteredAmount <
+                                                                        totalAmount) ||
+                                                                selectedFullPaymentMethod ==
+                                                                    "Card" ||
+                                                                selectedFullPaymentMethod ==
+                                                                    "UPI") {
+                                                              // final orderPayload =
+                                                              //     buildOrderPayload(
+                                                              //   billingItems:
+                                                              //       billingItems,
+                                                              //   operatorId:
+                                                              //       '60a7e502a2f8f3b6e8d9b7c6',
+                                                              //   tableNo:
+                                                              //       tableId ??
+                                                              //           '',
+                                                              //   orderStatus:
+                                                              //       'COMPLETED',
+                                                              //   orderType: selectDineIn
+                                                              //       ? 'DINE-IN'
+                                                              //       : 'TAKE-AWAY',
+                                                              //   notes: '',
+                                                              // );
+                                                              // debugPrint(
+                                                              //     'Sending order: ${jsonEncode(orderPayload)}');
+                                                              // await printerService
+                                                              //     .init();
+                                                              // await printerService
+                                                              //     .printText(
+                                                              //         "🍽️ Roja Restaurant\n");
+                                                              // await printerService
+                                                              //     .printText(
+                                                              //         "------------------------\n");
+                                                              //
+                                                              // for (var item
+                                                              //     in orderPayload[
+                                                              //         'items']) {
+                                                              //   String line =
+                                                              //       "${item['name']} x${item['quantity']} - ₹${item['subtotal'].toStringAsFixed(2)}\n";
+                                                              //   await printerService
+                                                              //       .printText(
+                                                              //           line);
+                                                              //
+                                                              //   // Print addons if available
+                                                              //   List addons =
+                                                              //       item[
+                                                              //           'addons'];
+                                                              //   for (var addon
+                                                              //       in addons) {
+                                                              //     await printerService
+                                                              //         .printText(
+                                                              //             "  + ${addon['name']} - ₹${addon['price']}\n");
+                                                              //   }
+                                                              // }
+                                                              //
+                                                              // await printerService
+                                                              //     .printText(
+                                                              //         "------------------------\n");
+                                                              // await printerService
+                                                              //     .printText(
+                                                              //         "Subtotal: ₹${orderPayload['subtotal'].toStringAsFixed(2)}\n");
+                                                              // await printerService
+                                                              //     .printText(
+                                                              //         "Tax: ₹${orderPayload['tax'].toStringAsFixed(2)}\n");
+                                                              // await printerService
+                                                              //     .printText(
+                                                              //         "Total: ₹${orderPayload['total'].toStringAsFixed(2)}\n");
+                                                              //
+                                                              // await printerService
+                                                              //     .printText(
+                                                              //         "Order Type: ${orderPayload['orderType']}\n");
+                                                              // if (orderPayload[
+                                                              //         'table_no']
+                                                              //     .isNotEmpty) {
+                                                              //   await printerService
+                                                              //       .printText(
+                                                              //           "Table No: ${orderPayload['table_no']}\n");
+                                                              // }
+                                                              //
+                                                              // await printerService
+                                                              //     .printText(
+                                                              //         "\nThank you!\n");
+                                                              // await printerService
+                                                              //     .fullCut();
+
+                                                              // Optional: send order to server or Bloc here
+                                                              //  context.read<FoodCategoryBloc>().add(SaveOrder(orderPayload));
+                                                              await printerService
+                                                                  .init();
+                                                              await printerService
+                                                                  .printText(
+                                                                      "🧾 Test Receipt\nHello from iMin printer\n");
+                                                              await printerService
+                                                                  .fullCut();
                                                             }
-                                                          });
-                                                          // await printerService.init();
-                                                          // await printerService.printText(
-                                                          //     "🍽️ Roja Restaurant\n");
-                                                          // await printerService.printText(
-                                                          //     "Item: Veg Burger x1\nPrice: ₹59.32\n");
-                                                          // await printerService
-                                                          //     .fullCut();
+                                                          }
                                                         },
                                                         style: ElevatedButton
                                                             .styleFrom(
-                                                          backgroundColor: isCompleteOrder ==
-                                                                      true &&
-                                                                  selectedFullPaymentMethod ==
-                                                                      "Cash" &&
-                                                                  amountController
-                                                                      .text
-                                                                      .isEmpty
+                                                          backgroundColor: (isCompleteOrder == true &&
+                                                                      selectedFullPaymentMethod ==
+                                                                          "Cash" &&
+                                                                      amountController
+                                                                          .text
+                                                                          .isEmpty) ||
+                                                                  (isCompleteOrder ==
+                                                                          true &&
+                                                                      selectedFullPaymentMethod ==
+                                                                          "Card") ||
+                                                                  (isCompleteOrder ==
+                                                                          true &&
+                                                                      selectedFullPaymentMethod ==
+                                                                          "UPI")
                                                               ? greyColor
                                                               : appPrimaryColor,
                                                           minimumSize:
@@ -2256,6 +2411,15 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
         if (current is PostAddToBillingModel) {
           postAddToBillingModel = current;
           debugPrint("Billing response: ${postAddToBillingModel.items}");
+          return true;
+        }
+        if (current is PostGenerateOrderModel) {
+          postGenerateOrderModel = current;
+          debugPrint("order response: ${postGenerateOrderModel.message}");
+          showToast("${postGenerateOrderModel.message}", context, color: true);
+          setState(() {
+            orderLoad = false;
+          });
           return true;
         }
         if (current is GetTableModel) {

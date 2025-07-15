@@ -16,6 +16,11 @@ class AddToBilling extends FoodCategoryEvent {
   AddToBilling(this.billingItems);
 }
 
+class GenerateOrder extends FoodCategoryEvent {
+  List<Map<String, dynamic>> billingItems;
+  GenerateOrder(this.billingItems);
+}
+
 class TableDine extends FoodCategoryEvent {}
 
 class FoodCategoryBloc extends Bloc<FoodCategoryEvent, dynamic> {
@@ -38,6 +43,15 @@ class FoodCategoryBloc extends Bloc<FoodCategoryEvent, dynamic> {
     });
     on<AddToBilling>((event, emit) async {
       await ApiProvider().postAddToBillingAPI(event.billingItems).then((value) {
+        emit(value);
+      }).catchError((error) {
+        emit(error);
+      });
+    });
+    on<GenerateOrder>((event, emit) async {
+      await ApiProvider()
+          .postGenerateOrderAPI(event.billingItems)
+          .then((value) {
         emit(value);
       }).catchError((error) {
         emit(error);

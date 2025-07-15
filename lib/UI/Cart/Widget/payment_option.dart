@@ -18,7 +18,7 @@ class PaymentOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap, // wrap in GestureDetector to handle taps
+      onTap: onTap,
       child: Container(
         width: 100,
         padding: const EdgeInsets.symmetric(vertical: 12),
