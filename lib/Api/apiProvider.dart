@@ -8,6 +8,8 @@ import 'package:simple/ModelClass/Authentication/Post_login_model.dart';
 import 'package:simple/ModelClass/Cart/Post_Add_to_billing_model.dart';
 import 'package:simple/ModelClass/HomeScreen/Category&Product/Get_category_model.dart';
 import 'package:simple/ModelClass/HomeScreen/Category&Product/Get_product_by_catId_model.dart';
+import 'package:simple/ModelClass/Order/Delete_order_model.dart';
+import 'package:simple/ModelClass/Order/Get_view_order_model.dart';
 import 'package:simple/ModelClass/Order/Post_generate_order_model.dart';
 import 'package:simple/ModelClass/Order/get_order_list_today_model.dart';
 import 'package:simple/Reusable/constant.dart';
@@ -288,13 +290,12 @@ class ApiProvider {
 
   /// Generate Order - Post API Integration
   Future<PostGenerateOrderModel> postGenerateOrderAPI(
-      List<Map<String, dynamic>> billingItems) async {
+      final String orderPayloadJson) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var token = sharedPreferences.getString("token");
-    debugPrint("payload:$billingItems");
+    debugPrint("payload:$orderPayloadJson");
     try {
-      final dataMap = {"items": billingItems};
-      var data = json.encode(dataMap);
+      var data = orderPayloadJson;
       debugPrint("data:$data");
       var dio = Dio();
       var response = await dio.request(
@@ -333,6 +334,88 @@ class ApiProvider {
       }
     } catch (error) {
       return PostGenerateOrderModel()..errorResponse = handleError(error);
+    }
+  }
+
+  /// Delete Order - Fetch API Integration
+  Future<DeleteOrderModel> deleteOrderAPI(String? orderId) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var token = sharedPreferences.getString("token");
+    try {
+      var dio = Dio();
+      var response = await dio.request(
+        '${Constants.baseUrl}api/generate-order/order/$orderId',
+        options: Options(
+          method: 'DELETE',
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        if (response.data['success'] == true) {
+          DeleteOrderModel deleteOrderResponse =
+              DeleteOrderModel.fromJson(response.data);
+          return deleteOrderResponse;
+        }
+      } else {
+        return DeleteOrderModel()
+          ..errorResponse = ErrorResponse(
+            message: "Error: ${response.data['message'] ?? 'Unknown error'}",
+          );
+      }
+      return DeleteOrderModel()
+        ..errorResponse = ErrorResponse(message: "Unexpected error occurred.");
+    } on DioException catch (dioError) {
+      if (dioError.response?.statusCode == 401) {
+        return DeleteOrderModel()
+          ..errorResponse = ErrorResponse(message: "Invalid Credential");
+      } else {
+        return DeleteOrderModel()..errorResponse = handleError(dioError);
+      }
+    } catch (error) {
+      return DeleteOrderModel()..errorResponse = handleError(error);
+    }
+  }
+
+  /// View Order - Fetch API Integration
+  Future<GetViewOrderModel> viewOrderAPI(String? orderId) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var token = sharedPreferences.getString("token");
+    try {
+      var dio = Dio();
+      var response = await dio.request(
+        '${Constants.baseUrl}api/generate-order/$orderId',
+        options: Options(
+          method: 'GET',
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        if (response.data['success'] == true) {
+          GetViewOrderModel getViewOrderResponse =
+              GetViewOrderModel.fromJson(response.data);
+          return getViewOrderResponse;
+        }
+      } else {
+        return GetViewOrderModel()
+          ..errorResponse = ErrorResponse(
+            message: "Error: ${response.data['message'] ?? 'Unknown error'}",
+          );
+      }
+      return GetViewOrderModel()
+        ..errorResponse = ErrorResponse(message: "Unexpected error occurred.");
+    } on DioException catch (dioError) {
+      if (dioError.response?.statusCode == 401) {
+        return GetViewOrderModel()
+          ..errorResponse = ErrorResponse(message: "Invalid Credential");
+      } else {
+        return GetViewOrderModel()..errorResponse = handleError(dioError);
+      }
+    } catch (error) {
+      return GetViewOrderModel()..errorResponse = handleError(error);
     }
   }
 

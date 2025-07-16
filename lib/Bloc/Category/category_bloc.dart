@@ -17,8 +17,8 @@ class AddToBilling extends FoodCategoryEvent {
 }
 
 class GenerateOrder extends FoodCategoryEvent {
-  List<Map<String, dynamic>> billingItems;
-  GenerateOrder(this.billingItems);
+  final String orderPayloadJson;
+  GenerateOrder(this.orderPayloadJson);
 }
 
 class TableDine extends FoodCategoryEvent {}
@@ -50,7 +50,7 @@ class FoodCategoryBloc extends Bloc<FoodCategoryEvent, dynamic> {
     });
     on<GenerateOrder>((event, emit) async {
       await ApiProvider()
-          .postGenerateOrderAPI(event.billingItems)
+          .postGenerateOrderAPI(event.orderPayloadJson)
           .then((value) {
         emit(value);
       }).catchError((error) {

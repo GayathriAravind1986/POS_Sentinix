@@ -277,6 +277,7 @@ class Addons {
     bool? isAvailable,
     num? maxQuantity,
     bool? isFree,
+    num? quantity,
   }) {
     _id = id;
     _name = name;
@@ -285,6 +286,7 @@ class Addons {
     _isAvailable = isAvailable;
     _maxQuantity = maxQuantity;
     _isFree = isFree;
+    _quantity = quantity ?? 0;
   }
 
   Addons.fromJson(dynamic json) {
@@ -295,6 +297,7 @@ class Addons {
     _isAvailable = json['isAvailable'];
     _maxQuantity = json['maxQuantity'];
     _isFree = json['isFree'];
+    _quantity = json['quantity'] ?? 0;
   }
 
   String? _id;
@@ -304,6 +307,9 @@ class Addons {
   bool? _isAvailable;
   num? _maxQuantity;
   bool? _isFree;
+  num? _quantity;
+  num get quantity => _quantity ?? 0;
+  set quantity(num value) => _quantity = value;
 
   String? get id => _id;
   String? get name => _name;
@@ -322,6 +328,7 @@ class Addons {
     map['isAvailable'] = _isAvailable;
     map['maxQuantity'] = _maxQuantity;
     map['isFree'] = _isFree;
+    map['quantity'] = _quantity;
     return map;
   }
 }

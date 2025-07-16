@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
+import 'package:simple/Alertbox/snackBarAlert.dart';
 import 'package:simple/Bloc/Order/order_list_bloc.dart';
+import 'package:simple/ModelClass/Order/Delete_order_model.dart';
+import 'package:simple/ModelClass/Order/Get_view_order_model.dart';
 import 'package:simple/ModelClass/Order/get_order_list_today_model.dart';
 import 'package:simple/Reusable/color.dart';
 import 'package:simple/Reusable/text_styles.dart';
 import 'package:simple/UI/Order/Helper/time_formatter.dart';
+import 'package:simple/UI/Order/pop_view_order.dart';
 
 class OrderView extends StatelessWidget {
   final String type;
@@ -39,6 +43,8 @@ class OrderViewView extends StatefulWidget {
 
 class OrderViewViewState extends State<OrderViewView> {
   GetOrderListTodayModel getOrderListTodayModel = GetOrderListTodayModel();
+  DeleteOrderModel deleteOrderModel = DeleteOrderModel();
+  GetViewOrderModel getViewOrderModel = GetViewOrderModel();
   bool orderLoad = false;
   final todayDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
   String? type;
@@ -92,7 +98,7 @@ class OrderViewViewState extends State<OrderViewView> {
                       crossAxisCount: 3,
                       crossAxisSpacing: 10,
                       mainAxisSpacing: 10,
-                      childAspectRatio: 2.0,
+                      childAspectRatio: 1.8,
                     ),
                     itemBuilder: (context, index) {
                       final order = filteredOrders[index];
@@ -173,14 +179,39 @@ class OrderViewViewState extends State<OrderViewView> {
 
                               // 🔹 Action Icons
                               Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  Icon(Icons.remove_red_eye,
-                                      color: appPrimaryColor),
-                                  Icon(Icons.edit, color: appPrimaryColor),
-                                  Icon(Icons.copy, color: appPrimaryColor),
-                                  Icon(Icons.delete, color: appPrimaryColor),
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.remove_red_eye,
+                                      color: appPrimaryColor,
+                                      size: 20,
+                                    ),
+                                    onPressed: () {
+                                      context
+                                          .read<OrderTodayBloc>()
+                                          .add(ViewOrder(order.id));
+                                    },
+                                  ),
+                                  SizedBox(width: 5),
+                                  Icon(Icons.edit,
+                                      color: appPrimaryColor, size: 20),
+                                  SizedBox(width: 5),
+                                  Icon(Icons.copy,
+                                      color: appPrimaryColor, size: 20),
+                                  SizedBox(width: 5),
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.delete,
+                                      color: appPrimaryColor,
+                                      size: 20,
+                                    ),
+                                    onPressed: () {
+                                      context
+                                          .read<OrderTodayBloc>()
+                                          .add(DeleteOrder(order.id));
+                                    },
+                                  ),
                                 ],
                               ),
                             ],
@@ -208,7 +239,30 @@ class OrderViewViewState extends State<OrderViewView> {
           }
           return true;
         }
-
+        if (current is DeleteOrderModel) {
+          deleteOrderModel = current;
+          if (deleteOrderModel.success == true) {
+            debugPrint("orderTodayDelete: ${deleteOrderModel.message}");
+            showToast("${deleteOrderModel.message}", context, color: true);
+            context
+                .read<OrderTodayBloc>()
+                .add(OrderTodayList(todayDate, todayDate));
+          } else {
+            showToast("${deleteOrderModel.message}", context, color: false);
+          }
+          return true;
+        }
+        if (current is GetViewOrderModel) {
+          getViewOrderModel = current;
+          if (getViewOrderModel.success == true) {
+            debugPrint("orderTodayDelete: ${getViewOrderModel.data}");
+            showDialog(
+              context: context,
+              builder: (context) => OrderInvoiceDialog(getViewOrderModel),
+            );
+          }
+          return true;
+        }
         return false;
       }),
       builder: (context, dynamic) {

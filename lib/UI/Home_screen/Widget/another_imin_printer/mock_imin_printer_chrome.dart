@@ -9,7 +9,7 @@ class MockPrinterService implements IPrinterService {
 
   @override
   Future<void> printText(String text) async {
-    debugPrint("MockPrinter: printText -> $text");
+    debugPrint(text);
   }
 
   @override

@@ -9,10 +9,15 @@ class OrderTodayList extends OrderTodayEvent {
   OrderTodayList(this.fromDate, this.toDate);
 }
 
-// class AddToBilling extends OrderTodayEvent {
-//   List<Map<String, dynamic>> billingItems;
-//   AddToBilling(this.billingItems);
-// }
+class DeleteOrder extends OrderTodayEvent {
+  String? orderId;
+  DeleteOrder(this.orderId);
+}
+
+class ViewOrder extends OrderTodayEvent {
+  String? orderId;
+  ViewOrder(this.orderId);
+}
 
 class OrderTodayBloc extends Bloc<OrderTodayEvent, dynamic> {
   OrderTodayBloc() : super(dynamic) {
@@ -20,6 +25,20 @@ class OrderTodayBloc extends Bloc<OrderTodayEvent, dynamic> {
       await ApiProvider()
           .getOrderTodayAPI(event.fromDate, event.toDate)
           .then((value) {
+        emit(value);
+      }).catchError((error) {
+        emit(error);
+      });
+    });
+    on<DeleteOrder>((event, emit) async {
+      await ApiProvider().deleteOrderAPI(event.orderId).then((value) {
+        emit(value);
+      }).catchError((error) {
+        emit(error);
+      });
+    });
+    on<ViewOrder>((event, emit) async {
+      await ApiProvider().viewOrderAPI(event.orderId).then((value) {
         emit(value);
       }).catchError((error) {
         emit(error);

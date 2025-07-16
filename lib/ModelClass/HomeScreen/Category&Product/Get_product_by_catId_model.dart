@@ -221,6 +221,7 @@ class Addons {
     bool? isFree,
     List<String>? products,
     this.isSelected = false,
+    num? quantity,
   }) {
     _id = id;
     _name = name;
@@ -229,6 +230,7 @@ class Addons {
     _isAvailable = isAvailable;
     _isFree = isFree;
     _products = products;
+    _quantity = quantity ?? 0;
   }
 
   Addons.fromJson(dynamic json) : isSelected = false {
@@ -239,7 +241,9 @@ class Addons {
     _isAvailable = json['isAvailable'];
     _isFree = json['isFree'];
     _products = json['products'] != null ? json['products'].cast<String>() : [];
+    _quantity = json['quantity'] ?? 0;
   }
+
   String? _id;
   String? _name;
   num? _maxQuantity;
@@ -247,7 +251,14 @@ class Addons {
   bool? _isAvailable;
   bool? _isFree;
   List<String>? _products;
+  num? _quantity; // ✅ private quantity field added
+
   bool isSelected;
+
+  // ✅ Getter and Setter
+  num get quantity => _quantity ?? 0;
+  set quantity(num value) => _quantity = value;
+
   Addons copyWith({
     String? id,
     String? name,
@@ -257,16 +268,21 @@ class Addons {
     bool? isFree,
     List<String>? products,
     bool? isSelected,
+    num? quantity,
   }) =>
       Addons(
-          id: id ?? _id,
-          name: name ?? _name,
-          maxQuantity: maxQuantity ?? _maxQuantity,
-          price: price ?? _price,
-          isAvailable: isAvailable ?? _isAvailable,
-          isFree: isFree ?? _isFree,
-          products: products ?? _products,
-          isSelected: isSelected ?? this.isSelected);
+        id: id ?? _id,
+        name: name ?? _name,
+        maxQuantity: maxQuantity ?? _maxQuantity,
+        price: price ?? _price,
+        isAvailable: isAvailable ?? _isAvailable,
+        isFree: isFree ?? _isFree,
+        products: products ?? _products,
+        isSelected: isSelected ?? this.isSelected,
+        quantity: quantity ?? _quantity,
+      );
+
+  // ✅ Public getters
   String? get id => _id;
   String? get name => _name;
   num? get maxQuantity => _maxQuantity;
@@ -284,6 +300,7 @@ class Addons {
     map['isAvailable'] = _isAvailable;
     map['isFree'] = _isFree;
     map['products'] = _products;
+    map['quantity'] = _quantity;
     return map;
   }
 }
