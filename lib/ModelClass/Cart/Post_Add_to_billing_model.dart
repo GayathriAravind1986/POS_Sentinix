@@ -87,38 +87,42 @@ class Items {
   Items({
     String? id,
     String? name,
-    String? image,
     num? qty,
+    String? image,
     num? basePrice,
     num? addonTotal,
+    List<SelectedAddons>? selectedAddons,
     num? subtotal,
     num? totalTax,
     num? total,
     List<AppliedTaxes>? appliedTaxes,
-    bool? hasAddons, // Added
-    List<Addons>? addons, // Added
   }) {
     _id = id;
     _name = name;
-    _image = image;
     _qty = qty;
+    _image = image;
     _basePrice = basePrice;
     _addonTotal = addonTotal;
+    _selectedAddons = selectedAddons;
     _subtotal = subtotal;
     _totalTax = totalTax;
     _total = total;
     _appliedTaxes = appliedTaxes;
-    _hasAddons = hasAddons; // Initialized
-    _addons = addons; // Initialized
   }
 
   Items.fromJson(dynamic json) {
     _id = json['_id'];
     _name = json['name'];
-    _image = json['image'];
     _qty = json['qty'];
+    _image = json['image'];
     _basePrice = json['basePrice'];
     _addonTotal = json['addonTotal'];
+    if (json['selectedAddons'] != null) {
+      _selectedAddons = [];
+      json['selectedAddons'].forEach((v) {
+        _selectedAddons?.add(SelectedAddons.fromJson(v));
+      });
+    }
     _subtotal = json['subtotal'];
     _totalTax = json['totalTax'];
     _total = json['total'];
@@ -128,94 +132,81 @@ class Items {
         _appliedTaxes?.add(AppliedTaxes.fromJson(v));
       });
     }
-    _hasAddons = json['hasAddons']; // Parsed
-    if (json['addons'] != null) {
-      _addons = [];
-      json['addons'].forEach((v) {
-        _addons?.add(Addons.fromJson(v));
-      });
-    }
   }
   String? _id;
   String? _name;
-  String? _image;
   num? _qty;
+  String? _image;
   num? _basePrice;
   num? _addonTotal;
+  List<SelectedAddons>? _selectedAddons;
   num? _subtotal;
   num? _totalTax;
   num? _total;
   List<AppliedTaxes>? _appliedTaxes;
-  bool? _hasAddons; // Private field
-  List<Addons>? _addons; // Private field
-
   Items copyWith({
     String? id,
     String? name,
-    String? image,
     num? qty,
+    String? image,
     num? basePrice,
     num? addonTotal,
+    List<SelectedAddons>? selectedAddons,
     num? subtotal,
     num? totalTax,
     num? total,
     List<AppliedTaxes>? appliedTaxes,
-    bool? hasAddons, // Updated copyWith
-    List<Addons>? addons, // Updated copyWith
   }) =>
       Items(
         id: id ?? _id,
         name: name ?? _name,
-        image: image ?? _image,
         qty: qty ?? _qty,
+        image: image ?? _image,
         basePrice: basePrice ?? _basePrice,
         addonTotal: addonTotal ?? _addonTotal,
+        selectedAddons: selectedAddons ?? _selectedAddons,
         subtotal: subtotal ?? _subtotal,
         totalTax: totalTax ?? _totalTax,
         total: total ?? _total,
         appliedTaxes: appliedTaxes ?? _appliedTaxes,
-        hasAddons: hasAddons ?? _hasAddons, // Updated copyWith
-        addons: addons ?? _addons, // Updated copyWith
       );
   String? get id => _id;
   String? get name => _name;
-  String? get image => _image;
   num? get qty => _qty;
+  String? get image => _image;
   num? get basePrice => _basePrice;
   num? get addonTotal => _addonTotal;
+  List<SelectedAddons>? get selectedAddons => _selectedAddons;
   num? get subtotal => _subtotal;
   num? get totalTax => _totalTax;
   num? get total => _total;
   List<AppliedTaxes>? get appliedTaxes => _appliedTaxes;
-  bool? get hasAddons => _hasAddons; // Getter
-  List<Addons>? get addons => _addons; // Getter
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
     map['_id'] = _id;
     map['name'] = _name;
-    map['image'] = _image;
     map['qty'] = _qty;
+    map['image'] = _image;
     map['basePrice'] = _basePrice;
     map['addonTotal'] = _addonTotal;
+    if (_selectedAddons != null) {
+      map['selectedAddons'] = _selectedAddons?.map((v) => v.toJson()).toList();
+    }
     map['subtotal'] = _subtotal;
     map['totalTax'] = _totalTax;
     map['total'] = _total;
     if (_appliedTaxes != null) {
       map['appliedTaxes'] = _appliedTaxes?.map((v) => v.toJson()).toList();
     }
-    map['hasAddons'] = _hasAddons; // Serialized
-    if (_addons != null) {
-      map['addons'] = _addons?.map((v) => v.toJson()).toList();
-    }
     return map;
   }
 }
 
-/// name : "CGST"
+/// name : "SCGST"
 /// percentage : 9
-/// amount : 10.8
-/// isInclusive : false
+/// amount : 9.92
+/// isInclusive : true
 
 class AppliedTaxes {
   AppliedTaxes({
@@ -267,57 +258,88 @@ class AppliedTaxes {
   }
 }
 
-// New Addons class to model the addon structure
-class Addons {
-  Addons({
+/// _id : "68763b27ff518ce12520c915"
+/// name : "Extra creams"
+/// price : 30
+/// quantity : 1
+/// isFree : false
+/// isAvailable : true
+/// total : 30
+
+class SelectedAddons {
+  SelectedAddons({
     String? id,
     String? name,
     num? price,
     bool? isSelected,
-    bool? isAvailable,
-    num? maxQuantity,
-    bool? isFree,
     num? quantity,
+    bool? isFree,
+    bool? isAvailable,
+    num? total,
+    num? qty,
   }) {
     _id = id;
     _name = name;
     _price = price;
     _isSelected = isSelected;
-    _isAvailable = isAvailable;
-    _maxQuantity = maxQuantity;
+    _quantity = quantity;
     _isFree = isFree;
-    _quantity = quantity ?? 0;
+    _isAvailable = isAvailable;
+    _total = total;
+    _qty = qty ?? 0;
   }
 
-  Addons.fromJson(dynamic json) {
+  SelectedAddons.fromJson(dynamic json) {
     _id = json['_id'];
     _name = json['name'];
     _price = json['price'];
     _isSelected = json['isSelected'];
-    _isAvailable = json['isAvailable'];
-    _maxQuantity = json['maxQuantity'];
+    _quantity = json['quantity'];
     _isFree = json['isFree'];
-    _quantity = json['quantity'] ?? 0;
+    _isAvailable = json['isAvailable'];
+    _total = json['total'];
+    _qty = json['qty'] ?? 0;
   }
-
   String? _id;
   String? _name;
   num? _price;
   bool? _isSelected;
-  bool? _isAvailable;
-  num? _maxQuantity;
-  bool? _isFree;
   num? _quantity;
-  num get quantity => _quantity ?? 0;
-  set quantity(num value) => _quantity = value;
+  bool? _isFree;
+  bool? _isAvailable;
+  num? _total;
+  num? _qty;
+  num get qty => _qty ?? 0;
+  set qty(num value) => _qty = value;
 
+  SelectedAddons copyWith({
+    String? id,
+    String? name,
+    num? price,
+    bool? isSelected,
+    num? quantity,
+    bool? isFree,
+    bool? isAvailable,
+    num? total,
+    num? qty,
+  }) =>
+      SelectedAddons(
+        id: id ?? _id,
+        name: name ?? _name,
+        price: price ?? _price,
+        quantity: quantity ?? _quantity,
+        isFree: isFree ?? _isFree,
+        isAvailable: isAvailable ?? _isAvailable,
+        total: total ?? _total,
+      );
   String? get id => _id;
   String? get name => _name;
   num? get price => _price;
   bool? get isSelected => _isSelected;
-  bool? get isAvailable => _isAvailable;
-  num? get maxQuantity => _maxQuantity;
+  num? get quantity => _quantity;
   bool? get isFree => _isFree;
+  bool? get isAvailable => _isAvailable;
+  num? get total => _total;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -325,10 +347,11 @@ class Addons {
     map['name'] = _name;
     map['price'] = _price;
     map['isSelected'] = _isSelected;
-    map['isAvailable'] = _isAvailable;
-    map['maxQuantity'] = _maxQuantity;
-    map['isFree'] = _isFree;
     map['quantity'] = _quantity;
+    map['isFree'] = _isFree;
+    map['isAvailable'] = _isAvailable;
+    map['total'] = _total;
+    map['qty'] = _qty;
     return map;
   }
 }

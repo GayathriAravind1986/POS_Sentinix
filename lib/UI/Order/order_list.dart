@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -9,6 +11,7 @@ import 'package:simple/ModelClass/Order/Get_view_order_model.dart';
 import 'package:simple/ModelClass/Order/get_order_list_today_model.dart';
 import 'package:simple/Reusable/color.dart';
 import 'package:simple/Reusable/text_styles.dart';
+import 'package:simple/UI/DashBoard/custom_tabbar.dart';
 import 'package:simple/UI/Order/Helper/time_formatter.dart';
 import 'package:simple/UI/Order/pop_view_order.dart';
 
@@ -46,6 +49,7 @@ class OrderViewViewState extends State<OrderViewView> {
   DeleteOrderModel deleteOrderModel = DeleteOrderModel();
   GetViewOrderModel getViewOrderModel = GetViewOrderModel();
   bool orderLoad = false;
+  bool view = false;
   final todayDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
   String? type;
   @override
@@ -62,7 +66,6 @@ class OrderViewViewState extends State<OrderViewView> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("orderType:${widget.type}");
     type = widget.type == "Takeaway" ? "TAKE-AWAY" : "DINE-IN";
     final filteredOrders = getOrderListTodayModel.data?.where((order) {
           if (widget.type == "All") return true;
@@ -188,17 +191,46 @@ class OrderViewViewState extends State<OrderViewView> {
                                       size: 20,
                                     ),
                                     onPressed: () {
+                                      setState(() {
+                                        view = true;
+                                      });
                                       context
                                           .read<OrderTodayBloc>()
                                           .add(ViewOrder(order.id));
                                     },
                                   ),
                                   SizedBox(width: 5),
-                                  Icon(Icons.edit,
-                                      color: appPrimaryColor, size: 20),
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.edit,
+                                      color: appPrimaryColor,
+                                      size: 20,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        view = false;
+                                      });
+                                      context
+                                          .read<OrderTodayBloc>()
+                                          .add(ViewOrder(order.id));
+                                    },
+                                  ),
                                   SizedBox(width: 5),
-                                  Icon(Icons.copy,
-                                      color: appPrimaryColor, size: 20),
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.print_outlined,
+                                      color: appPrimaryColor,
+                                      size: 20,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        view = true;
+                                      });
+                                      context
+                                          .read<OrderTodayBloc>()
+                                          .add(ViewOrder(order.id));
+                                    },
+                                  ),
                                   SizedBox(width: 5),
                                   IconButton(
                                     icon: Icon(
@@ -228,7 +260,6 @@ class OrderViewViewState extends State<OrderViewView> {
         if (current is GetOrderListTodayModel) {
           getOrderListTodayModel = current;
           if (getOrderListTodayModel.success == true) {
-            debugPrint("orderToday: ${getOrderListTodayModel.data}");
             setState(() {
               orderLoad = false;
             });
@@ -242,7 +273,6 @@ class OrderViewViewState extends State<OrderViewView> {
         if (current is DeleteOrderModel) {
           deleteOrderModel = current;
           if (deleteOrderModel.success == true) {
-            debugPrint("orderTodayDelete: ${deleteOrderModel.message}");
             showToast("${deleteOrderModel.message}", context, color: true);
             context
                 .read<OrderTodayBloc>()
@@ -255,11 +285,21 @@ class OrderViewViewState extends State<OrderViewView> {
         if (current is GetViewOrderModel) {
           getViewOrderModel = current;
           if (getViewOrderModel.success == true) {
-            debugPrint("orderTodayDelete: ${getViewOrderModel.data}");
-            showDialog(
-              context: context,
-              builder: (context) => OrderInvoiceDialog(getViewOrderModel),
-            );
+            if (view == true) {
+              showDialog(
+                context: context,
+                builder: (context) => OrderInvoiceDialog(getViewOrderModel),
+              );
+            } else {
+              Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                      builder: (context) => DashBoardScreen(
+                            selectTab: 0,
+                            existingOrder: getViewOrderModel,
+                            isEditingOrder: true,
+                          )),
+                  (Route<dynamic> route) => false);
+            }
           }
           return true;
         }

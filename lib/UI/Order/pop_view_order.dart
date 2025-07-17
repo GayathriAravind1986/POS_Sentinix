@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:simple/ModelClass/Order/Get_view_order_model.dart';
 import 'package:simple/Reusable/color.dart';
 import 'package:simple/Reusable/text_styles.dart';
@@ -37,6 +38,7 @@ class _OrderInvoiceDialogState extends State<OrderInvoiceDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final invoice = widget.getViewOrderModel.data!.invoice;
     return widget.getViewOrderModel.data == null
         ? Container(
             padding:
@@ -69,16 +71,60 @@ class _OrderInvoiceDialogState extends State<OrderInvoiceDialog> {
                       const TextSpan(
                           text: "Shop: ",
                           style: TextStyle(fontWeight: FontWeight.bold)),
-                      TextSpan(text: "Roja Restaurant"),
+                      TextSpan(text: invoice!.businessName ?? 'N/A'),
                     ])),
                     const SizedBox(height: 4),
-                    Text("Address:N/A"),
-                    Text("Phone:  N/A"),
-                    Text("GST Number: N/A"),
-                    Text(
-                        "Order ID:${widget.getViewOrderModel.data!.orderNumber}"),
-                    Text("Date:363688"),
-                    Text("Type:${widget.getViewOrderModel.data!.orderType}"),
+                    Row(
+                      children: [
+                        Text("Address:",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text(invoice.address ?? 'N/A'),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text("Phone:",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text(invoice.phone ?? 'N/A'),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text("GST Number:",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text(invoice.gstNumber ?? 'N/A'),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text("Order ID:",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text(invoice.orderNumber.toString()),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text("Date:",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text(DateFormat('dd/MM/yyyy hh:mm a').format(
+                            DateFormat('M/d/yyyy, h:mm:ss a')
+                                .parse(invoice.date.toString()))),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text("Type:",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text("${widget.getViewOrderModel.data!.orderType}"),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text("Table:",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text(invoice.tableNum ?? 'N/A'),
+                      ],
+                    ),
                     Row(
                       children: [
                         const Text("Status: ",
@@ -94,31 +140,64 @@ class _OrderInvoiceDialogState extends State<OrderInvoiceDialog> {
                             )),
                       ],
                     ),
-                    Text("Transaction ID:  'N/A'"),
+                    Text("Transaction ID:",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text("${invoice.transactionId ?? 'N/A'} "),
                     const Divider(),
                     const Text("Items:",
                         style: TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
-                    ...widget.getViewOrderModel.data!.items!
-                        .map((item) => Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 2),
-                              child: Text(
-                                  "${item.name} x${item.quantity} - ₹${item.subtotal!.toStringAsFixed(2)}"),
-                            )),
+                    ...invoice.invoiceItems!.map((item) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Text(
+                            "${item.name} x${item.qty} - ${invoice.currencySymbol}${item.taxPrice!.toStringAsFixed(2)}${item.isAddon == true ? " (Addon)" : ""}",
+                            style: TextStyle(
+                              color: item.isAddon == true
+                                  ? greyColor[600]
+                                  : blackColor,
+                            ),
+                          ),
+                        )),
                     const SizedBox(height: 5),
+                    Text("Total: ",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     Text(
-                        "Total: ₹${widget.getViewOrderModel.data!.subtotal!.toStringAsFixed(2)}"),
+                        "${invoice.currencySymbol}${invoice.subtotal!.toStringAsFixed(2)}"),
                     const SizedBox(height: 8),
                     const Divider(),
-                    Text(
-                        "Subtotal: ₹${widget.getViewOrderModel.data!.subtotal!.toStringAsFixed(2)}"),
-                    Text(
-                        "Tax: ₹${widget.getViewOrderModel.data!.tax!.toStringAsFixed(2)}"),
-                    Text(
-                        "Total: ₹${widget.getViewOrderModel.data!.total!.toStringAsFixed(2)}"),
-                    // if(getViewOrderModel.data!.)
-                    Text(
-                        "PaidBy:CARD : ₹ ${widget.getViewOrderModel.data!.total!.toStringAsFixed(2)}"),
+                    Row(
+                      children: [
+                        Text("Subtotal:",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text(
+                            "${invoice.currencySymbol}${invoice.subtotal!.toStringAsFixed(2)}"),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text("Tax:",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text(
+                            "${invoice.currencySymbol}${invoice.salesTax!.toStringAsFixed(2)}"),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text("Total:",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text(
+                            "${invoice.currencySymbol}${invoice.total!.toStringAsFixed(2)}"),
+                      ],
+                    ),
+                    if (widget.getViewOrderModel.data!.orderStatus ==
+                        "COMPLETED")
+                      Row(
+                        children: [
+                          Text("PaidBy:",
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text("${invoice.paidBy}"),
+                        ],
+                      ),
                     const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -126,6 +205,8 @@ class _OrderInvoiceDialogState extends State<OrderInvoiceDialog> {
                         ElevatedButton(
                           onPressed: () async {
                             final order = widget.getViewOrderModel.data!;
+                            final invoice =
+                                widget.getViewOrderModel.data!.invoice;
                             String centerText(String text, int width) {
                               if (text.length >= width) return text;
                               int leftPadding =
@@ -137,7 +218,7 @@ class _OrderInvoiceDialogState extends State<OrderInvoiceDialog> {
 ${centerText("🧾 ${order.orderType == 'DINE-IN' ? "Dine-in Receipt" : "Takeaway Receipt"}", 32)}
 -----------------------------
 Order ID: ${order.orderNumber}
-Date: ${DateTime.now().toString().substring(0, 16)}
+Date: ${DateFormat('dd/MM/yyyy hh:mm a').format(DateFormat('M/d/yyyy, h:mm:ss a').parse(invoice!.date.toString()))}
 Status: ${order.orderStatus}
 -----------------------------
 Items:
@@ -147,12 +228,16 @@ Subtotal: ₹${order.subtotal!.toStringAsFixed(2)}
 Tax: ₹${order.tax!.toStringAsFixed(2)}
 Total: ₹${order.total!.toStringAsFixed(2)}
 -----------------------------
-Payment: CARD ₹${order.total!.toStringAsFixed(2)}
+Payment: ${invoice.paidBy}
 Thank you!
 ''';
 
                             await printerService.init();
+                            receipt = receipt
+                                .replaceAll('\r\n', '\n')
+                                .replaceAll('\r', '\n');
                             await printerService.printText(receipt);
+                            await Future.delayed(Duration(milliseconds: 300));
                             await printerService.fullCut();
                           },
                           style: ElevatedButton.styleFrom(

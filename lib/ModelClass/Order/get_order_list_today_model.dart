@@ -261,15 +261,15 @@ class Data {
 /// gstNumber : "29ABCDE1234F2Z5"
 /// currencySymbol : "₹"
 /// printType : "imin"
-/// items : [{"name":"Chicken Caesar Salad","basePrice":139.83,"qty":2,"taxPrice":55.74,"totalPrice":365.4}]
-/// subtotal : 279.66
-/// salesTax : 50.34
-/// total : 330
-/// orderNumber : "ORD-20250715-0007"
-/// date : "7/15/2025, 5:56:34 PM"
-/// paidBy : "CARD: ₹330.00"
-/// transactionId : "TXN-20250715-793773"
-/// tableNo : "1"
+/// invoice_items : [{"name":"Chicken Caesar Salad","basePrice":150,"qty":1,"taxPrice":32.4,"totalPrice":212.4,"isAddon":false},{"name":"Toppins","basePrice":0,"qty":1,"taxPrice":0,"totalPrice":0,"isAddon":true,"isFree":false},{"name":"Extra creams","basePrice":30,"qty":1,"taxPrice":5.4,"totalPrice":35.4,"isAddon":true,"isFree":false},{"name":"Greek Salad","basePrice":100,"qty":1,"taxPrice":23.4,"totalPrice":153.4,"isAddon":false},{"name":"Toppins","basePrice":0,"qty":1,"taxPrice":0,"totalPrice":0,"isAddon":true,"isFree":false},{"name":"Extra creams","basePrice":30,"qty":1,"taxPrice":5.4,"totalPrice":35.4,"isAddon":true,"isFree":false}]
+/// subtotal : 262.71
+/// salesTax : 47.29
+/// total : 310
+/// orderNumber : "ORD-20250717-0009"
+/// date : "7/17/2025, 5:08:33 PM"
+/// paidBy : "CARD: ₹310.00"
+/// transactionId : "TXN-20250717-133349"
+/// tableNum : "1"
 
 class Invoice {
   Invoice({
@@ -279,7 +279,7 @@ class Invoice {
     String? gstNumber,
     String? currencySymbol,
     String? printType,
-    List<Items>? items,
+    List<InvoiceItems>? invoiceItems,
     num? subtotal,
     num? salesTax,
     num? total,
@@ -287,7 +287,7 @@ class Invoice {
     String? date,
     String? paidBy,
     String? transactionId,
-    String? tableNo,
+    String? tableNum,
   }) {
     _businessName = businessName;
     _address = address;
@@ -295,7 +295,7 @@ class Invoice {
     _gstNumber = gstNumber;
     _currencySymbol = currencySymbol;
     _printType = printType;
-    _items = items;
+    _invoiceItems = invoiceItems;
     _subtotal = subtotal;
     _salesTax = salesTax;
     _total = total;
@@ -303,7 +303,7 @@ class Invoice {
     _date = date;
     _paidBy = paidBy;
     _transactionId = transactionId;
-    _tableNo = tableNo;
+    _tableNum = tableNum;
   }
 
   Invoice.fromJson(dynamic json) {
@@ -313,10 +313,10 @@ class Invoice {
     _gstNumber = json['gstNumber'];
     _currencySymbol = json['currencySymbol'];
     _printType = json['printType'];
-    if (json['items'] != null) {
-      _items = [];
-      json['items'].forEach((v) {
-        _items?.add(Items.fromJson(v));
+    if (json['invoice_items'] != null) {
+      _invoiceItems = [];
+      json['invoice_items'].forEach((v) {
+        _invoiceItems?.add(InvoiceItems.fromJson(v));
       });
     }
     _subtotal = json['subtotal'];
@@ -326,7 +326,7 @@ class Invoice {
     _date = json['date'];
     _paidBy = json['paidBy'];
     _transactionId = json['transactionId'];
-    _tableNo = json['tableNo'];
+    _tableNum = json['tableNum'];
   }
   String? _businessName;
   String? _address;
@@ -334,7 +334,7 @@ class Invoice {
   String? _gstNumber;
   String? _currencySymbol;
   String? _printType;
-  List<Items>? _items;
+  List<InvoiceItems>? _invoiceItems;
   num? _subtotal;
   num? _salesTax;
   num? _total;
@@ -342,7 +342,7 @@ class Invoice {
   String? _date;
   String? _paidBy;
   String? _transactionId;
-  String? _tableNo;
+  String? _tableNum;
   Invoice copyWith({
     String? businessName,
     String? address,
@@ -350,7 +350,7 @@ class Invoice {
     String? gstNumber,
     String? currencySymbol,
     String? printType,
-    List<Items>? items,
+    List<InvoiceItems>? invoiceItems,
     num? subtotal,
     num? salesTax,
     num? total,
@@ -358,7 +358,7 @@ class Invoice {
     String? date,
     String? paidBy,
     String? transactionId,
-    String? tableNo,
+    String? tableNum,
   }) =>
       Invoice(
         businessName: businessName ?? _businessName,
@@ -367,7 +367,7 @@ class Invoice {
         gstNumber: gstNumber ?? _gstNumber,
         currencySymbol: currencySymbol ?? _currencySymbol,
         printType: printType ?? _printType,
-        items: items ?? _items,
+        invoiceItems: invoiceItems ?? _invoiceItems,
         subtotal: subtotal ?? _subtotal,
         salesTax: salesTax ?? _salesTax,
         total: total ?? _total,
@@ -375,7 +375,7 @@ class Invoice {
         date: date ?? _date,
         paidBy: paidBy ?? _paidBy,
         transactionId: transactionId ?? _transactionId,
-        tableNo: tableNo ?? _tableNo,
+        tableNum: tableNum ?? _tableNum,
       );
   String? get businessName => _businessName;
   String? get address => _address;
@@ -383,7 +383,7 @@ class Invoice {
   String? get gstNumber => _gstNumber;
   String? get currencySymbol => _currencySymbol;
   String? get printType => _printType;
-  List<Items>? get items => _items;
+  List<InvoiceItems>? get invoiceItems => _invoiceItems;
   num? get subtotal => _subtotal;
   num? get salesTax => _salesTax;
   num? get total => _total;
@@ -391,7 +391,7 @@ class Invoice {
   String? get date => _date;
   String? get paidBy => _paidBy;
   String? get transactionId => _transactionId;
-  String? get tableNo => _tableNo;
+  String? get tableNum => _tableNum;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -401,8 +401,8 @@ class Invoice {
     map['gstNumber'] = _gstNumber;
     map['currencySymbol'] = _currencySymbol;
     map['printType'] = _printType;
-    if (_items != null) {
-      map['items'] = _items?.map((v) => v.toJson()).toList();
+    if (_invoiceItems != null) {
+      map['invoice_items'] = _invoiceItems?.map((v) => v.toJson()).toList();
     }
     map['subtotal'] = _subtotal;
     map['salesTax'] = _salesTax;
@@ -411,83 +411,92 @@ class Invoice {
     map['date'] = _date;
     map['paidBy'] = _paidBy;
     map['transactionId'] = _transactionId;
-    map['tableNo'] = _tableNo;
+    map['tableNum'] = _tableNum;
     return map;
   }
 }
 
 /// name : "Chicken Caesar Salad"
-/// basePrice : 139.83
-/// qty : 2
-/// taxPrice : 55.74
-/// totalPrice : 365.4
+/// basePrice : 150
+/// qty : 1
+/// taxPrice : 32.4
+/// totalPrice : 212.4
+/// isAddon : false
 
-// class Items {
-//   Items({
-//     String? name,
-//     num? basePrice,
-//     num? qty,
-//     num? taxPrice,
-//     num? totalPrice,
-//   }) {
-//     _name = name;
-//     _basePrice = basePrice;
-//     _qty = qty;
-//     _taxPrice = taxPrice;
-//     _totalPrice = totalPrice;
-//   }
-//
-//   Items.fromJson(dynamic json) {
-//     _name = json['name'];
-//     _basePrice = json['basePrice'];
-//     _qty = json['qty'];
-//     _taxPrice = json['taxPrice'];
-//     _totalPrice = json['totalPrice'];
-//   }
-//   String? _name;
-//   num? _basePrice;
-//   num? _qty;
-//   num? _taxPrice;
-//   num? _totalPrice;
-//   Items copyWith({
-//     String? name,
-//     num? basePrice,
-//     num? qty,
-//     num? taxPrice,
-//     num? totalPrice,
-//   }) =>
-//       Items(
-//         name: name ?? _name,
-//         basePrice: basePrice ?? _basePrice,
-//         qty: qty ?? _qty,
-//         taxPrice: taxPrice ?? _taxPrice,
-//         totalPrice: totalPrice ?? _totalPrice,
-//       );
-//   String? get name => _name;
-//   num? get basePrice => _basePrice;
-//   num? get qty => _qty;
-//   num? get taxPrice => _taxPrice;
-//   num? get totalPrice => _totalPrice;
-//
-//   Map<String, dynamic> toJson() {
-//     final map = <String, dynamic>{};
-//     map['name'] = _name;
-//     map['basePrice'] = _basePrice;
-//     map['qty'] = _qty;
-//     map['taxPrice'] = _taxPrice;
-//     map['totalPrice'] = _totalPrice;
-//     return map;
-//   }
-// }
+class InvoiceItems {
+  InvoiceItems({
+    String? name,
+    num? basePrice,
+    num? qty,
+    num? taxPrice,
+    num? totalPrice,
+    bool? isAddon,
+  }) {
+    _name = name;
+    _basePrice = basePrice;
+    _qty = qty;
+    _taxPrice = taxPrice;
+    _totalPrice = totalPrice;
+    _isAddon = isAddon;
+  }
 
-/// _id : "68763b48ff518ce12520c94c"
-/// order : "68763b48ff518ce12520c944"
+  InvoiceItems.fromJson(dynamic json) {
+    _name = json['name'];
+    _basePrice = json['basePrice'];
+    _qty = json['qty'];
+    _taxPrice = json['taxPrice'];
+    _totalPrice = json['totalPrice'];
+    _isAddon = json['isAddon'];
+  }
+  String? _name;
+  num? _basePrice;
+  num? _qty;
+  num? _taxPrice;
+  num? _totalPrice;
+  bool? _isAddon;
+  InvoiceItems copyWith({
+    String? name,
+    num? basePrice,
+    num? qty,
+    num? taxPrice,
+    num? totalPrice,
+    bool? isAddon,
+  }) =>
+      InvoiceItems(
+        name: name ?? _name,
+        basePrice: basePrice ?? _basePrice,
+        qty: qty ?? _qty,
+        taxPrice: taxPrice ?? _taxPrice,
+        totalPrice: totalPrice ?? _totalPrice,
+        isAddon: isAddon ?? _isAddon,
+      );
+  String? get name => _name;
+  num? get basePrice => _basePrice;
+  num? get qty => _qty;
+  num? get taxPrice => _taxPrice;
+  num? get totalPrice => _totalPrice;
+  bool? get isAddon => _isAddon;
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+    map['name'] = _name;
+    map['basePrice'] = _basePrice;
+    map['qty'] = _qty;
+    map['taxPrice'] = _taxPrice;
+    map['totalPrice'] = _totalPrice;
+    map['isAddon'] = _isAddon;
+    return map;
+  }
+}
+
+/// _id : "6878ce4a2d6031682c5deafa"
+/// order : "6878ce4a2d6031682c5deae8"
 /// paymentMethod : "CARD"
-/// amount : 330
+/// amount : 310
 /// balanceAmount : 0
 /// status : "COMPLETED"
-/// createdAt : "2025-07-15T11:28:08.739Z"
-/// updatedAt : "2025-07-15T11:28:08.739Z"
+/// createdAt : "2025-07-17T10:19:55.321Z"
+/// updatedAt : "2025-07-17T10:19:54.804Z"
 /// __v : 0
 
 class Payments {
@@ -673,12 +682,12 @@ class Operator {
 
 /// product : {"_id":"6856fd1b1544bf146f67685f","name":"Chicken Caesar Salad","category":"6856f9d11544bf146f6767b0","basePrice":150,"hasAddons":true,"image":"https://res.cloudinary.com/dm6wrm7vf/image/upload/v1750531355/products/ojwa1oupzrwo1waj3k5y.jpg","isAvailable":true,"createdBy":"6856f9324a333e02a078388c","createdAt":"2025-06-21T18:42:35.916Z","updatedAt":"2025-06-21T18:42:35.916Z","__v":0}
 /// name : "Chicken Caesar Salad"
-/// quantity : 2
-/// unitPrice : 139.83
-/// addons : []
+/// quantity : 1
+/// unitPrice : 150
+/// addons : [{"addon":{"_id":"6859745aca2dd77aab314117","name":"Toppins","maxQuantity":1,"price":0,"isAvailable":true,"isFree":true,"products":["6856fd1b1544bf146f67685f","6856fd2f1544bf146f676866"],"createdBy":"6856f9324a333e02a078388c","createdAt":"2025-06-23T15:35:54.887Z","updatedAt":"2025-07-16T08:00:41.920Z","__v":0,"category":"6856f9d11544bf146f6767b0"},"name":"Toppins","price":0,"quantity":1,"_id":"6878ce4a2d6031682c5deaea"},{"addon":{"_id":"68763b27ff518ce12520c915","name":"Extra creams","maxQuantity":1,"price":30,"isAvailable":true,"isFree":false,"category":"6856f9d11544bf146f6767b0","products":["6856fd2f1544bf146f676866","6856fd1b1544bf146f67685f"],"createdBy":"6856f9324a333e02a078388c","createdAt":"2025-07-15T11:27:35.991Z","updatedAt":"2025-07-15T11:27:35.991Z","__v":0},"name":"Extra creams","price":30,"quantity":1,"_id":"6878ce4a2d6031682c5deaeb"}]
 /// tax : 0
-/// subtotal : 309.66
-/// _id : "68763b48ff518ce12520c945"
+/// subtotal : 180
+/// _id : "6878ce4a2d6031682c5deae9"
 
 class Items {
   Items({
@@ -772,52 +781,195 @@ class Items {
   }
 }
 
+/// addon : {"_id":"6859745aca2dd77aab314117","name":"Toppins","maxQuantity":1,"price":0,"isAvailable":true,"isFree":true,"products":["6856fd1b1544bf146f67685f","6856fd2f1544bf146f676866"],"createdBy":"6856f9324a333e02a078388c","createdAt":"2025-06-23T15:35:54.887Z","updatedAt":"2025-07-16T08:00:41.920Z","__v":0,"category":"6856f9d11544bf146f6767b0"}
+/// name : "Toppins"
+/// price : 0
+/// quantity : 1
+/// _id : "6878ce4a2d6031682c5deaea"
+
 class Addons {
   Addons({
-    String? addon,
+    Addon? addon,
     String? name,
     num? price,
+    num? quantity,
     String? id,
   }) {
     _addon = addon;
     _name = name;
     _price = price;
+    _quantity = quantity;
     _id = id;
   }
 
   Addons.fromJson(dynamic json) {
-    _addon = json['addon'];
+    _addon = json['addon'] != null ? Addon.fromJson(json['addon']) : null;
     _name = json['name'];
     _price = json['price'];
+    _quantity = json['quantity'];
     _id = json['_id'];
   }
-  String? _addon;
+  Addon? _addon;
   String? _name;
   num? _price;
+  num? _quantity;
   String? _id;
   Addons copyWith({
-    String? addon,
+    Addon? addon,
     String? name,
     num? price,
+    num? quantity,
     String? id,
   }) =>
       Addons(
         addon: addon ?? _addon,
         name: name ?? _name,
         price: price ?? _price,
+        quantity: quantity ?? _quantity,
         id: id ?? _id,
       );
-  String? get addon => _addon;
+  Addon? get addon => _addon;
   String? get name => _name;
   num? get price => _price;
+  num? get quantity => _quantity;
   String? get id => _id;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
-    map['addon'] = _addon;
+    if (_addon != null) {
+      map['addon'] = _addon?.toJson();
+    }
     map['name'] = _name;
     map['price'] = _price;
+    map['quantity'] = _quantity;
     map['_id'] = _id;
+    return map;
+  }
+}
+
+/// _id : "6859745aca2dd77aab314117"
+/// name : "Toppins"
+/// maxQuantity : 1
+/// price : 0
+/// isAvailable : true
+/// isFree : true
+/// products : ["6856fd1b1544bf146f67685f","6856fd2f1544bf146f676866"]
+/// createdBy : "6856f9324a333e02a078388c"
+/// createdAt : "2025-06-23T15:35:54.887Z"
+/// updatedAt : "2025-07-16T08:00:41.920Z"
+/// __v : 0
+/// category : "6856f9d11544bf146f6767b0"
+
+class Addon {
+  Addon({
+    String? id,
+    String? name,
+    num? maxQuantity,
+    num? price,
+    bool? isAvailable,
+    bool? isFree,
+    List<String>? products,
+    String? createdBy,
+    String? createdAt,
+    String? updatedAt,
+    num? v,
+    String? category,
+  }) {
+    _id = id;
+    _name = name;
+    _maxQuantity = maxQuantity;
+    _price = price;
+    _isAvailable = isAvailable;
+    _isFree = isFree;
+    _products = products;
+    _createdBy = createdBy;
+    _createdAt = createdAt;
+    _updatedAt = updatedAt;
+    _v = v;
+    _category = category;
+  }
+
+  Addon.fromJson(dynamic json) {
+    _id = json['_id'];
+    _name = json['name'];
+    _maxQuantity = json['maxQuantity'];
+    _price = json['price'];
+    _isAvailable = json['isAvailable'];
+    _isFree = json['isFree'];
+    _products = json['products'] != null ? json['products'].cast<String>() : [];
+    _createdBy = json['createdBy'];
+    _createdAt = json['createdAt'];
+    _updatedAt = json['updatedAt'];
+    _v = json['__v'];
+    _category = json['category'];
+  }
+  String? _id;
+  String? _name;
+  num? _maxQuantity;
+  num? _price;
+  bool? _isAvailable;
+  bool? _isFree;
+  List<String>? _products;
+  String? _createdBy;
+  String? _createdAt;
+  String? _updatedAt;
+  num? _v;
+  String? _category;
+  Addon copyWith({
+    String? id,
+    String? name,
+    num? maxQuantity,
+    num? price,
+    bool? isAvailable,
+    bool? isFree,
+    List<String>? products,
+    String? createdBy,
+    String? createdAt,
+    String? updatedAt,
+    num? v,
+    String? category,
+  }) =>
+      Addon(
+        id: id ?? _id,
+        name: name ?? _name,
+        maxQuantity: maxQuantity ?? _maxQuantity,
+        price: price ?? _price,
+        isAvailable: isAvailable ?? _isAvailable,
+        isFree: isFree ?? _isFree,
+        products: products ?? _products,
+        createdBy: createdBy ?? _createdBy,
+        createdAt: createdAt ?? _createdAt,
+        updatedAt: updatedAt ?? _updatedAt,
+        v: v ?? _v,
+        category: category ?? _category,
+      );
+  String? get id => _id;
+  String? get name => _name;
+  num? get maxQuantity => _maxQuantity;
+  num? get price => _price;
+  bool? get isAvailable => _isAvailable;
+  bool? get isFree => _isFree;
+  List<String>? get products => _products;
+  String? get createdBy => _createdBy;
+  String? get createdAt => _createdAt;
+  String? get updatedAt => _updatedAt;
+  num? get v => _v;
+  String? get category => _category;
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+    map['_id'] = _id;
+    map['name'] = _name;
+    map['maxQuantity'] = _maxQuantity;
+    map['price'] = _price;
+    map['isAvailable'] = _isAvailable;
+    map['isFree'] = _isFree;
+    map['products'] = _products;
+    map['createdBy'] = _createdBy;
+    map['createdAt'] = _createdAt;
+    map['updatedAt'] = _updatedAt;
+    map['__v'] = _v;
+    map['category'] = _category;
     return map;
   }
 }

@@ -4,6 +4,7 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple/Reusable/color.dart';
 import 'package:simple/Reusable/text_styles.dart';
+import 'package:simple/UI/Authentication/login_screen.dart';
 
 /// show to Logout AlertDialog
 showLogoutDialog(BuildContext context) {
@@ -100,15 +101,12 @@ showLogoutDialog(BuildContext context) {
                     onPressed: () async {
                       SharedPreferences sharedPreference =
                           await SharedPreferences.getInstance();
-                      await sharedPreference.remove('userId');
-                      await sharedPreference.remove('roleId');
-                      await sharedPreference.remove('role');
-                      //   Cart().clearCart();
-                      //    Navigator.pushAndRemoveUntil(
-                      //        context,
-                      //        MaterialPageRoute(
-                      //            builder: (context) => const LoginScreen()),
-                      //        (route) => false);
+                      await sharedPreference.remove('token');
+                      Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const LoginScreen()),
+                          (route) => false);
                     }),
               ),
             ],

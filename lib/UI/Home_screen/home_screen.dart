@@ -12,7 +12,9 @@ import 'package:simple/Bloc/Category/category_bloc.dart';
 import 'package:simple/ModelClass/Cart/Post_Add_to_billing_model.dart';
 import 'package:simple/ModelClass/HomeScreen/Category&Product/Get_category_model.dart';
 import 'package:simple/ModelClass/HomeScreen/Category&Product/Get_product_by_catId_model.dart';
+import 'package:simple/ModelClass/Order/Get_view_order_model.dart';
 import 'package:simple/ModelClass/Order/Post_generate_order_model.dart';
+import 'package:simple/ModelClass/Order/Update_generate_order_model.dart';
 import 'package:simple/ModelClass/Table/Get_table_model.dart';
 import 'package:simple/Reusable/color.dart';
 import 'package:simple/Reusable/image.dart';
@@ -20,29 +22,37 @@ import 'package:simple/Reusable/space.dart';
 import 'package:simple/Reusable/text_styles.dart';
 import 'package:simple/UI/Cart/Widget/payment_option.dart';
 import 'package:simple/UI/Home_screen/Helper/order_helper.dart';
-import 'package:simple/UI/Home_screen/Widget/addons_screen_widget.dart';
 import 'package:simple/UI/Home_screen/Widget/another_imin_printer/imin_abstract.dart';
 import 'package:simple/UI/Home_screen/Widget/another_imin_printer/mock_imin_printer_chrome.dart';
 import 'package:simple/UI/Home_screen/Widget/another_imin_printer/real_device_printer.dart';
 import 'package:simple/UI/Home_screen/Widget/category_card.dart';
 
 class FoodOrderingScreen extends StatelessWidget {
-  const FoodOrderingScreen({
+  final GetViewOrderModel? existingOrder;
+  bool? isEditingOrder;
+  FoodOrderingScreen({
     super.key,
+    this.existingOrder,
+    this.isEditingOrder,
   });
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => FoodCategoryBloc(),
-      child: FoodOrderingScreenView(),
+      child: FoodOrderingScreenView(
+          existingOrder: existingOrder, isEditingOrder: isEditingOrder),
     );
   }
 }
 
 class FoodOrderingScreenView extends StatefulWidget {
-  const FoodOrderingScreenView({
+  final GetViewOrderModel? existingOrder;
+  bool? isEditingOrder;
+  FoodOrderingScreenView({
     super.key,
+    this.existingOrder,
+    this.isEditingOrder,
   });
 
   @override
@@ -55,6 +65,8 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
   PostAddToBillingModel postAddToBillingModel = PostAddToBillingModel();
   PostGenerateOrderModel postGenerateOrderModel = PostGenerateOrderModel();
   GetTableModel getTableModel = GetTableModel();
+  UpdateGenerateOrderModel updateGenerateOrderModel =
+      UpdateGenerateOrderModel();
 
   TextEditingController searchController = TextEditingController();
   TextEditingController amountController = TextEditingController();
@@ -96,6 +108,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
   String? errorMessage;
   bool categoryLoad = false;
   bool orderLoad = false;
+  bool completeLoad = false;
   bool cartLoad = false;
   bool isToppingSelected = false;
 
@@ -104,6 +117,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
   double totalAmount = 0.0;
   double paidAmount = 0.0;
   double balanceAmount = 0.0;
+  bool isCartLoaded = false;
   List<Map<String, dynamic>> billingItems = [];
   late IPrinterService printerService;
   @override
@@ -119,13 +133,80 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
       printerService = MockPrinterService();
       debugPrint("Using fallback MockPrinterService");
     }
-
     context.read<FoodCategoryBloc>().add(FoodCategory());
     context
         .read<FoodCategoryBloc>()
         .add(FoodProductItem(selectedCatId.toString(), searchController.text));
     context.read<FoodCategoryBloc>().add(TableDine());
     categoryLoad = true;
+    debugPrint("existingViewModel:${widget.existingOrder}");
+    debugPrint("isEdit:${widget.isEditingOrder}");
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.isEditingOrder == true && widget.existingOrder != null) {
+        loadExistingOrder(widget.existingOrder!);
+      } else {
+        resetCartState();
+      }
+    });
+  }
+
+  void loadExistingOrder(GetViewOrderModel? order) {
+    debugPrint("Loading existing order data...");
+
+    if (order == null || order.data == null) return;
+
+    final data = order.data!;
+
+    setState(() {
+      selectDineIn = data.orderType == 'DINE-IN';
+      tableId = data.tableNo.toString();
+      selectedValue = data.tableName;
+      isCartLoaded = true;
+
+      billingItems = data.items?.map((e) {
+            final product = e.product;
+            debugPrint("baseprice:${e.unitPrice}");
+            debugPrint("uantity:${e.quantity}");
+            debugPrint("name:${e.name}");
+            return {
+              "_id": product?.id,
+              "name": e.name,
+              "basePrice": (product?.basePrice ?? 0),
+              "qty": e.quantity,
+              "image": product?.image,
+              "selectedAddons": e.addons?.map((addonItem) {
+                    final addon = addonItem.addon;
+                    return {
+                      "_id": addon?.id,
+                      "name": addon?.name,
+                      "price": addon?.price,
+                      "isFree": addon?.isFree,
+                      "quantity": addonItem.quantity ?? 1,
+                      "isAvailable": addon?.isAvailable,
+                      "maxQuantity": addon?.maxQuantity,
+                    };
+                  }).toList() ??
+                  [],
+            };
+          }).toList() ??
+          [];
+      context
+          .read<FoodCategoryBloc>()
+          .add(AddToBilling(List.from(billingItems)));
+    });
+  }
+
+  void resetCartState() {
+    setState(() {
+      billingItems.clear();
+      tableId = null;
+      selectedValue = null;
+      selectDineIn = true;
+      isSplitPayment = false;
+      amountController.clear();
+      selectedFullPaymentMethod = "";
+      context.read<FoodCategoryBloc>().add(AddToBilling([]));
+    });
   }
 
   @override
@@ -239,8 +320,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                               offset:
                                                   searchController.text.length);
                                         setState(() {
-                                          debugPrint(
-                                              "serachKey:${searchController.text}");
                                           context.read<FoodCategoryBloc>().add(
                                                 FoodProductItem(
                                                     selectedCatId.toString(),
@@ -279,8 +358,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                             setState(() {
                                               selectedCategory = category.name!;
                                               selectedCatId = category.id;
-                                              debugPrint(
-                                                  "searchInCat:${searchController.text}");
                                               if (selectedCategory == 'All') {
                                                 context
                                                     .read<FoodCategoryBloc>()
@@ -425,8 +502,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                             onPressed: () {
                                                               setState(() {
                                                                 p.counter = 1;
-                                                                debugPrint(
-                                                                    "counter:${p.counter}");
                                                                 if (p.addons!
                                                                     .isNotEmpty) {
                                                                   showDialog(
@@ -488,70 +563,64 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                                       SizedBox(height: 12),
                                                                                       Column(
                                                                                         children: p.addons!.map((e) {
-                                                                                          if (e.isFree == true) {
-                                                                                            // For free addons (show as checkbox or switch)
-                                                                                            return toppingOptionTile(
-                                                                                              title: e.name!,
-                                                                                              subtitle: "Free (${e.maxQuantity} max)",
-                                                                                              isSelected: e.isSelected,
-                                                                                              onChanged: (value) {
-                                                                                                setState(() {
-                                                                                                  e.isSelected = value!;
-                                                                                                });
-                                                                                              },
-                                                                                            );
-                                                                                          } else {
-                                                                                            // For paid addons (show counter)
-                                                                                            return Padding(
-                                                                                              padding: const EdgeInsets.symmetric(vertical: 4.0),
-                                                                                              child: Container(
-                                                                                                padding: const EdgeInsets.all(8),
-                                                                                                decoration: BoxDecoration(
-                                                                                                  border: Border.all(color: Colors.grey.shade300),
-                                                                                                  borderRadius: BorderRadius.circular(8),
-                                                                                                ),
-                                                                                                child: Row(
-                                                                                                  children: [
-                                                                                                    Expanded(
-                                                                                                      child: Column(
-                                                                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                                        children: [
-                                                                                                          Text(e.name!, style: TextStyle(fontWeight: FontWeight.bold)),
-                                                                                                          const SizedBox(height: 4),
-                                                                                                          Text("₹ ${e.price} (Max: ${e.maxQuantity})", style: TextStyle(color: Colors.grey.shade600)),
-                                                                                                        ],
-                                                                                                      ),
-                                                                                                    ),
-                                                                                                    Row(
+                                                                                          return Padding(
+                                                                                            padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                                                                            child: Container(
+                                                                                              padding: const EdgeInsets.all(8),
+                                                                                              decoration: BoxDecoration(
+                                                                                                border: Border.all(color: blackColor),
+                                                                                                borderRadius: BorderRadius.circular(8),
+                                                                                              ),
+                                                                                              child: Row(
+                                                                                                children: [
+                                                                                                  // Addon title & price/free label
+                                                                                                  Expanded(
+                                                                                                    child: Column(
+                                                                                                      crossAxisAlignment: CrossAxisAlignment.start,
                                                                                                       children: [
-                                                                                                        IconButton(
-                                                                                                          icon: Icon(Icons.remove),
-                                                                                                          onPressed: e.quantity > 0
-                                                                                                              ? () {
-                                                                                                                  setState(() {
-                                                                                                                    e.quantity = (e.quantity ?? 0) - 1;
-                                                                                                                  });
-                                                                                                                }
-                                                                                                              : null,
+                                                                                                        Text(
+                                                                                                          e.name ?? '',
+                                                                                                          style: const TextStyle(fontWeight: FontWeight.bold),
                                                                                                         ),
-                                                                                                        Text('${e.quantity ?? 0}'),
-                                                                                                        IconButton(
-                                                                                                          icon: Icon(Icons.add, color: Colors.brown),
-                                                                                                          onPressed: e.quantity < (e.maxQuantity ?? 1)
-                                                                                                              ? () {
-                                                                                                                  setState(() {
-                                                                                                                    e.quantity = (e.quantity ?? 0) + 1;
-                                                                                                                  });
-                                                                                                                }
-                                                                                                              : null,
+                                                                                                        const SizedBox(height: 4),
+                                                                                                        Text(
+                                                                                                          e.isFree == true ? "Free (Max: ${e.maxQuantity})" : "₹ ${e.price?.toStringAsFixed(2) ?? '0.00'} (Max: ${e.maxQuantity})",
+                                                                                                          style: TextStyle(color: Colors.grey.shade600),
                                                                                                         ),
                                                                                                       ],
-                                                                                                    )
-                                                                                                  ],
-                                                                                                ),
+                                                                                                    ),
+                                                                                                  ),
+
+                                                                                                  // Quantity selector
+                                                                                                  Row(
+                                                                                                    children: [
+                                                                                                      IconButton(
+                                                                                                        icon: const Icon(Icons.remove),
+                                                                                                        onPressed: (e.quantity) > 0
+                                                                                                            ? () {
+                                                                                                                setState(() {
+                                                                                                                  e.quantity = (e.quantity) - 1;
+                                                                                                                });
+                                                                                                              }
+                                                                                                            : null,
+                                                                                                      ),
+                                                                                                      Text('${e.quantity}'),
+                                                                                                      IconButton(
+                                                                                                        icon: const Icon(Icons.add, color: Colors.brown),
+                                                                                                        onPressed: (e.quantity) < (e.maxQuantity ?? 1)
+                                                                                                            ? () {
+                                                                                                                setState(() {
+                                                                                                                  e.quantity = (e.quantity) + 1;
+                                                                                                                });
+                                                                                                              }
+                                                                                                            : null,
+                                                                                                      ),
+                                                                                                    ],
+                                                                                                  )
+                                                                                                ],
                                                                                               ),
-                                                                                            );
-                                                                                          }
+                                                                                            ),
+                                                                                          );
                                                                                         }).toList(),
                                                                                       ),
                                                                                       SizedBox(height: 20),
@@ -577,6 +646,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                                             child: Text('Cancel', style: MyTextStyle.f14(blackColor)),
                                                                                           ),
                                                                                           SizedBox(width: 8),
+                                                                                          // Simplified billing logic - use only quantity for both free and paid addons
                                                                                           ElevatedButton(
                                                                                             onPressed: () {
                                                                                               final index = billingItems.indexWhere((item) => item['_id'] == p.id);
@@ -590,11 +660,11 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                                                   "qty": 1,
                                                                                                   "name": p.name,
                                                                                                   "selectedAddons": p.addons!
-                                                                                                      .where((addon) => addon.isFree == true ? addon.isSelected == true : (addon.quantity ?? 0) > 0)
+                                                                                                      .where((addon) => addon.quantity > 0) // Simple condition - only check quantity
                                                                                                       .map((addon) => {
                                                                                                             "_id": addon.id,
                                                                                                             "price": addon.price,
-                                                                                                            "quantity": addon.quantity ?? 1,
+                                                                                                            "quantity": addon.quantity,
                                                                                                             "name": addon.name,
                                                                                                             "isAvailable": addon.isAvailable,
                                                                                                             "maxQuantity": addon.maxQuantity,
@@ -605,6 +675,8 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                                               }
                                                                                               debugPrint("billingItems: $billingItems");
                                                                                               context.read<FoodCategoryBloc>().add(AddToBilling(List.from(billingItems)));
+
+                                                                                              // Reset addon states
                                                                                               setState(() {
                                                                                                 for (var addon in p.addons!) {
                                                                                                   addon.isSelected = false;
@@ -634,8 +706,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                     },
                                                                   );
                                                                 } else {
-                                                                  debugPrint(
-                                                                      "no addon");
                                                                   setState(() {
                                                                     isSplitPayment =
                                                                         false;
@@ -669,13 +739,14 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                             p.name,
                                                                         "selectedAddons": p
                                                                             .addons!
-                                                                            .where((addon) => addon.isFree == true
-                                                                                ? addon.isSelected == true
-                                                                                : (addon.quantity ?? 0) > 0)
-                                                                            .map((addon) => {
+                                                                            .where((addon) =>
+                                                                                addon.quantity >
+                                                                                0) // Simple condition - only check quantity
+                                                                            .map((addon) =>
+                                                                                {
                                                                                   "_id": addon.id,
                                                                                   "price": addon.price,
-                                                                                  "quantity": 1,
+                                                                                  "quantity": addon.quantity,
                                                                                   "name": addon.name,
                                                                                   "isAvailable": addon.isAvailable,
                                                                                   "maxQuantity": addon.maxQuantity,
@@ -834,11 +905,11 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                               p.name,
                                                                           "selectedAddons": p
                                                                               .addons!
-                                                                              .where((addon) => addon.isFree == true ? addon.isSelected == true : (addon.quantity ?? 0) > 0)
+                                                                              .where((addon) => addon.quantity > 0) // Simple condition - only check quantity
                                                                               .map((addon) => {
                                                                                     "_id": addon.id,
                                                                                     "price": addon.price,
-                                                                                    "quantity": 1,
+                                                                                    "quantity": addon.quantity,
                                                                                     "name": addon.name,
                                                                                     "isAvailable": addon.isAvailable,
                                                                                     "maxQuantity": addon.maxQuantity,
@@ -1281,6 +1352,8 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                     amountController.clear();
                                                     selectedFullPaymentMethod =
                                                         "";
+                                                    widget.isEditingOrder =
+                                                        false;
                                                   });
                                                   context
                                                       .read<FoodCategoryBloc>()
@@ -1391,7 +1464,8 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                               child:
                                                                   CachedNetworkImage(
                                                                 imageUrl: e
-                                                                    .image!, // Using dot notation
+                                                                        .image ??
+                                                                    "", // Using dot notation
                                                                 width:
                                                                     size.width *
                                                                         0.04,
@@ -1495,16 +1569,16 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                                     "image": e.image,
                                                                                     "qty": 1,
                                                                                     "name": e.name,
-                                                                                    "selectedAddons": (e.addons != null)
-                                                                                        ? e.addons!
-                                                                                            .where((addon) => addon.isFree == true ? addon.isSelected == true : (addon.quantity ?? 0) > 0)
+                                                                                    "selectedAddons": (e.selectedAddons != null)
+                                                                                        ? e.selectedAddons!
+                                                                                            .where((addon) => (addon.quantity ?? 0) > 0) // Simple quantity check
                                                                                             .map((addon) => {
                                                                                                   "_id": addon.id,
-                                                                                                  "price": addon.price,
-                                                                                                  "quantity": 1,
+                                                                                                  "price": addon.price ?? 0,
+                                                                                                  "quantity": addon.quantity ?? 0,
                                                                                                   "name": addon.name,
                                                                                                   "isAvailable": addon.isAvailable,
-                                                                                                  "maxQuantity": addon.maxQuantity,
+                                                                                                  "maxQuantity": addon.quantity,
                                                                                                   "isFree": addon.isFree,
                                                                                                 })
                                                                                             .toList()
@@ -1518,7 +1592,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                           ),
                                                                           IconButton(
                                                                             icon: Icon(Icons.delete,
-                                                                                color: Colors.red,
+                                                                                color: redColor,
                                                                                 size: 20),
                                                                             padding:
                                                                                 EdgeInsets.all(4),
@@ -1537,36 +1611,97 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                       ),
                                                                     ],
                                                                   ),
-                                                                  Builder(
-                                                                    builder:
-                                                                        (context) {
-                                                                      return Column(
-                                                                        children: [
-                                                                          price(
-                                                                              "Base Price",
-                                                                              "₹ ${e.basePrice!.toStringAsFixed(2)}"),
-                                                                          if (e.addonTotal !=
-                                                                              0)
-                                                                            price(
-                                                                              'Addons',
-                                                                              "₹ ${(e.addonTotal ?? 0)}",
+                                                                  Column(
+                                                                    crossAxisAlignment:
+                                                                        CrossAxisAlignment
+                                                                            .start,
+                                                                    children: [
+                                                                      if (e.selectedAddons !=
+                                                                              null &&
+                                                                          e.selectedAddons!
+                                                                              .isNotEmpty)
+                                                                        ...e.selectedAddons!
+                                                                            .where((addon) =>
+                                                                                addon.quantity != null &&
+                                                                                addon.quantity! > 0)
+                                                                            .map((addon) {
+                                                                          return Padding(
+                                                                            padding:
+                                                                                const EdgeInsets.symmetric(vertical: 3),
+                                                                            child:
+                                                                                Row(
+                                                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                              children: [
+                                                                                // Addon name with price or (Free) label
+                                                                                Expanded(
+                                                                                  child: Text(
+                                                                                    "${addon.name} ${addon.isFree == true ? ' (Free)' : ' ₹${addon.price}'}",
+                                                                                    style: TextStyle(fontSize: 12, color: greyColor),
+                                                                                  ),
+                                                                                ),
+
+                                                                                // Quantity Control
+                                                                                Row(
+                                                                                  children: [
+                                                                                    IconButton(
+                                                                                      icon: Icon(Icons.remove_circle_outline),
+                                                                                      onPressed: () {
+                                                                                        if (addon.quantity! > 1) {
+                                                                                          setState(() {
+                                                                                            addon.qty = addon.quantity! - 1;
+                                                                                            // _updateAddonTotal(addon); // update addonTotal if needed
+                                                                                          });
+                                                                                        } else {
+                                                                                          // Remove addon completely if quantity becomes 0
+                                                                                          setState(() {
+                                                                                            e.selectedAddons!.remove(addon);
+                                                                                          });
+                                                                                        }
+                                                                                      },
+                                                                                    ),
+                                                                                    Text('${addon.quantity}', style: TextStyle(fontSize: 14)),
+                                                                                    IconButton(
+                                                                                      icon: Icon(Icons.add_circle_outline),
+                                                                                      onPressed: () {
+                                                                                        setState(() {
+                                                                                          addon.qty = addon.quantity! + 1;
+                                                                                          // _updateAddonTotal(addon); // update addonTotal if needed
+                                                                                        });
+                                                                                      },
+                                                                                    ),
+                                                                                  ],
+                                                                                )
+                                                                              ],
                                                                             ),
-                                                                          price(
-                                                                            "CGST (${e.appliedTaxes?.first.percentage ?? 0}%):",
-                                                                            "₹ ${e.appliedTaxes?.first.amount?.toStringAsFixed(2) ?? '0.00'}",
-                                                                          ),
-                                                                          price(
-                                                                            "SGST (${e.appliedTaxes?.last.percentage ?? 0}%):",
-                                                                            "₹ ${e.appliedTaxes?.last.amount?.toStringAsFixed(2) ?? '0.00'}",
-                                                                          ),
-                                                                          price(
-                                                                              "Item Total:",
-                                                                              "₹ ${e.basePrice!.toStringAsFixed(2)}", // Using dot notation
-                                                                              isBold: true),
-                                                                        ],
-                                                                      );
-                                                                    },
-                                                                  ),
+                                                                          );
+                                                                        }),
+                                                                      price(
+                                                                          "Base Price",
+                                                                          "₹ ${e.basePrice!.toStringAsFixed(2)}"),
+                                                                      if (e.addonTotal !=
+                                                                          0)
+                                                                        price(
+                                                                            'Addons Total',
+                                                                            "₹ ${e.addonTotal!.toStringAsFixed(2)}"),
+
+                                                                      // Taxes
+                                                                      if ((e.appliedTaxes?.length ??
+                                                                              0) >
+                                                                          0)
+                                                                        ...e.appliedTaxes!
+                                                                            .map((tax) {
+                                                                          return price(
+                                                                            "${tax.name} (${tax.percentage ?? 0}%):",
+                                                                            "₹ ${tax.amount?.toStringAsFixed(2) ?? '0.00'}",
+                                                                          );
+                                                                        }),
+                                                                      price(
+                                                                          "Item Total",
+                                                                          "₹ ${e.total?.toStringAsFixed(2) ?? '0.00'}",
+                                                                          isBold:
+                                                                              true),
+                                                                    ],
+                                                                  )
                                                                 ],
                                                               ),
                                                             ),
@@ -2166,21 +2301,435 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                               ? Row(
                                                   children: [
                                                     Expanded(
-                                                      child: ElevatedButton(
-                                                        onPressed: () async {
-                                                          if (selectedValue ==
-                                                                  null &&
-                                                              selectDineIn ==
-                                                                  true) {
-                                                            showToast(
-                                                                "Table number is required for DINE-IN orders",
-                                                                context,
-                                                                color: false);
+                                                      child: orderLoad
+                                                          ? SpinKitCircle(
+                                                              color:
+                                                                  appPrimaryColor,
+                                                              size: 30)
+                                                          : ElevatedButton(
+                                                              onPressed:
+                                                                  () async {
+                                                                if (selectedValue ==
+                                                                        null &&
+                                                                    selectDineIn ==
+                                                                        true) {
+                                                                  showToast(
+                                                                      "Table number is required for DINE-IN orders",
+                                                                      context,
+                                                                      color:
+                                                                          false);
+                                                                } else {
+                                                                  debugPrint(
+                                                                      "isEditinSave:${widget.isEditingOrder}");
+                                                                  List<Map<String, dynamic>>
+                                                                      payments =
+                                                                      [
+                                                                    {
+                                                                      "amount": (postAddToBillingModel.total ??
+                                                                              0)
+                                                                          .toDouble(),
+                                                                      "balanceAmount":
+                                                                          0,
+                                                                      "method":
+                                                                          selectedFullPaymentMethod
+                                                                              .toUpperCase(),
+                                                                    },
+                                                                  ];
+                                                                  final orderPayload =
+                                                                      buildOrderPayload(
+                                                                    postAddToBillingModel:
+                                                                        postAddToBillingModel,
+                                                                    tableId:
+                                                                        tableId,
+                                                                    orderStatus:
+                                                                        'WAITLIST',
+                                                                    orderType: selectDineIn ==
+                                                                            true
+                                                                        ? 'DINE-IN'
+                                                                        : 'TAKE-AWAY',
+                                                                    payments:
+                                                                        payments,
+                                                                  );
+                                                                  debugPrint(
+                                                                      'Sending order: ${jsonEncode(orderPayload)}');
+                                                                  setState(() {
+                                                                    orderLoad =
+                                                                        true;
+                                                                  });
+                                                                  context
+                                                                      .read<
+                                                                          FoodCategoryBloc>()
+                                                                      .add(GenerateOrder(
+                                                                          jsonEncode(
+                                                                              orderPayload)));
+                                                                }
+                                                              },
+                                                              style:
+                                                                  ElevatedButton
+                                                                      .styleFrom(
+                                                                backgroundColor:
+                                                                    widget.isEditingOrder ==
+                                                                            true
+                                                                        ? greyColor
+                                                                        : appPrimaryColor,
+                                                                minimumSize:
+                                                                    const Size(
+                                                                        0,
+                                                                        50), // Height only
+                                                                shape:
+                                                                    RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              30),
+                                                                ),
+                                                              ),
+                                                              child: Text(
+                                                                "Save Order",
+                                                                style: TextStyle(
+                                                                    color: widget.isEditingOrder ==
+                                                                            true
+                                                                        ? blackColor
+                                                                        : whiteColor),
+                                                              ),
+                                                            ),
+                                                    ),
+                                                    const SizedBox(width: 10),
+                                                    Expanded(
+                                                      child: completeLoad
+                                                          ? SpinKitCircle(
+                                                              color:
+                                                                  appPrimaryColor,
+                                                              size: 30)
+                                                          : ElevatedButton(
+                                                              onPressed:
+                                                                  () async {
+                                                                if (selectedValue ==
+                                                                        null &&
+                                                                    selectDineIn ==
+                                                                        true) {
+                                                                  showToast(
+                                                                      "Table number is required for DINE-IN orders",
+                                                                      context,
+                                                                      color:
+                                                                          false);
+                                                                } else {
+                                                                  setState(() {
+                                                                    isCompleteOrder =
+                                                                        true;
+                                                                  });
+                                                                  if (widget.isEditingOrder ==
+                                                                          false ||
+                                                                      widget.isEditingOrder ==
+                                                                          null) {
+                                                                    if ((amountController.text.isNotEmpty &&
+                                                                            selectedFullPaymentMethod ==
+                                                                                "Cash") ||
+                                                                        selectedFullPaymentMethod ==
+                                                                            "Card" ||
+                                                                        selectedFullPaymentMethod ==
+                                                                            "UPI") {
+                                                                      List<Map<String, dynamic>>
+                                                                          payments =
+                                                                          [];
+                                                                      payments =
+                                                                          [
+                                                                        {
+                                                                          "amount":
+                                                                              (postAddToBillingModel.total ?? 0).toDouble(),
+                                                                          "balanceAmount":
+                                                                              0,
+                                                                          "method":
+                                                                              selectedFullPaymentMethod.toUpperCase(),
+                                                                        }
+                                                                      ];
+
+                                                                      final orderPayload =
+                                                                          buildOrderPayload(
+                                                                        postAddToBillingModel:
+                                                                            postAddToBillingModel,
+                                                                        tableId: selectDineIn ==
+                                                                                true
+                                                                            ? tableId
+                                                                            : null,
+                                                                        orderStatus:
+                                                                            'COMPLETED',
+                                                                        orderType: selectDineIn ==
+                                                                                true
+                                                                            ? 'DINE-IN'
+                                                                            : 'TAKE-AWAY',
+                                                                        payments:
+                                                                            payments,
+                                                                      );
+
+                                                                      debugPrint(
+                                                                          'Sending order: ${jsonEncode(orderPayload)}');
+                                                                      setState(
+                                                                          () {
+                                                                        completeLoad =
+                                                                            true;
+                                                                      });
+                                                                      context
+                                                                          .read<
+                                                                              FoodCategoryBloc>()
+                                                                          .add(GenerateOrder(
+                                                                              jsonEncode(orderPayload)));
+                                                                    }
+                                                                  }
+                                                                  if (widget
+                                                                          .isEditingOrder ==
+                                                                      true) {
+                                                                    debugPrint(
+                                                                        "welcome Update order");
+                                                                    if ((amountController.text.isNotEmpty &&
+                                                                            selectedFullPaymentMethod ==
+                                                                                "Cash") ||
+                                                                        selectedFullPaymentMethod ==
+                                                                            "Card" ||
+                                                                        selectedFullPaymentMethod ==
+                                                                            "UPI") {
+                                                                      List<Map<String, dynamic>>
+                                                                          payments =
+                                                                          [];
+                                                                      payments =
+                                                                          [
+                                                                        {
+                                                                          "amount":
+                                                                              (postAddToBillingModel.total ?? 0).toDouble(),
+                                                                          "balanceAmount":
+                                                                              0,
+                                                                          "method":
+                                                                              selectedFullPaymentMethod.toUpperCase(),
+                                                                        }
+                                                                      ];
+
+                                                                      final orderPayload =
+                                                                          buildOrderPayload(
+                                                                        postAddToBillingModel:
+                                                                            postAddToBillingModel,
+                                                                        tableId: selectDineIn ==
+                                                                                true
+                                                                            ? tableId
+                                                                            : null,
+                                                                        orderStatus:
+                                                                            'COMPLETED',
+                                                                        orderType: selectDineIn ==
+                                                                                true
+                                                                            ? 'DINE-IN'
+                                                                            : 'TAKE-AWAY',
+                                                                        payments:
+                                                                            payments,
+                                                                      );
+
+                                                                      debugPrint(
+                                                                          'Sending order: ${jsonEncode(orderPayload)}');
+                                                                      setState(
+                                                                          () {
+                                                                        completeLoad =
+                                                                            true;
+                                                                      });
+                                                                      context.read<FoodCategoryBloc>().add(UpdateOrder(
+                                                                          jsonEncode(
+                                                                              orderPayload),
+                                                                          widget
+                                                                              .existingOrder!
+                                                                              .data!
+                                                                              .id));
+                                                                    }
+                                                                  }
+                                                                  // final orderPayload =
+                                                                  //     buildOrderPayload(
+                                                                  //   billingItems:
+                                                                  //       billingItems,
+                                                                  //   operatorId:
+                                                                  //       '60a7e502a2f8f3b6e8d9b7c6',
+                                                                  //   tableNo:
+                                                                  //       tableId ??
+                                                                  //           '',
+                                                                  //   orderStatus:
+                                                                  //       'COMPLETED',
+                                                                  //   orderType: selectDineIn
+                                                                  //       ? 'DINE-IN'
+                                                                  //       : 'TAKE-AWAY',
+                                                                  //   notes: '',
+                                                                  // );
+                                                                  // debugPrint(
+                                                                  //     'Sending order: ${jsonEncode(orderPayload)}');
+                                                                  // await printerService
+                                                                  //     .init();
+                                                                  // await printerService
+                                                                  //     .printText(
+                                                                  //         "🍽️ Roja Restaurant\n");
+                                                                  // await printerService
+                                                                  //     .printText(
+                                                                  //         "------------------------\n");
+                                                                  //
+                                                                  // for (var item
+                                                                  //     in orderPayload[
+                                                                  //         'items']) {
+                                                                  //   String line =
+                                                                  //       "${item['name']} x${item['quantity']} - ₹${item['subtotal'].toStringAsFixed(2)}\n";
+                                                                  //   await printerService
+                                                                  //       .printText(
+                                                                  //           line);
+                                                                  //
+                                                                  //   // Print addons if available
+                                                                  //   List addons =
+                                                                  //       item[
+                                                                  //           'addons'];
+                                                                  //   for (var addon
+                                                                  //       in addons) {
+                                                                  //     await printerService
+                                                                  //         .printText(
+                                                                  //             "  + ${addon['name']} - ₹${addon['price']}\n");
+                                                                  //   }
+                                                                  // }
+                                                                  //
+                                                                  // await printerService
+                                                                  //     .printText(
+                                                                  //         "------------------------\n");
+                                                                  // await printerService
+                                                                  //     .printText(
+                                                                  //         "Subtotal: ₹${orderPayload['subtotal'].toStringAsFixed(2)}\n");
+                                                                  // await printerService
+                                                                  //     .printText(
+                                                                  //         "Tax: ₹${orderPayload['tax'].toStringAsFixed(2)}\n");
+                                                                  // await printerService
+                                                                  //     .printText(
+                                                                  //         "Total: ₹${orderPayload['total'].toStringAsFixed(2)}\n");
+                                                                  //
+                                                                  // await printerService
+                                                                  //     .printText(
+                                                                  //         "Order Type: ${orderPayload['orderType']}\n");
+                                                                  // if (orderPayload[
+                                                                  //         'table_no']
+                                                                  //     .isNotEmpty) {
+                                                                  //   await printerService
+                                                                  //       .printText(
+                                                                  //           "Table No: ${orderPayload['table_no']}\n");
+                                                                  // }
+                                                                  //
+                                                                  // await printerService
+                                                                  //     .printText(
+                                                                  //         "\nThank you!\n");
+                                                                  // await printerService
+                                                                  //     .fullCut();
+
+                                                                  // Optional: send order to server or Bloc here
+                                                                  //  context.read<FoodCategoryBloc>().add(SaveOrder(orderPayload));
+                                                                }
+                                                              },
+                                                              style:
+                                                                  ElevatedButton
+                                                                      .styleFrom(
+                                                                backgroundColor:
+                                                                    appPrimaryColor,
+                                                                minimumSize:
+                                                                    const Size(
+                                                                        0, 50),
+                                                                shape:
+                                                                    RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              30),
+                                                                ),
+                                                              ),
+                                                              child: const Text(
+                                                                "Complete Order",
+                                                                style: TextStyle(
+                                                                    color:
+                                                                        whiteColor),
+                                                              ),
+                                                            ),
+                                                    ),
+                                                  ],
+                                                )
+                                              : completeLoad
+                                                  ? SpinKitCircle(
+                                                      color: appPrimaryColor,
+                                                      size: 30)
+                                                  : ElevatedButton(
+                                                      onPressed: () {
+                                                        if (!allSplitAmountsFilled() ||
+                                                            !allPaymentMethodsSelected()) {
+                                                          showToast(
+                                                            "Please complete payment method and amount fields",
+                                                            context,
+                                                            color: false,
+                                                          );
+                                                          return;
+                                                        }
+
+                                                        if (totalSplit !=
+                                                            postAddToBillingModel
+                                                                .total) {
+                                                          showToast(
+                                                            "Split payments must sum to ₹ ${postAddToBillingModel.total!.toStringAsFixed(2)}",
+                                                            context,
+                                                            color: false,
+                                                          );
+                                                          return;
+                                                        }
+
+                                                        if (selectedValue ==
+                                                                null &&
+                                                            selectDineIn ==
+                                                                true) {
+                                                          showToast(
+                                                            "Table number is required for DINE-IN orders",
+                                                            context,
+                                                            color: false,
+                                                          );
+                                                          return;
+                                                        }
+
+                                                        List<
+                                                                Map<String,
+                                                                    dynamic>>
+                                                            payments = [];
+                                                        if (widget.isEditingOrder ==
+                                                                false ||
+                                                            widget.isEditingOrder ==
+                                                                null) {
+                                                          if (isSplitPayment) {
+                                                            for (int i = 0;
+                                                                i < _paymentFieldCount;
+                                                                i++) {
+                                                              final method =
+                                                                  selectedPaymentMethods[
+                                                                      i];
+                                                              final amountText =
+                                                                  splitAmountControllers[
+                                                                          i]
+                                                                      .text;
+                                                              final amount =
+                                                                  double.tryParse(
+                                                                          amountText) ??
+                                                                      0;
+                                                              if (method ==
+                                                                      null ||
+                                                                  method
+                                                                      .isEmpty) {
+                                                                showToast(
+                                                                    "Please select a payment method for split #${i + 1}",
+                                                                    context,
+                                                                    color:
+                                                                        false);
+                                                                return;
+                                                              }
+
+                                                              payments.add({
+                                                                "amount":
+                                                                    amount,
+                                                                "balanceAmount":
+                                                                    0,
+                                                                "method": method
+                                                                    .toUpperCase(),
+                                                              });
+                                                            }
                                                           } else {
-                                                            List<
-                                                                    Map<String,
-                                                                        dynamic>>
-                                                                payments = [
+                                                            payments = [
                                                               {
                                                                 "amount": (postAddToBillingModel
                                                                             .total ??
@@ -2189,457 +2738,159 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                 "balanceAmount":
                                                                     0,
                                                                 "method":
-                                                                    selectedFullPaymentMethod,
-                                                              },
+                                                                    selectedFullPaymentMethod
+                                                                        .toUpperCase(),
+                                                              }
                                                             ];
-                                                            final orderPayload =
-                                                                buildOrderPayload(
-                                                              postAddToBillingModel:
-                                                                  postAddToBillingModel,
-                                                              tableId: tableId,
-                                                              orderStatus:
-                                                                  'WAITLIST',
-                                                              orderType:
-                                                                  selectDineIn ==
-                                                                          true
-                                                                      ? 'DINE-IN'
-                                                                      : 'TAKE-AWAY',
-                                                              payments:
-                                                                  payments,
-                                                            );
-                                                            debugPrint(
-                                                                'Sending order: ${jsonEncode(orderPayload)}');
-                                                            context
-                                                                .read<
-                                                                    FoodCategoryBloc>()
-                                                                .add(GenerateOrder(
-                                                                    jsonEncode(
-                                                                        orderPayload)));
                                                           }
-                                                        },
-                                                        style: ElevatedButton
-                                                            .styleFrom(
-                                                          backgroundColor:
-                                                              appPrimaryColor,
-                                                          minimumSize: const Size(
-                                                              0,
-                                                              50), // Height only
-                                                          shape:
-                                                              RoundedRectangleBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        30),
-                                                          ),
-                                                        ),
-                                                        child: const Text(
-                                                          "Save Order",
-                                                          style: TextStyle(
-                                                              color:
-                                                                  whiteColor),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    const SizedBox(width: 10),
-                                                    Expanded(
-                                                      child: ElevatedButton(
-                                                        onPressed: () async {
-                                                          if (selectedValue ==
-                                                                  null &&
-                                                              selectDineIn ==
-                                                                  true) {
-                                                            showToast(
-                                                                "Table number is required for DINE-IN orders",
-                                                                context,
-                                                                color: false);
-                                                          } else {
-                                                            setState(() {
-                                                              isCompleteOrder =
-                                                                  true;
-                                                            });
-                                                            double
-                                                                enteredAmount =
-                                                                double.tryParse(
-                                                                        amountController
-                                                                            .text) ??
-                                                                    0.0;
-                                                            num totalAmount =
-                                                                postAddToBillingModel
-                                                                        .total ??
-                                                                    0.0;
-                                                            if ((amountController
-                                                                        .text
-                                                                        .isNotEmpty &&
-                                                                    selectedFullPaymentMethod ==
-                                                                        "Cash" &&
-                                                                    enteredAmount <
-                                                                        totalAmount) ||
-                                                                selectedFullPaymentMethod ==
-                                                                    "Card" ||
-                                                                selectedFullPaymentMethod ==
-                                                                    "UPI") {
-                                                              if (!allSplitAmountsFilled() ||
-                                                                  !allPaymentMethodsSelected()) {
-                                                                showToast(
-                                                                  "Please complete payment method and amount fields",
-                                                                  context,
-                                                                  color: false,
-                                                                );
-                                                                return;
-                                                              }
 
-                                                              if (totalSplit !=
-                                                                  postAddToBillingModel
-                                                                      .total) {
-                                                                showToast(
-                                                                  "Split payments must sum to ₹ ${postAddToBillingModel.total!.toStringAsFixed(2)}",
-                                                                  context,
-                                                                  color: false,
-                                                                );
-                                                                return;
-                                                              }
-
-                                                              List<
-                                                                      Map<String,
-                                                                          dynamic>>
-                                                                  payments = [];
-
-                                                              if (isSplitPayment) {
-                                                                for (int i = 0;
-                                                                    i < _paymentFieldCount;
-                                                                    i++) {
-                                                                  final method =
-                                                                      selectedPaymentMethods[
-                                                                          i];
-                                                                  final amountText =
-                                                                      splitAmountControllers[
-                                                                              i]
-                                                                          .text;
-                                                                  final amount =
-                                                                      double.tryParse(
-                                                                              amountText) ??
-                                                                          0;
-                                                                  if (method ==
-                                                                          null ||
-                                                                      method
-                                                                          .isEmpty) {
-                                                                    showToast(
-                                                                        "Please select a payment method for split #${i + 1}",
-                                                                        context,
-                                                                        color:
-                                                                            false);
-                                                                    return;
-                                                                  }
-
-                                                                  payments.add({
-                                                                    "amount":
-                                                                        amount,
-                                                                    "balanceAmount":
-                                                                        0,
-                                                                    "method":
-                                                                        method,
-                                                                  });
-                                                                }
-                                                              } else {
-                                                                payments = [
-                                                                  {
-                                                                    "amount": (postAddToBillingModel.total ??
-                                                                            0)
-                                                                        .toDouble(),
-                                                                    "balanceAmount":
-                                                                        0,
-                                                                    "method":
-                                                                        selectedFullPaymentMethod,
-                                                                  }
-                                                                ];
-                                                              }
-
-                                                              final orderPayload =
-                                                                  buildOrderPayload(
-                                                                postAddToBillingModel:
-                                                                    postAddToBillingModel,
-                                                                tableId:
-                                                                    selectDineIn ==
-                                                                            true
-                                                                        ? tableId
-                                                                        : null,
-                                                                orderStatus:
-                                                                    'COMPLETED',
-                                                                orderType: selectDineIn ==
+                                                          final orderPayload =
+                                                              buildOrderPayload(
+                                                            postAddToBillingModel:
+                                                                postAddToBillingModel,
+                                                            tableId:
+                                                                selectDineIn ==
+                                                                        true
+                                                                    ? tableId
+                                                                    : null,
+                                                            orderStatus:
+                                                                'COMPLETED',
+                                                            orderType:
+                                                                selectDineIn ==
                                                                         true
                                                                     ? 'DINE-IN'
                                                                     : 'TAKE-AWAY',
-                                                                payments:
-                                                                    payments,
-                                                              );
+                                                            payments: payments,
+                                                          );
 
-                                                              debugPrint(
-                                                                  'Sending order: ${jsonEncode(orderPayload)}');
-                                                              context
-                                                                  .read<
-                                                                      FoodCategoryBloc>()
-                                                                  .add(GenerateOrder(
-                                                                      jsonEncode(
-                                                                          orderPayload)));
-                                                              // final orderPayload =
-                                                              //     buildOrderPayload(
-                                                              //   billingItems:
-                                                              //       billingItems,
-                                                              //   operatorId:
-                                                              //       '60a7e502a2f8f3b6e8d9b7c6',
-                                                              //   tableNo:
-                                                              //       tableId ??
-                                                              //           '',
-                                                              //   orderStatus:
-                                                              //       'COMPLETED',
-                                                              //   orderType: selectDineIn
-                                                              //       ? 'DINE-IN'
-                                                              //       : 'TAKE-AWAY',
-                                                              //   notes: '',
-                                                              // );
-                                                              // debugPrint(
-                                                              //     'Sending order: ${jsonEncode(orderPayload)}');
-                                                              // await printerService
-                                                              //     .init();
-                                                              // await printerService
-                                                              //     .printText(
-                                                              //         "🍽️ Roja Restaurant\n");
-                                                              // await printerService
-                                                              //     .printText(
-                                                              //         "------------------------\n");
-                                                              //
-                                                              // for (var item
-                                                              //     in orderPayload[
-                                                              //         'items']) {
-                                                              //   String line =
-                                                              //       "${item['name']} x${item['quantity']} - ₹${item['subtotal'].toStringAsFixed(2)}\n";
-                                                              //   await printerService
-                                                              //       .printText(
-                                                              //           line);
-                                                              //
-                                                              //   // Print addons if available
-                                                              //   List addons =
-                                                              //       item[
-                                                              //           'addons'];
-                                                              //   for (var addon
-                                                              //       in addons) {
-                                                              //     await printerService
-                                                              //         .printText(
-                                                              //             "  + ${addon['name']} - ₹${addon['price']}\n");
-                                                              //   }
-                                                              // }
-                                                              //
-                                                              // await printerService
-                                                              //     .printText(
-                                                              //         "------------------------\n");
-                                                              // await printerService
-                                                              //     .printText(
-                                                              //         "Subtotal: ₹${orderPayload['subtotal'].toStringAsFixed(2)}\n");
-                                                              // await printerService
-                                                              //     .printText(
-                                                              //         "Tax: ₹${orderPayload['tax'].toStringAsFixed(2)}\n");
-                                                              // await printerService
-                                                              //     .printText(
-                                                              //         "Total: ₹${orderPayload['total'].toStringAsFixed(2)}\n");
-                                                              //
-                                                              // await printerService
-                                                              //     .printText(
-                                                              //         "Order Type: ${orderPayload['orderType']}\n");
-                                                              // if (orderPayload[
-                                                              //         'table_no']
-                                                              //     .isNotEmpty) {
-                                                              //   await printerService
-                                                              //       .printText(
-                                                              //           "Table No: ${orderPayload['table_no']}\n");
-                                                              // }
-                                                              //
-                                                              // await printerService
-                                                              //     .printText(
-                                                              //         "\nThank you!\n");
-                                                              // await printerService
-                                                              //     .fullCut();
+                                                          debugPrint(
+                                                              'Sending order: ${jsonEncode(orderPayload)}');
+                                                          setState(() {
+                                                            completeLoad = true;
+                                                          });
+                                                          context
+                                                              .read<
+                                                                  FoodCategoryBloc>()
+                                                              .add(GenerateOrder(
+                                                                  jsonEncode(
+                                                                      orderPayload)));
+                                                        }
+                                                        if (widget
+                                                                .isEditingOrder ==
+                                                            true) {
+                                                          if (isSplitPayment) {
+                                                            for (int i = 0;
+                                                                i < _paymentFieldCount;
+                                                                i++) {
+                                                              final method =
+                                                                  selectedPaymentMethods[
+                                                                      i];
+                                                              final amountText =
+                                                                  splitAmountControllers[
+                                                                          i]
+                                                                      .text;
+                                                              final amount =
+                                                                  double.tryParse(
+                                                                          amountText) ??
+                                                                      0;
+                                                              if (method ==
+                                                                      null ||
+                                                                  method
+                                                                      .isEmpty) {
+                                                                showToast(
+                                                                    "Please select a payment method for split #${i + 1}",
+                                                                    context,
+                                                                    color:
+                                                                        false);
+                                                                return;
+                                                              }
 
-                                                              // Optional: send order to server or Bloc here
-                                                              //  context.read<FoodCategoryBloc>().add(SaveOrder(orderPayload));
-                                                              await printerService
-                                                                  .init();
-                                                              await printerService
-                                                                  .printText(
-                                                                      "🧾 Test Receipt\nHello from iMin printer\n");
-                                                              await printerService
-                                                                  .fullCut();
+                                                              payments.add({
+                                                                "amount":
+                                                                    amount,
+                                                                "balanceAmount":
+                                                                    0,
+                                                                "method": method
+                                                                    .toUpperCase(),
+                                                              });
                                                             }
+                                                          } else {
+                                                            payments = [
+                                                              {
+                                                                "amount": (postAddToBillingModel
+                                                                            .total ??
+                                                                        0)
+                                                                    .toDouble(),
+                                                                "balanceAmount":
+                                                                    0,
+                                                                "method":
+                                                                    selectedFullPaymentMethod
+                                                                        .toUpperCase(),
+                                                              }
+                                                            ];
                                                           }
-                                                        },
-                                                        style: ElevatedButton
-                                                            .styleFrom(
-                                                          backgroundColor: (isCompleteOrder == true &&
-                                                                      selectedFullPaymentMethod ==
-                                                                          "Cash" &&
-                                                                      amountController
-                                                                          .text
-                                                                          .isEmpty) ||
-                                                                  (isCompleteOrder ==
-                                                                          true &&
-                                                                      selectedFullPaymentMethod ==
-                                                                          "Card") ||
-                                                                  (isCompleteOrder ==
-                                                                          true &&
-                                                                      selectedFullPaymentMethod ==
-                                                                          "UPI")
-                                                              ? greyColor
-                                                              : appPrimaryColor,
-                                                          minimumSize:
-                                                              const Size(0, 50),
-                                                          shape:
-                                                              RoundedRectangleBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        30),
-                                                          ),
-                                                        ),
-                                                        child: const Text(
-                                                          "Complete Order",
-                                                          style: TextStyle(
-                                                              color:
-                                                                  whiteColor),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                )
-                                              : ElevatedButton(
-                                                  onPressed: () {
-                                                    if (!allSplitAmountsFilled() ||
-                                                        !allPaymentMethodsSelected()) {
-                                                      showToast(
-                                                        "Please complete payment method and amount fields",
-                                                        context,
-                                                        color: false,
-                                                      );
-                                                      return;
-                                                    }
 
-                                                    if (totalSplit !=
-                                                        postAddToBillingModel
-                                                            .total) {
-                                                      showToast(
-                                                        "Split payments must sum to ₹ ${postAddToBillingModel.total!.toStringAsFixed(2)}",
-                                                        context,
-                                                        color: false,
-                                                      );
-                                                      return;
-                                                    }
+                                                          final orderPayload =
+                                                              buildOrderPayload(
+                                                            postAddToBillingModel:
+                                                                postAddToBillingModel,
+                                                            tableId:
+                                                                selectDineIn ==
+                                                                        true
+                                                                    ? tableId
+                                                                    : null,
+                                                            orderStatus:
+                                                                'COMPLETED',
+                                                            orderType:
+                                                                selectDineIn ==
+                                                                        true
+                                                                    ? 'DINE-IN'
+                                                                    : 'TAKE-AWAY',
+                                                            payments: payments,
+                                                          );
 
-                                                    if (selectedValue == null &&
-                                                        selectDineIn == true) {
-                                                      showToast(
-                                                        "Table number is required for DINE-IN orders",
-                                                        context,
-                                                        color: false,
-                                                      );
-                                                      return;
-                                                    }
-
-                                                    List<Map<String, dynamic>>
-                                                        payments = [];
-
-                                                    if (isSplitPayment) {
-                                                      for (int i = 0;
-                                                          i < _paymentFieldCount;
-                                                          i++) {
-                                                        final method =
-                                                            selectedPaymentMethods[
-                                                                i];
-                                                        final amountText =
-                                                            splitAmountControllers[
-                                                                    i]
-                                                                .text;
-                                                        final amount =
-                                                            double.tryParse(
-                                                                    amountText) ??
-                                                                0;
-                                                        if (method == null ||
-                                                            method.isEmpty) {
-                                                          showToast(
-                                                              "Please select a payment method for split #${i + 1}",
-                                                              context,
-                                                              color: false);
-                                                          return;
+                                                          debugPrint(
+                                                              'Sending order: ${jsonEncode(orderPayload)}');
+                                                          setState(() {
+                                                            completeLoad = true;
+                                                          });
+                                                          context
+                                                              .read<
+                                                                  FoodCategoryBloc>()
+                                                              .add(UpdateOrder(
+                                                                  jsonEncode(
+                                                                      orderPayload),
+                                                                  widget
+                                                                      .existingOrder!
+                                                                      .data!
+                                                                      .id));
                                                         }
-
-                                                        payments.add({
-                                                          "amount": amount,
-                                                          "balanceAmount": 0,
-                                                          "method": method,
-                                                        });
-                                                      }
-                                                    } else {
-                                                      payments = [
-                                                        {
-                                                          "amount":
-                                                              (postAddToBillingModel
-                                                                          .total ??
-                                                                      0)
-                                                                  .toDouble(),
-                                                          "balanceAmount": 0,
-                                                          "method":
-                                                              selectedFullPaymentMethod,
-                                                        }
-                                                      ];
-                                                    }
-
-                                                    final orderPayload =
-                                                        buildOrderPayload(
-                                                      postAddToBillingModel:
-                                                          postAddToBillingModel,
-                                                      tableId:
-                                                          selectDineIn == true
-                                                              ? tableId
-                                                              : null,
-                                                      orderStatus: 'COMPLETED',
-                                                      orderType:
-                                                          selectDineIn == true
-                                                              ? 'DINE-IN'
-                                                              : 'TAKE-AWAY',
-                                                      payments: payments,
-                                                    );
-
-                                                    debugPrint(
-                                                        'Sending order: ${jsonEncode(orderPayload)}');
-                                                    context
-                                                        .read<
-                                                            FoodCategoryBloc>()
-                                                        .add(GenerateOrder(
-                                                            jsonEncode(
-                                                                orderPayload)));
-                                                  },
-                                                  style:
-                                                      ElevatedButton.styleFrom(
-                                                    backgroundColor:
-                                                        (allSplitAmountsFilled() &&
+                                                      },
+                                                      style: ElevatedButton
+                                                          .styleFrom(
+                                                        backgroundColor: (allSplitAmountsFilled() &&
                                                                 allPaymentMethodsSelected() &&
                                                                 totalSplit ==
                                                                     postAddToBillingModel
                                                                         .total)
                                                             ? appPrimaryColor
                                                             : greyColor,
-                                                    minimumSize: Size(
-                                                        double.infinity, 50),
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              30),
-                                                    ),
-                                                  ),
-                                                  child: Text(
-                                                    "Print Bills",
-                                                    style: TextStyle(
-                                                        color: whiteColor),
-                                                  ),
-                                                )
+                                                        minimumSize: Size(
+                                                            double.infinity,
+                                                            50),
+                                                        shape:
+                                                            RoundedRectangleBorder(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(30),
+                                                        ),
+                                                      ),
+                                                      child: Text(
+                                                        "Print Bills",
+                                                        style: TextStyle(
+                                                            color: whiteColor),
+                                                      ),
+                                                    )
                                         ])))))
               ]));
     }
@@ -2649,7 +2900,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
         if (current is GetCategoryModel) {
           getCategoryModel = current;
           if (getCategoryModel.success == true) {
-            debugPrint("category: ${getCategoryModel.data}");
             setState(() {
               categoryLoad = false;
             });
@@ -2663,7 +2913,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
         if (current is GetProductByCatIdModel) {
           getProductByCatIdModel = current;
           if (getProductByCatIdModel.success == true) {
-            debugPrint("category: ${getProductByCatIdModel.rows}");
             setState(() {
               categoryLoad = false;
             });
@@ -2672,15 +2921,14 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
         }
         if (current is PostAddToBillingModel) {
           postAddToBillingModel = current;
-          debugPrint("Billing response: ${postAddToBillingModel.items}");
           return true;
         }
         if (current is PostGenerateOrderModel) {
           postGenerateOrderModel = current;
-          debugPrint("order response: ${postGenerateOrderModel.message}");
           showToast("${postGenerateOrderModel.message}", context, color: true);
           setState(() {
             orderLoad = false;
+            completeLoad = false;
             billingItems.clear();
             selectedValue = null;
             tableId = null;
@@ -2692,12 +2940,43 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
           context
               .read<FoodCategoryBloc>()
               .add(AddToBilling(List.from(billingItems)));
+          if (isCompleteOrder == true) {
+            printerService.init();
+            printerService
+                .printText("🧾 Test Receipt\nHello from iMin printer\n");
+            printerService.fullCut();
+          }
+          return true;
+        }
+        if (current is UpdateGenerateOrderModel) {
+          updateGenerateOrderModel = current;
+          debugPrint("updateOrder:${updateGenerateOrderModel.message}");
+          // showToast("${updateGenerateOrderModel.message}", context,
+          //     color: true);
+          setState(() {
+            completeLoad = false;
+            billingItems.clear();
+            selectedValue = null;
+            tableId = null;
+            isCompleteOrder = false;
+            isSplitPayment = false;
+            amountController.clear();
+            selectedFullPaymentMethod = "";
+            widget.isEditingOrder = false;
+          });
+          context
+              .read<FoodCategoryBloc>()
+              .add(AddToBilling(List.from(billingItems)));
+
+          printerService.init();
+          printerService
+              .printText("🧾 Test Receipt\nHello from iMin printer\n");
+          printerService.fullCut();
           return true;
         }
         if (current is GetTableModel) {
           getTableModel = current;
           if (getTableModel.success == true) {
-            debugPrint("category: ${getCategoryModel.data}");
             setState(() {
               categoryLoad = false;
             });

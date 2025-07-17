@@ -11,6 +11,7 @@ import 'package:simple/ModelClass/HomeScreen/Category&Product/Get_product_by_cat
 import 'package:simple/ModelClass/Order/Delete_order_model.dart';
 import 'package:simple/ModelClass/Order/Get_view_order_model.dart';
 import 'package:simple/ModelClass/Order/Post_generate_order_model.dart';
+import 'package:simple/ModelClass/Order/Update_generate_order_model.dart';
 import 'package:simple/ModelClass/Order/get_order_list_today_model.dart';
 import 'package:simple/Reusable/constant.dart';
 
@@ -78,6 +79,7 @@ class ApiProvider {
   Future<GetCategoryModel> getCategoryAPI() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var token = sharedPreferences.getString("token");
+    debugPrint("token:$token");
     try {
       var dio = Dio();
       var response = await dio.request(
@@ -416,6 +418,56 @@ class ApiProvider {
       }
     } catch (error) {
       return GetViewOrderModel()..errorResponse = handleError(error);
+    }
+  }
+
+  /// Update Generate Order - Post API Integration
+  Future<UpdateGenerateOrderModel> updateGenerateOrderAPI(
+      final String orderPayloadJson, String? orderId) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var token = sharedPreferences.getString("token");
+    debugPrint("payload:$orderPayloadJson");
+    try {
+      var data = orderPayloadJson;
+      debugPrint("data:$data");
+      var dio = Dio();
+      var response = await dio.request(
+        '${Constants.baseUrl}api/generate-order/order/$orderId',
+        options: Options(
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        ),
+        data: data,
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        try {
+          UpdateGenerateOrderModel updateGenerateOrderResponse =
+              UpdateGenerateOrderModel.fromJson(response.data);
+          return updateGenerateOrderResponse;
+        } catch (e) {
+          return UpdateGenerateOrderModel()
+            ..errorResponse = ErrorResponse(
+              message: "Failed to parse response: $e",
+            );
+        }
+      } else {
+        return UpdateGenerateOrderModel()
+          ..errorResponse =
+              ErrorResponse(message: "Unexpected error occurred.");
+      }
+    } on DioException catch (dioError) {
+      if (dioError.response?.statusCode == 401) {
+        return UpdateGenerateOrderModel()
+          ..errorResponse = ErrorResponse(message: "Invalid Credential");
+      } else {
+        return UpdateGenerateOrderModel()
+          ..errorResponse = handleError(dioError);
+      }
+    } catch (error) {
+      return UpdateGenerateOrderModel()..errorResponse = handleError(error);
     }
   }
 

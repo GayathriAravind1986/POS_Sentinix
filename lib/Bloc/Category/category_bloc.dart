@@ -21,6 +21,12 @@ class GenerateOrder extends FoodCategoryEvent {
   GenerateOrder(this.orderPayloadJson);
 }
 
+class UpdateOrder extends FoodCategoryEvent {
+  final String orderPayloadJson;
+  String? orderId;
+  UpdateOrder(this.orderPayloadJson, this.orderId);
+}
+
 class TableDine extends FoodCategoryEvent {}
 
 class FoodCategoryBloc extends Bloc<FoodCategoryEvent, dynamic> {
@@ -51,6 +57,15 @@ class FoodCategoryBloc extends Bloc<FoodCategoryEvent, dynamic> {
     on<GenerateOrder>((event, emit) async {
       await ApiProvider()
           .postGenerateOrderAPI(event.orderPayloadJson)
+          .then((value) {
+        emit(value);
+      }).catchError((error) {
+        emit(error);
+      });
+    });
+    on<UpdateOrder>((event, emit) async {
+      await ApiProvider()
+          .updateGenerateOrderAPI(event.orderPayloadJson, event.orderId)
           .then((value) {
         emit(value);
       }).catchError((error) {

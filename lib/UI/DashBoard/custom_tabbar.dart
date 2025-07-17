@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:simple/ModelClass/Order/Get_view_order_model.dart';
 import 'package:simple/UI/CustomAppBar/custom_appbar.dart';
 import 'package:simple/UI/Home_screen/home_screen.dart';
 import 'package:simple/UI/Order/order_tab_page.dart';
 
+import '../../Alertbox/AlertDialogBox.dart';
+
 class DashBoardScreen extends StatefulWidget {
   final int? selectTab;
-  const DashBoardScreen({super.key, this.selectTab});
+  final GetViewOrderModel? existingOrder;
+  final bool? isEditingOrder;
+  const DashBoardScreen(
+      {super.key, this.selectTab, this.existingOrder, this.isEditingOrder});
 
   @override
   State<DashBoardScreen> createState() => _DashBoardScreenState();
@@ -17,6 +23,8 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
   void initState() {
     super.initState();
     debugPrint("selectTab:${widget.selectTab}");
+    debugPrint("isEditDash:${widget.isEditingOrder}");
+    debugPrint("getViewDash:${widget.existingOrder}");
     if (widget.selectTab != null) {
       selectedIndex = widget.selectTab!;
     }
@@ -35,12 +43,18 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
             });
           },
           onLogout: () {
-            // Add your logout logic here
+            showLogoutDialog(context);
           },
         ),
         body: IndexedStack(
           index: selectedIndex,
-          children: const [FoodOrderingScreen(), OrdersTabbedScreen()],
+          children: [
+            FoodOrderingScreen(
+              existingOrder: widget.existingOrder,
+              isEditingOrder: widget.isEditingOrder,
+            ),
+            OrdersTabbedScreen()
+          ],
         ),
       ),
     );
