@@ -2,17 +2,12 @@ import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 
 String formatReceiptForMiniPrinter(dynamic order, dynamic invoice) {
-  // Helper function to safely get property value
   dynamic getProperty(dynamic obj, String property, [dynamic defaultValue]) {
     try {
       if (obj == null) return defaultValue;
-
-      // Try to access as Map first
       if (obj is Map) {
         return obj[property] ?? defaultValue;
       }
-
-      // Try toJson() if object has it
       try {
         final json = obj.toJson();
         if (json is Map) {
@@ -22,9 +17,7 @@ String formatReceiptForMiniPrinter(dynamic order, dynamic invoice) {
         // Object doesn't have toJson method
       }
 
-      // Try reflection-like access for common property variations
       try {
-        // This is a fallback - you might need to adjust based on your actual object structure
         return obj.runtimeType.toString().contains(property)
             ? obj
             : defaultValue;
@@ -39,14 +32,12 @@ String formatReceiptForMiniPrinter(dynamic order, dynamic invoice) {
     }
   }
 
-  // Helper function to center text
   String centerText(String text, int width) {
     if (text.length >= width) return text;
     int leftPadding = ((width - text.length) / 2).floor();
     return ' ' * leftPadding + text;
   }
 
-  // Helper function to format amount rows
   String formatAmountRow(String label, double amount, {bool isBold = false}) {
     String amountStr = '₹${amount.toStringAsFixed(2)}';
     int totalWidth = 32;
@@ -59,31 +50,28 @@ String formatReceiptForMiniPrinter(dynamic order, dynamic invoice) {
     return isBold ? row.toUpperCase() : row;
   }
 
-  // Helper function to format item rows
   String formatItemRow(String name, int qty, double price, double total) {
     String qtyStr = qty.toString();
     String priceStr = '₹${price.toStringAsFixed(2)}';
     String totalStr = '₹${total.toStringAsFixed(2)}';
 
-    int nameWidth = 16;
+    int nameWidth = 16; // width for name
     int qtyWidth = 3;
-    int priceWidth = 7;
-    int totalWidth = 6;
+    int priceWidth = 8;
+    int totalWidth = 8;
 
     String truncatedName =
-        name.length > nameWidth ? name.substring(0, nameWidth) : name;
+        name.length > nameWidth ? '${name.substring(0, nameWidth - 1)}…' : name;
     String paddedName = truncatedName.padRight(nameWidth);
     String paddedQty = qtyStr.padLeft(qtyWidth);
     String paddedPrice = priceStr.padLeft(priceWidth);
     String paddedTotal = totalStr.padLeft(totalWidth);
 
-    return paddedName + paddedQty + paddedPrice + paddedTotal;
+    return '$paddedName $paddedQty $paddedPrice $paddedTotal';
   }
 
-  // Helper function to format order items safely
   String formatOrderItems(dynamic order) {
     try {
-      // Try different ways to get items
       dynamic items;
 
       if (order is Map) {
@@ -131,11 +119,9 @@ String formatReceiptForMiniPrinter(dynamic order, dynamic invoice) {
   }
 
   try {
-    // Debug: Print object structures
     debugPrint('Order type: ${order.runtimeType}');
     debugPrint('Invoice type: ${invoice.runtimeType}');
 
-    // Safely extract order properties
     String orderNumber =
         getProperty(order, 'orderNumber', 'N/A')?.toString() ?? 'N/A';
     String orderType =
@@ -146,7 +132,6 @@ String formatReceiptForMiniPrinter(dynamic order, dynamic invoice) {
     double tax = (getProperty(order, 'tax', 0.0) ?? 0.0).toDouble();
     double total = (getProperty(order, 'total', 0.0) ?? 0.0).toDouble();
 
-    // Safely extract invoice properties
     String businessName =
         getProperty(invoice, 'businessName', 'Restaurant')?.toString() ??
             'Restaurant';
@@ -158,7 +143,6 @@ String formatReceiptForMiniPrinter(dynamic order, dynamic invoice) {
     String paidBy =
         getProperty(invoice, 'paidBy', 'Cash')?.toString() ?? 'Cash';
 
-    // Handle date formatting safely
     String formattedDate;
     try {
       String dateStr =
@@ -166,7 +150,6 @@ String formatReceiptForMiniPrinter(dynamic order, dynamic invoice) {
               DateTime.now().toString();
       DateTime dateTime;
 
-      // Try different date formats
       try {
         dateTime = DateFormat('M/d/yyyy, h:mm:ss a').parse(dateStr);
       } catch (e) {
@@ -181,8 +164,10 @@ String formatReceiptForMiniPrinter(dynamic order, dynamic invoice) {
     } catch (e) {
       formattedDate = DateFormat('dd/MM/yyyy hh:mm a').format(DateTime.now());
     }
+    String headerRow =
+        '${'Item'.padRight(16)} ${'Qty'.padLeft(3)} ${'Price'.padLeft(8)} ${'Total'.padLeft(8)}';
 
-    // Build the receipt
+    String separator = '-' * headerRow.length;
     String receipt = '''
 ${centerText(businessName, 32)}
 ${centerText(address, 32)}
@@ -194,11 +179,11 @@ $formattedDate
 Type: $orderType
 Table: ${orderType == 'DINE-IN' ? tableName : 'N/A'}
 
---------------------------------
-Item            Qty   Price  Total
---------------------------------
+$separator
+$headerRow
+$separator
 ${formatOrderItems(order)}
---------------------------------
+$separator
 ${formatAmountRow('Subtotal', subtotal)}
 ${formatAmountRow('Tax', tax)}
 ${formatAmountRow('TOTAL', total, isBold: true)}
@@ -210,7 +195,6 @@ ${centerText("Thank You, Visit Again!", 32)}
     return receipt;
   } catch (e) {
     debugPrint('Error formatting receipt: $e');
-    // Return a basic receipt with error info
     return '''
 ${centerText("Receipt Error", 32)}
 ${centerText("Unable to format receipt", 32)}

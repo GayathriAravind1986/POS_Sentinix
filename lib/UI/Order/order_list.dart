@@ -178,13 +178,8 @@ class OrderViewViewState extends State<OrderViewView> {
                               ),
 
                               const SizedBox(height: 6),
-
-                              // 🔹 Table Info
                               Text("Table: ${order.tableName ?? 'N/A'}"),
-
                               const Spacer(),
-
-                              // 🔹 Action Icons
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 mainAxisSize: MainAxisSize.max,
@@ -195,53 +190,64 @@ class OrderViewViewState extends State<OrderViewView> {
                                       IconButton(
                                         padding: EdgeInsets.zero,
                                         constraints: BoxConstraints(),
-                                        icon: Icon(Icons.remove_red_eye, color: appPrimaryColor, size: 20),
+                                        icon: Icon(Icons.remove_red_eye,
+                                            color: appPrimaryColor, size: 20),
                                         onPressed: () {
                                           setState(() {
                                             view = true;
                                           });
-                                          context.read<OrderTodayBloc>().add(ViewOrder(order.id));
+                                          context
+                                              .read<OrderTodayBloc>()
+                                              .add(ViewOrder(order.id));
                                         },
                                       ),
+                                      SizedBox(width: 4),
+                                      if (order.orderStatus == "WAITLIST")
+                                        IconButton(
+                                          padding: EdgeInsets.zero,
+                                          constraints: BoxConstraints(),
+                                          icon: Icon(Icons.edit,
+                                              color: appPrimaryColor, size: 20),
+                                          onPressed: () {
+                                            setState(() {
+                                              view = false;
+                                            });
+                                            context
+                                                .read<OrderTodayBloc>()
+                                                .add(ViewOrder(order.id));
+                                          },
+                                        ),
                                       SizedBox(width: 4),
                                       IconButton(
                                         padding: EdgeInsets.zero,
                                         constraints: BoxConstraints(),
-                                        icon: Icon(Icons.edit, color: appPrimaryColor, size: 20),
-                                        onPressed: () {
-                                          setState(() {
-                                            view = false;
-                                          });
-                                          context.read<OrderTodayBloc>().add(ViewOrder(order.id));
-                                        },
-                                      ),
-                                      SizedBox(width: 4),
-                                      IconButton(
-                                        padding: EdgeInsets.zero,
-                                        constraints: BoxConstraints(),
-                                        icon: Icon(Icons.print_outlined, color: appPrimaryColor, size: 20),
+                                        icon: Icon(Icons.print_outlined,
+                                            color: appPrimaryColor, size: 20),
                                         onPressed: () {
                                           setState(() {
                                             view = true;
                                           });
-                                          context.read<OrderTodayBloc>().add(ViewOrder(order.id));
+                                          context
+                                              .read<OrderTodayBloc>()
+                                              .add(ViewOrder(order.id));
                                         },
                                       ),
                                       SizedBox(width: 4),
                                       IconButton(
                                         padding: EdgeInsets.zero,
                                         constraints: BoxConstraints(),
-                                        icon: Icon(Icons.delete, color: appPrimaryColor, size: 20),
+                                        icon: Icon(Icons.delete,
+                                            color: appPrimaryColor, size: 20),
                                         onPressed: () {
-                                          context.read<OrderTodayBloc>().add(DeleteOrder(order.id));
+                                          context
+                                              .read<OrderTodayBloc>()
+                                              .add(DeleteOrder(order.id));
                                         },
                                       ),
                                     ],
                                   ),
                                 ],
                               )
-
-
                             ],
                           ),
                         ),
@@ -287,14 +293,22 @@ class OrderViewViewState extends State<OrderViewView> {
                 builder: (context) => OrderInvoiceDialog(getViewOrderModel),
               );
             } else {
-              Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                      builder: (context) => DashBoardScreen(
-                            selectTab: 0,
-                            existingOrder: getViewOrderModel,
-                            isEditingOrder: true,
-                          )),
-                  (Route<dynamic> route) => false);
+              Navigator.of(context)
+                  .pushAndRemoveUntil(
+                      MaterialPageRoute(
+                          builder: (context) => DashBoardScreen(
+                                selectTab: 0,
+                                existingOrder: getViewOrderModel,
+                                isEditingOrder: true,
+                              )),
+                      (Route<dynamic> route) => false)
+                  .then((value) {
+                if (value == true) {
+                  context
+                      .read<OrderTodayBloc>()
+                      .add(OrderTodayList(todayDate, todayDate));
+                }
+              });
             }
           }
           return true;
