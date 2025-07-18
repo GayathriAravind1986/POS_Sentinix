@@ -72,6 +72,7 @@ class OrderViewViewState extends State<OrderViewView> {
           return order.orderType?.toUpperCase() == type;
         }).toList() ??
         [];
+
     Widget mainContainer() {
       return orderLoad
           ? Container(
@@ -183,69 +184,61 @@ class OrderViewViewState extends State<OrderViewView> {
                               // 🔹 Action Icons
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
+                                mainAxisSize: MainAxisSize.max,
                                 children: [
-                                  IconButton(
-                                    icon: Icon(
-                                      Icons.remove_red_eye,
-                                      color: appPrimaryColor,
-                                      size: 20,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        view = true;
-                                      });
-                                      context
-                                          .read<OrderTodayBloc>()
-                                          .add(ViewOrder(order.id));
-                                    },
-                                  ),
-                                  SizedBox(width: 5),
-                                  IconButton(
-                                    icon: Icon(
-                                      Icons.edit,
-                                      color: appPrimaryColor,
-                                      size: 20,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        view = false;
-                                      });
-                                      context
-                                          .read<OrderTodayBloc>()
-                                          .add(ViewOrder(order.id));
-                                    },
-                                  ),
-                                  SizedBox(width: 5),
-                                  IconButton(
-                                    icon: Icon(
-                                      Icons.print_outlined,
-                                      color: appPrimaryColor,
-                                      size: 20,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        view = true;
-                                      });
-                                      context
-                                          .read<OrderTodayBloc>()
-                                          .add(ViewOrder(order.id));
-                                    },
-                                  ),
-                                  SizedBox(width: 5),
-                                  IconButton(
-                                    icon: Icon(
-                                      Icons.delete,
-                                      color: appPrimaryColor,
-                                      size: 20,
-                                    ),
-                                    onPressed: () {
-                                      context
-                                          .read<OrderTodayBloc>()
-                                          .add(DeleteOrder(order.id));
-                                    },
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        padding: EdgeInsets.zero,
+                                        constraints: BoxConstraints(),
+                                        icon: Icon(Icons.remove_red_eye, color: appPrimaryColor, size: 20),
+                                        onPressed: () {
+                                          setState(() {
+                                            view = true;
+                                          });
+                                          context.read<OrderTodayBloc>().add(ViewOrder(order.id));
+                                        },
+                                      ),
+                                      SizedBox(width: 4),
+                                      IconButton(
+                                        padding: EdgeInsets.zero,
+                                        constraints: BoxConstraints(),
+                                        icon: Icon(Icons.edit, color: appPrimaryColor, size: 20),
+                                        onPressed: () {
+                                          setState(() {
+                                            view = false;
+                                          });
+                                          context.read<OrderTodayBloc>().add(ViewOrder(order.id));
+                                        },
+                                      ),
+                                      SizedBox(width: 4),
+                                      IconButton(
+                                        padding: EdgeInsets.zero,
+                                        constraints: BoxConstraints(),
+                                        icon: Icon(Icons.print_outlined, color: appPrimaryColor, size: 20),
+                                        onPressed: () {
+                                          setState(() {
+                                            view = true;
+                                          });
+                                          context.read<OrderTodayBloc>().add(ViewOrder(order.id));
+                                        },
+                                      ),
+                                      SizedBox(width: 4),
+                                      IconButton(
+                                        padding: EdgeInsets.zero,
+                                        constraints: BoxConstraints(),
+                                        icon: Icon(Icons.delete, color: appPrimaryColor, size: 20),
+                                        onPressed: () {
+                                          context.read<OrderTodayBloc>().add(DeleteOrder(order.id));
+                                        },
+                                      ),
+                                    ],
                                   ),
                                 ],
-                              ),
+                              )
+
+
                             ],
                           ),
                         ),
