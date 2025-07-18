@@ -51,10 +51,13 @@ class OrderViewViewState extends State<OrderViewView> {
   bool orderLoad = false;
   bool view = false;
   final todayDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+  String? fromDate;
   String? type;
   @override
   void initState() {
     super.initState();
+    DateTime dateNow = DateTime.now();
+    fromDate = formatToApiDate(dateNow);
     context.read<OrderTodayBloc>().add(OrderTodayList(todayDate, todayDate));
     orderLoad = true;
   }

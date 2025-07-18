@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:intl/intl.dart';
 import 'package:simple/Alertbox/snackBarAlert.dart';
 import 'package:simple/Bloc/Category/category_bloc.dart';
 import 'package:simple/ModelClass/Cart/Post_Add_to_billing_model.dart';
@@ -26,6 +27,7 @@ import 'package:simple/UI/Home_screen/Widget/another_imin_printer/imin_abstract.
 import 'package:simple/UI/Home_screen/Widget/another_imin_printer/mock_imin_printer_chrome.dart';
 import 'package:simple/UI/Home_screen/Widget/another_imin_printer/real_device_printer.dart';
 import 'package:simple/UI/Home_screen/Widget/category_card.dart';
+import 'package:simple/UI/IminHelper/printer_helper.dart';
 
 class FoodOrderingScreen extends StatelessWidget {
   final GetViewOrderModel? existingOrder;
@@ -140,6 +142,8 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
     context.read<FoodCategoryBloc>().add(TableDine());
     categoryLoad = true;
     debugPrint("existingViewModel:${widget.existingOrder}");
+    debugPrint("orderStatusEdit:${widget.existingOrder?.data!.orderStatus}");
+    debugPrint("isCompletedflag:$isCompleteOrder");
     debugPrint("isEdit:${widget.isEditingOrder}");
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (widget.isEditingOrder == true && widget.existingOrder != null) {
@@ -165,9 +169,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
 
       billingItems = data.items?.map((e) {
             final product = e.product;
-            debugPrint("baseprice:${e.unitPrice}");
-            debugPrint("uantity:${e.quantity}");
-            debugPrint("name:${e.name}");
             return {
               "_id": product?.id,
               "name": e.name,
@@ -1639,22 +1640,24 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                                     style: TextStyle(fontSize: 12, color: greyColor),
                                                                                   ),
                                                                                 ),
-
-                                                                                // Quantity Control
                                                                                 Row(
                                                                                   children: [
                                                                                     IconButton(
                                                                                       icon: Icon(Icons.remove_circle_outline),
                                                                                       onPressed: () {
-                                                                                        if (addon.quantity! > 1) {
+                                                                                        final currentItem = billingItems.firstWhere((item) => item['_id'] == e.id);
+                                                                                        final addonsList = currentItem['selectedAddons'] as List;
+                                                                                        final addonIndex = addonsList.indexWhere((a) => a['_id'] == addon.id);
+
+                                                                                        if (addonsList[addonIndex]['quantity'] > 1) {
                                                                                           setState(() {
-                                                                                            addon.qty = addon.quantity! - 1;
-                                                                                            // _updateAddonTotal(addon); // update addonTotal if needed
+                                                                                            addonsList[addonIndex]['quantity'] = addonsList[addonIndex]['quantity'] - 1;
+                                                                                            context.read<FoodCategoryBloc>().add(AddToBilling(List.from(billingItems)));
                                                                                           });
                                                                                         } else {
-                                                                                          // Remove addon completely if quantity becomes 0
                                                                                           setState(() {
-                                                                                            e.selectedAddons!.remove(addon);
+                                                                                            addonsList.removeAt(addonIndex);
+                                                                                            context.read<FoodCategoryBloc>().add(AddToBilling(List.from(billingItems)));
                                                                                           });
                                                                                         }
                                                                                       },
@@ -1663,9 +1666,13 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                                     IconButton(
                                                                                       icon: Icon(Icons.add_circle_outline),
                                                                                       onPressed: () {
+                                                                                        final currentItem = billingItems.firstWhere((item) => item['_id'] == e.id);
+                                                                                        final addonsList = currentItem['selectedAddons'] as List;
+                                                                                        final addonIndex = addonsList.indexWhere((a) => a['_id'] == addon.id);
+
                                                                                         setState(() {
-                                                                                          addon.qty = addon.quantity! + 1;
-                                                                                          // _updateAddonTotal(addon); // update addonTotal if needed
+                                                                                          addonsList[addonIndex]['quantity'] = addonsList[addonIndex]['quantity'] + 1;
+                                                                                          context.read<FoodCategoryBloc>().add(AddToBilling(List.from(billingItems)));
                                                                                         });
                                                                                       },
                                                                                     ),
@@ -1677,7 +1684,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                         }),
                                                                       price(
                                                                           "Base Price",
-                                                                          "₹ ${e.basePrice!.toStringAsFixed(2)}"),
+                                                                          "₹ ${(e.basePrice! * e.qty!).toStringAsFixed(2)}"),
                                                                       if (e.addonTotal !=
                                                                           0)
                                                                         price(
@@ -1697,7 +1704,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                         }),
                                                                       price(
                                                                           "Item Total",
-                                                                          "₹ ${e.total?.toStringAsFixed(2) ?? '0.00'}",
+                                                                          "₹ ${(e.basePrice! * e.qty! + (e.addonTotal ?? 0)).toStringAsFixed(2)}",
                                                                           isBold:
                                                                               true),
                                                                     ],
@@ -1777,9 +1784,21 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                               ]),
                                           if (isCompleteOrder == false)
                                             SizedBox(height: 12),
-                                          if (isCompleteOrder == false)
+                                          if (isCompleteOrder == false &&
+                                              (widget.isEditingOrder == null ||
+                                                  widget.isEditingOrder ==
+                                                      false))
                                             Text(
                                               "Save order to waitlist or complete with payment.",
+                                              style: MyTextStyle.f14(greyColor,
+                                                  weight: FontWeight.w400),
+                                            ),
+                                          if (widget.isEditingOrder == true &&
+                                              widget.existingOrder?.data!
+                                                      .orderStatus ==
+                                                  "COMPLETED")
+                                            Text(
+                                              "Order already paid. No additional payment required unless items are added",
                                               style: MyTextStyle.f14(greyColor,
                                                   weight: FontWeight.w400),
                                             ),
@@ -2318,9 +2337,13 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                       context,
                                                                       color:
                                                                           false);
-                                                                } else {
+                                                                } else if (widget
+                                                                            .isEditingOrder ==
+                                                                        null ||
+                                                                    widget.isEditingOrder ==
+                                                                        false) {
                                                                   debugPrint(
-                                                                      "isEditinSave:${widget.isEditingOrder}");
+                                                                      "isEditinSavenormal:${widget.isEditingOrder}");
                                                                   List<Map<String, dynamic>>
                                                                       payments =
                                                                       [
@@ -2367,11 +2390,12 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                               style:
                                                                   ElevatedButton
                                                                       .styleFrom(
-                                                                backgroundColor:
-                                                                    widget.isEditingOrder ==
-                                                                            true
-                                                                        ? greyColor
-                                                                        : appPrimaryColor,
+                                                                backgroundColor: widget.isEditingOrder ==
+                                                                            null ||
+                                                                        widget.isEditingOrder ==
+                                                                            false
+                                                                    ? appPrimaryColor
+                                                                    : greyColor,
                                                                 minimumSize:
                                                                     const Size(
                                                                         0,
@@ -2388,9 +2412,11 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                 "Save Order",
                                                                 style: TextStyle(
                                                                     color: widget.isEditingOrder ==
-                                                                            true
-                                                                        ? blackColor
-                                                                        : whiteColor),
+                                                                                null ||
+                                                                            widget.isEditingOrder ==
+                                                                                false
+                                                                        ? whiteColor
+                                                                        : blackColor),
                                                               ),
                                                             ),
                                                     ),
@@ -2402,8 +2428,8 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                   appPrimaryColor,
                                                               size: 30)
                                                           : ElevatedButton(
-                                                              onPressed:
-                                                                  () async {
+                                                              onPressed: () {
+                                                                /* Full payment */
                                                                 if (selectedValue ==
                                                                         null &&
                                                                     selectDineIn ==
@@ -2414,14 +2440,19 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                       color:
                                                                           false);
                                                                 } else {
-                                                                  setState(() {
-                                                                    isCompleteOrder =
-                                                                        true;
-                                                                  });
                                                                   if (widget.isEditingOrder ==
                                                                           false ||
                                                                       widget.isEditingOrder ==
                                                                           null) {
+                                                                    setState(
+                                                                        () {
+                                                                      isCompleteOrder =
+                                                                          true;
+                                                                    });
+                                                                    debugPrint(
+                                                                        "generateOrderApi");
+                                                                    debugPrint(
+                                                                        "generateOrderIsComplete:$isCompleteOrder");
                                                                     if ((amountController.text.isNotEmpty &&
                                                                             selectedFullPaymentMethod ==
                                                                                 "Cash") ||
@@ -2461,14 +2492,12 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                         payments:
                                                                             payments,
                                                                       );
-
-                                                                      debugPrint(
-                                                                          'Sending order: ${jsonEncode(orderPayload)}');
                                                                       setState(
                                                                           () {
                                                                         completeLoad =
                                                                             true;
                                                                       });
+
                                                                       context
                                                                           .read<
                                                                               FoodCategoryBloc>()
@@ -2476,11 +2505,26 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                               jsonEncode(orderPayload)));
                                                                     }
                                                                   }
-                                                                  if (widget
-                                                                          .isEditingOrder ==
-                                                                      true) {
+                                                                  if ((widget.isEditingOrder ==
+                                                                              true &&
+                                                                          (postAddToBillingModel.total != widget.existingOrder?.data!.total &&
+                                                                              widget.existingOrder?.data!.orderStatus ==
+                                                                                  "COMPLETED")) ||
+                                                                      (widget.isEditingOrder ==
+                                                                              true &&
+                                                                          widget.existingOrder?.data!.orderStatus ==
+                                                                              "WAITLIST")) {
+                                                                    setState(
+                                                                        () {
+                                                                      isCompleteOrder =
+                                                                          true;
+                                                                    });
                                                                     debugPrint(
-                                                                        "welcome Update order");
+                                                                        "updateOrderApi");
+                                                                    debugPrint(
+                                                                        "updateOrderIsComplete:$isCompleteOrder");
+                                                                    debugPrint(
+                                                                        "updateOrderexistId:${widget.existingOrder!.data!.id}");
                                                                     if ((amountController.text.isNotEmpty &&
                                                                             selectedFullPaymentMethod ==
                                                                                 "Cash") ||
@@ -2528,6 +2572,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                         completeLoad =
                                                                             true;
                                                                       });
+
                                                                       context.read<FoodCategoryBloc>().add(UpdateOrder(
                                                                           jsonEncode(
                                                                               orderPayload),
@@ -2537,86 +2582,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                               .id));
                                                                     }
                                                                   }
-                                                                  // final orderPayload =
-                                                                  //     buildOrderPayload(
-                                                                  //   billingItems:
-                                                                  //       billingItems,
-                                                                  //   operatorId:
-                                                                  //       '60a7e502a2f8f3b6e8d9b7c6',
-                                                                  //   tableNo:
-                                                                  //       tableId ??
-                                                                  //           '',
-                                                                  //   orderStatus:
-                                                                  //       'COMPLETED',
-                                                                  //   orderType: selectDineIn
-                                                                  //       ? 'DINE-IN'
-                                                                  //       : 'TAKE-AWAY',
-                                                                  //   notes: '',
-                                                                  // );
-                                                                  // debugPrint(
-                                                                  //     'Sending order: ${jsonEncode(orderPayload)}');
-                                                                  // await printerService
-                                                                  //     .init();
-                                                                  // await printerService
-                                                                  //     .printText(
-                                                                  //         "🍽️ Roja Restaurant\n");
-                                                                  // await printerService
-                                                                  //     .printText(
-                                                                  //         "------------------------\n");
-                                                                  //
-                                                                  // for (var item
-                                                                  //     in orderPayload[
-                                                                  //         'items']) {
-                                                                  //   String line =
-                                                                  //       "${item['name']} x${item['quantity']} - ₹${item['subtotal'].toStringAsFixed(2)}\n";
-                                                                  //   await printerService
-                                                                  //       .printText(
-                                                                  //           line);
-                                                                  //
-                                                                  //   // Print addons if available
-                                                                  //   List addons =
-                                                                  //       item[
-                                                                  //           'addons'];
-                                                                  //   for (var addon
-                                                                  //       in addons) {
-                                                                  //     await printerService
-                                                                  //         .printText(
-                                                                  //             "  + ${addon['name']} - ₹${addon['price']}\n");
-                                                                  //   }
-                                                                  // }
-                                                                  //
-                                                                  // await printerService
-                                                                  //     .printText(
-                                                                  //         "------------------------\n");
-                                                                  // await printerService
-                                                                  //     .printText(
-                                                                  //         "Subtotal: ₹${orderPayload['subtotal'].toStringAsFixed(2)}\n");
-                                                                  // await printerService
-                                                                  //     .printText(
-                                                                  //         "Tax: ₹${orderPayload['tax'].toStringAsFixed(2)}\n");
-                                                                  // await printerService
-                                                                  //     .printText(
-                                                                  //         "Total: ₹${orderPayload['total'].toStringAsFixed(2)}\n");
-                                                                  //
-                                                                  // await printerService
-                                                                  //     .printText(
-                                                                  //         "Order Type: ${orderPayload['orderType']}\n");
-                                                                  // if (orderPayload[
-                                                                  //         'table_no']
-                                                                  //     .isNotEmpty) {
-                                                                  //   await printerService
-                                                                  //       .printText(
-                                                                  //           "Table No: ${orderPayload['table_no']}\n");
-                                                                  // }
-                                                                  //
-                                                                  // await printerService
-                                                                  //     .printText(
-                                                                  //         "\nThank you!\n");
-                                                                  // await printerService
-                                                                  //     .fullCut();
-
-                                                                  // Optional: send order to server or Bloc here
-                                                                  //  context.read<FoodCategoryBloc>().add(SaveOrder(orderPayload));
                                                                 }
                                                               },
                                                               style:
@@ -2635,8 +2600,11 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                               30),
                                                                 ),
                                                               ),
-                                                              child: const Text(
-                                                                "Complete Order",
+                                                              child: Text(
+                                                                widget.isEditingOrder ==
+                                                                        true
+                                                                    ? "Update Order"
+                                                                    : "Complete Order",
                                                                 style: TextStyle(
                                                                     color:
                                                                         whiteColor),
@@ -2926,33 +2894,52 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
         if (current is PostGenerateOrderModel) {
           postGenerateOrderModel = current;
           showToast("${postGenerateOrderModel.message}", context, color: true);
+          bool shouldPrintReceipt = isCompleteOrder;
           setState(() {
             orderLoad = false;
             completeLoad = false;
             billingItems.clear();
             selectedValue = null;
             tableId = null;
-            isCompleteOrder = false;
+            isCompleteOrder = false; // This was setting it to false!
             isSplitPayment = false;
             amountController.clear();
             selectedFullPaymentMethod = "";
           });
+
           context
               .read<FoodCategoryBloc>()
               .add(AddToBilling(List.from(billingItems)));
-          if (isCompleteOrder == true) {
-            printerService.init();
-            printerService
-                .printText("🧾 Test Receipt\nHello from iMin printer\n");
-            printerService.fullCut();
+          if (shouldPrintReceipt == true) {
+            debugPrint("Starting receipt printing...");
+            debugPrint(
+                "Order Number: ${postGenerateOrderModel.order?.orderNumber}");
+
+            try {
+              printerService.init();
+              String receipt = formatReceiptForMiniPrinter(
+                  postGenerateOrderModel.order, postGenerateOrderModel.invoice);
+
+              debugPrint("Receipt formatted successfully");
+              debugPrint("Receipt content: $receipt");
+              receipt = receipt.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+              printerService.printText(receipt);
+              Future.delayed(Duration(milliseconds: 300));
+              printerService.fullCut();
+
+              debugPrint("Receipt sent to printer");
+            } catch (e) {
+              debugPrint("Error printing receipt: $e");
+            }
+          } else {
+            debugPrint("Receipt not printed - shouldPrintReceipt is false");
           }
+
           return true;
         }
         if (current is UpdateGenerateOrderModel) {
           updateGenerateOrderModel = current;
           debugPrint("updateOrder:${updateGenerateOrderModel.message}");
-          // showToast("${updateGenerateOrderModel.message}", context,
-          //     color: true);
           setState(() {
             completeLoad = false;
             billingItems.clear();
@@ -2968,10 +2955,27 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
               .read<FoodCategoryBloc>()
               .add(AddToBilling(List.from(billingItems)));
 
-          printerService.init();
-          printerService
-              .printText("🧾 Test Receipt\nHello from iMin printer\n");
-          printerService.fullCut();
+          debugPrint("Starting receipt printing...");
+          debugPrint(
+              "Order Number: ${updateGenerateOrderModel.order?.orderNumber}");
+
+          try {
+            printerService.init();
+            String receipt = formatReceiptForMiniPrinter(
+                updateGenerateOrderModel.order,
+                updateGenerateOrderModel.invoice);
+
+            debugPrint("Receipt formatted successfully");
+            debugPrint("Receipt content: $receipt");
+            receipt = receipt.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+            printerService.printText(receipt);
+            Future.delayed(Duration(milliseconds: 300));
+            printerService.fullCut();
+
+            debugPrint("Receipt sent to printer");
+          } catch (e) {
+            debugPrint("Error printing receipt: $e");
+          }
           return true;
         }
         if (current is GetTableModel) {

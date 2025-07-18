@@ -10,3 +10,7 @@ String formatTime(String? dateString) {
     return '--';
   }
 }
+
+String formatToApiDate(DateTime dateTime) {
+  return DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(dateTime.toUtc());
+}
