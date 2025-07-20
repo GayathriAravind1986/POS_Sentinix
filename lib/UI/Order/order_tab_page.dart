@@ -1,47 +1,71 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:simple/Bloc/Order/order_list_bloc.dart';
-import 'package:simple/ModelClass/Order/get_order_list_today_model.dart';
+import 'package:simple/Bloc/demo/demo_bloc.dart';
 import 'package:simple/Reusable/color.dart';
 import 'package:simple/UI/Order/order_list.dart';
 
 class OrdersTabbedScreen extends StatelessWidget {
   final VoidCallback? onRefresh;
-  const OrdersTabbedScreen({super.key, this.onRefresh});
+  final GlobalKey<OrderViewViewState>? orderAllKey;
+  const OrdersTabbedScreen({
+    super.key,
+    this.onRefresh,
+    this.orderAllKey,
+  });
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => OrderTodayBloc(),
-      child: OrderViewView(),
+      child: OrderTabViewView(
+        onRefresh: onRefresh,
+        orderAllKey: orderAllKey,
+      ),
     );
   }
 }
 
-class OrderViewView extends StatefulWidget {
-  const OrderViewView({
+class OrderTabViewView extends StatefulWidget {
+  final VoidCallback? onRefresh;
+  final GlobalKey<OrderViewViewState>? orderAllKey;
+  const OrderTabViewView({
     super.key,
+    this.onRefresh,
+    this.orderAllKey,
   });
 
   @override
-  OrderViewViewState createState() => OrderViewViewState();
+  OrderTabViewViewState createState() => OrderTabViewViewState();
 }
 
-class OrderViewViewState extends State<OrderViewView> {
-  GetOrderListTodayModel getOrderListTodayModel = GetOrderListTodayModel();
-  bool orderLoad = false;
-  void refreshOrders() {
-    context.read<OrderTodayBloc>().add(OrderTodayList(
-          DateFormat('yyyy-MM-dd').format(DateTime.now()),
-          DateFormat('yyyy-MM-dd').format(DateTime.now()),
-        ));
-    orderLoad = true;
-  }
+class OrderTabViewViewState extends State<OrderTabViewView>
+    with SingleTickerProviderStateMixin {
+  bool hasRefreshedOrder = false;
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      if (_tabController.index == 0 && !hasRefreshedOrder) {
+        hasRefreshedOrder = true;
+        widget.orderAllKey?.currentState?.refreshOrders();
+        setState(() {});
+      }
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_tabController.index == 0 && widget.orderAllKey != null) {
+        widget.orderAllKey?.currentState?.refreshOrders();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
@@ -52,7 +76,6 @@ class OrderViewViewState extends State<OrderViewView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Title
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Text(
@@ -60,7 +83,7 @@ class OrderViewViewState extends State<OrderViewView> {
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF522F1F),
+                  color: appPrimaryColor,
                 ),
               ),
             ),
@@ -74,10 +97,12 @@ class OrderViewViewState extends State<OrderViewView> {
                 Tab(text: "Dine-in"),
               ],
             ),
-            const Expanded(
+            Expanded(
               child: TabBarView(
                 children: [
-                  OrderView(type: 'All'),
+                  !hasRefreshedOrder && widget.orderAllKey != null
+                      ? OrderViewView(key: widget.orderAllKey, type: 'All')
+                      : OrderView(type: 'All'),
                   OrderView(type: 'Takeaway'),
                   OrderView(type: 'Dine-in'),
                 ],
@@ -88,21 +113,8 @@ class OrderViewViewState extends State<OrderViewView> {
       );
     }
 
-    return BlocBuilder<OrderTodayBloc, dynamic>(
+    return BlocBuilder<DemoBloc, dynamic>(
       buildWhen: ((previous, current) {
-        if (current is GetOrderListTodayModel) {
-          getOrderListTodayModel = current;
-          if (getOrderListTodayModel.success == true) {
-            setState(() {
-              orderLoad = false;
-            });
-          } else {
-            setState(() {
-              orderLoad = false;
-            });
-          }
-          return true;
-        }
         return false;
       }),
       builder: (context, dynamic) {

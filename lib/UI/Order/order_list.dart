@@ -16,10 +16,12 @@ import 'package:simple/UI/Order/Helper/time_formatter.dart';
 import 'package:simple/UI/Order/pop_view_order.dart';
 
 class OrderView extends StatelessWidget {
+  final GlobalKey<OrderViewViewState>? orderAllKey;
   final String type;
   const OrderView({
     super.key,
     required this.type,
+    this.orderAllKey,
   });
 
   @override
@@ -28,6 +30,7 @@ class OrderView extends StatelessWidget {
       create: (_) => OrderTodayBloc(),
       child: OrderViewView(
         type: type,
+        orderAllKey: orderAllKey,
       ),
     );
   }
@@ -35,9 +38,11 @@ class OrderView extends StatelessWidget {
 
 class OrderViewView extends StatefulWidget {
   final String type;
+  final GlobalKey<OrderViewViewState>? orderAllKey;
   const OrderViewView({
     super.key,
     required this.type,
+    this.orderAllKey,
   });
 
   @override
@@ -53,13 +58,38 @@ class OrderViewViewState extends State<OrderViewView> {
   final todayDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
   String? fromDate;
   String? type;
+
+  void refreshOrders() {
+    if (!mounted || !context.mounted) return;
+    context.read<OrderTodayBloc>().add(
+          OrderTodayList(todayDate, todayDate),
+        );
+    setState(() {
+      orderLoad = true;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
-    DateTime dateNow = DateTime.now();
-    fromDate = formatToApiDate(dateNow);
-    context.read<OrderTodayBloc>().add(OrderTodayList(todayDate, todayDate));
-    orderLoad = true;
+    if (widget.type == "All") {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.orderAllKey?.currentState?.refreshOrders();
+        context.read<OrderTodayBloc>().add(
+              OrderTodayList(todayDate, todayDate),
+            );
+        setState(() {
+          orderLoad = true;
+        });
+      });
+    } else {
+      context.read<OrderTodayBloc>().add(
+            OrderTodayList(todayDate, todayDate),
+          );
+      setState(() {
+        orderLoad = true;
+      });
+    }
   }
 
   @override
@@ -202,21 +232,21 @@ class OrderViewViewState extends State<OrderViewView> {
                                         },
                                       ),
                                       SizedBox(width: 4),
-                                      if (order.orderStatus == "WAITLIST")
-                                        IconButton(
-                                          padding: EdgeInsets.zero,
-                                          constraints: BoxConstraints(),
-                                          icon: Icon(Icons.edit,
-                                              color: appPrimaryColor, size: 20),
-                                          onPressed: () {
-                                            setState(() {
-                                              view = false;
-                                            });
-                                            context
-                                                .read<OrderTodayBloc>()
-                                                .add(ViewOrder(order.id));
-                                          },
-                                        ),
+                                      // if (order.orderStatus == "WAITLIST")
+                                      IconButton(
+                                        padding: EdgeInsets.zero,
+                                        constraints: BoxConstraints(),
+                                        icon: Icon(Icons.edit,
+                                            color: appPrimaryColor, size: 20),
+                                        onPressed: () {
+                                          setState(() {
+                                            view = false;
+                                          });
+                                          context
+                                              .read<OrderTodayBloc>()
+                                              .add(ViewOrder(order.id));
+                                        },
+                                      ),
                                       SizedBox(width: 4),
                                       IconButton(
                                         padding: EdgeInsets.zero,

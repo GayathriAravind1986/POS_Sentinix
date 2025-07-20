@@ -41,7 +41,9 @@ class FoodOrderingScreen extends StatelessWidget {
     return BlocProvider(
       create: (_) => FoodCategoryBloc(),
       child: FoodOrderingScreenView(
-          existingOrder: existingOrder, isEditingOrder: isEditingOrder),
+        existingOrder: existingOrder,
+        isEditingOrder: isEditingOrder,
+      ),
     );
   }
 }
@@ -49,11 +51,7 @@ class FoodOrderingScreen extends StatelessWidget {
 class FoodOrderingScreenView extends StatefulWidget {
   final GetViewOrderModel? existingOrder;
   bool? isEditingOrder;
-  FoodOrderingScreenView({
-    super.key,
-    this.existingOrder,
-    this.isEditingOrder,
-  });
+  FoodOrderingScreenView({super.key, this.existingOrder, this.isEditingOrder});
 
   @override
   FoodOrderingScreenViewState createState() => FoodOrderingScreenViewState();
@@ -233,7 +231,12 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
         Category(name: 'All', image: Images.all, id: ""),
         ...sortedCategories,
       ];
-
+      double total = (postAddToBillingModel.total ?? 0).toDouble();
+      double paidAmount = (widget.existingOrder?.data?.total ?? 0).toDouble();
+      double balance = total - paidAmount;
+      debugPrint("totalafteraddor reduceitem:$total");
+      debugPrint("paidamount:$paidAmount");
+      debugPrint("balance:$balance");
       @override
       Widget price(String label, String value, {bool isBold = false}) {
         return SizedBox(
@@ -415,479 +418,376 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                       orElse: () => {},
                                                     )['qty'] ??
                                                     0;
-                                            return Card(
-                                              color: whiteColor,
-                                              shadowColor: greyColor,
-                                              shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          12)),
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.all(12),
-                                                child: Column(
-                                                  children: [
-                                                    SizedBox(
-                                                      height:
-                                                          size.height * 0.12,
-                                                      child: ClipRRect(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      15.0),
-                                                          child:
-                                                              CachedNetworkImage(
-                                                            imageUrl: p.image!,
-                                                            width: size.width *
-                                                                0.2,
-                                                            height:
-                                                                size.height *
-                                                                    0.12,
-                                                            fit: BoxFit.cover,
-                                                            errorWidget:
-                                                                (context, url,
-                                                                    error) {
-                                                              return const Icon(
-                                                                Icons.error,
-                                                                size: 30,
-                                                                color:
-                                                                    appHomeTextColor,
-                                                              );
-                                                            },
-                                                            progressIndicatorBuilder: (context,
-                                                                    url,
-                                                                    downloadProgress) =>
-                                                                const SpinKitCircle(
-                                                                    color:
-                                                                        appPrimaryColor,
-                                                                    size: 30),
-                                                          )),
-                                                    ),
-                                                    verticalSpace(height: 5),
-                                                    SizedBox(
-                                                      width: size.width * 0.25,
-                                                      child: FittedBox(
-                                                        fit: BoxFit.scaleDown,
-                                                        child: Text(
-                                                          p.name ?? '',
-                                                          style: MyTextStyle.f13(
-                                                              blackColor,
-                                                              weight: FontWeight
-                                                                  .w500),
-                                                          maxLines: 1,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
+                                            return InkWell(
+                                              onTap: () {
+                                                setState(() {
+                                                  isSplitPayment = false;
+
+                                                  if (widget.isEditingOrder !=
+                                                      true) {
+                                                    selectDineIn = true;
+                                                  }
+                                                  final index = billingItems
+                                                      .indexWhere((item) =>
+                                                          item['_id'] == p.id);
+                                                  if (index != -1) {
+                                                    billingItems[index]['qty'] =
+                                                        billingItems[index]
+                                                                ['qty'] +
+                                                            1;
+                                                  } else {
+                                                    billingItems.add({
+                                                      "_id": p.id,
+                                                      "basePrice": p.basePrice,
+                                                      "image": p.image,
+                                                      "qty": 1,
+                                                      "name": p.name,
+                                                      "selectedAddons": p
+                                                          .addons!
+                                                          .where((addon) =>
+                                                              addon.quantity >
+                                                              0) // Simple condition - only check quantity
+                                                          .map((addon) => {
+                                                                "_id": addon.id,
+                                                                "price":
+                                                                    addon.price,
+                                                                "quantity": addon
+                                                                    .quantity,
+                                                                "name":
+                                                                    addon.name,
+                                                                "isAvailable": addon
+                                                                    .isAvailable,
+                                                                "maxQuantity": addon
+                                                                    .maxQuantity,
+                                                                "isFree": addon
+                                                                    .isFree,
+                                                              })
+                                                          .toList()
+                                                    });
+                                                  }
+                                                  debugPrint(
+                                                      'billingItems: ${jsonEncode(billingItems)}');
+                                                  context
+                                                      .read<FoodCategoryBloc>()
+                                                      .add(AddToBilling(
+                                                          List.from(
+                                                              billingItems)));
+                                                });
+                                              },
+                                              child: Card(
+                                                color: whiteColor,
+                                                shadowColor: greyColor,
+                                                shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12)),
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(12),
+                                                  child: Column(
+                                                    children: [
+                                                      SizedBox(
+                                                        height:
+                                                            size.height * 0.12,
+                                                        child: ClipRRect(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        15.0),
+                                                            child:
+                                                                CachedNetworkImage(
+                                                              imageUrl:
+                                                                  p.image!,
+                                                              width:
+                                                                  size.width *
+                                                                      0.2,
+                                                              height:
+                                                                  size.height *
+                                                                      0.12,
+                                                              fit: BoxFit.cover,
+                                                              errorWidget:
+                                                                  (context, url,
+                                                                      error) {
+                                                                return const Icon(
+                                                                  Icons.error,
+                                                                  size: 30,
+                                                                  color:
+                                                                      appHomeTextColor,
+                                                                );
+                                                              },
+                                                              progressIndicatorBuilder: (context,
+                                                                      url,
+                                                                      downloadProgress) =>
+                                                                  const SpinKitCircle(
+                                                                      color:
+                                                                          appPrimaryColor,
+                                                                      size: 30),
+                                                            )),
+                                                      ),
+                                                      verticalSpace(height: 5),
+                                                      SizedBox(
+                                                        width:
+                                                            size.width * 0.25,
+                                                        child: FittedBox(
+                                                          fit: BoxFit.scaleDown,
+                                                          child: Text(
+                                                            p.name ?? '',
+                                                            style: MyTextStyle.f13(
+                                                                blackColor,
+                                                                weight:
+                                                                    FontWeight
+                                                                        .w500),
+                                                            maxLines: 1,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                          ),
                                                         ),
                                                       ),
-                                                    ),
-                                                    verticalSpace(height: 5),
-                                                    SizedBox(
-                                                      width: size.width * 0.25,
-                                                      child: FittedBox(
-                                                        fit: BoxFit.scaleDown,
-                                                        child: Text(
-                                                          '₹ ${p.basePrice}',
-                                                          style: MyTextStyle.f13(
-                                                              blackColor,
-                                                              weight: FontWeight
-                                                                  .w600),
-                                                          maxLines: 1,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
+                                                      verticalSpace(height: 5),
+                                                      SizedBox(
+                                                        width:
+                                                            size.width * 0.25,
+                                                        child: FittedBox(
+                                                          fit: BoxFit.scaleDown,
+                                                          child: Text(
+                                                            '₹ ${p.basePrice}',
+                                                            style: MyTextStyle.f13(
+                                                                blackColor,
+                                                                weight:
+                                                                    FontWeight
+                                                                        .w600),
+                                                            maxLines: 1,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                          ),
                                                         ),
                                                       ),
-                                                    ),
-                                                    verticalSpace(height: 15),
-                                                    counter == 0
-                                                        ? ElevatedButton(
-                                                            onPressed: () {
-                                                              setState(() {
-                                                                p.counter = 1;
-                                                                if (p.addons!
-                                                                    .isNotEmpty) {
-                                                                  showDialog(
-                                                                    context:
-                                                                        context,
-                                                                    builder:
-                                                                        (context2) {
-                                                                      return BlocProvider(
-                                                                        create: (context) =>
-                                                                            FoodCategoryBloc(),
-                                                                        child: BlocProvider
-                                                                            .value(
-                                                                          value: BlocProvider.of<FoodCategoryBloc>(
-                                                                              context,
-                                                                              listen: false),
+                                                      verticalSpace(height: 15),
+                                                      counter == 0
+                                                          ? ElevatedButton(
+                                                              onPressed: () {
+                                                                setState(() {
+                                                                  p.counter = 1;
+                                                                  if (p.addons!
+                                                                      .isNotEmpty) {
+                                                                    showDialog(
+                                                                      context:
+                                                                          context,
+                                                                      builder:
+                                                                          (context2) {
+                                                                        return BlocProvider(
+                                                                          create: (context) =>
+                                                                              FoodCategoryBloc(),
                                                                           child:
-                                                                              StatefulBuilder(builder: (context, setState) {
-                                                                            return Dialog(
-                                                                              insetPadding: EdgeInsets.symmetric(horizontal: 40, vertical: 24),
-                                                                              shape: RoundedRectangleBorder(
-                                                                                borderRadius: BorderRadius.circular(8),
-                                                                              ),
-                                                                              child: Container(
-                                                                                constraints: BoxConstraints(
-                                                                                  maxWidth: size.width * 0.4,
-                                                                                  maxHeight: size.height * 0.6,
+                                                                              BlocProvider.value(
+                                                                            value:
+                                                                                BlocProvider.of<FoodCategoryBloc>(context, listen: false),
+                                                                            child:
+                                                                                StatefulBuilder(builder: (context, setState) {
+                                                                              return Dialog(
+                                                                                insetPadding: EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+                                                                                shape: RoundedRectangleBorder(
+                                                                                  borderRadius: BorderRadius.circular(8),
                                                                                 ),
-                                                                                padding: EdgeInsets.all(16),
-                                                                                child: SingleChildScrollView(
-                                                                                  child: Column(
-                                                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                    mainAxisSize: MainAxisSize.min,
-                                                                                    children: [
-                                                                                      ClipRRect(
-                                                                                          borderRadius: BorderRadius.circular(15.0),
-                                                                                          child: CachedNetworkImage(
-                                                                                            imageUrl: p.image!,
-                                                                                            width: size.width * 0.5,
-                                                                                            height: size.height * 0.2,
-                                                                                            fit: BoxFit.cover,
-                                                                                            errorWidget: (context, url, error) {
-                                                                                              return const Icon(
-                                                                                                Icons.error,
-                                                                                                size: 30,
-                                                                                                color: appHomeTextColor,
-                                                                                              );
-                                                                                            },
-                                                                                            progressIndicatorBuilder: (context, url, downloadProgress) => const SpinKitCircle(color: appPrimaryColor, size: 30),
-                                                                                          )),
-                                                                                      SizedBox(height: 16),
-                                                                                      Text(
-                                                                                        'Choose Add‑Ons for ${p.name}',
-                                                                                        style: MyTextStyle.f16(
-                                                                                          weight: FontWeight.bold,
-                                                                                          blackColor,
+                                                                                child: Container(
+                                                                                  constraints: BoxConstraints(
+                                                                                    maxWidth: size.width * 0.4,
+                                                                                    maxHeight: size.height * 0.6,
+                                                                                  ),
+                                                                                  padding: EdgeInsets.all(16),
+                                                                                  child: SingleChildScrollView(
+                                                                                    child: Column(
+                                                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                      mainAxisSize: MainAxisSize.min,
+                                                                                      children: [
+                                                                                        ClipRRect(
+                                                                                            borderRadius: BorderRadius.circular(15.0),
+                                                                                            child: CachedNetworkImage(
+                                                                                              imageUrl: p.image!,
+                                                                                              width: size.width * 0.5,
+                                                                                              height: size.height * 0.2,
+                                                                                              fit: BoxFit.cover,
+                                                                                              errorWidget: (context, url, error) {
+                                                                                                return const Icon(
+                                                                                                  Icons.error,
+                                                                                                  size: 30,
+                                                                                                  color: appHomeTextColor,
+                                                                                                );
+                                                                                              },
+                                                                                              progressIndicatorBuilder: (context, url, downloadProgress) => const SpinKitCircle(color: appPrimaryColor, size: 30),
+                                                                                            )),
+                                                                                        SizedBox(height: 16),
+                                                                                        Text(
+                                                                                          'Choose Add‑Ons for ${p.name}',
+                                                                                          style: MyTextStyle.f16(
+                                                                                            weight: FontWeight.bold,
+                                                                                            blackColor,
+                                                                                          ),
+                                                                                          textAlign: TextAlign.left,
                                                                                         ),
-                                                                                        textAlign: TextAlign.left,
-                                                                                      ),
-                                                                                      SizedBox(height: 12),
-                                                                                      Column(
-                                                                                        children: p.addons!.map((e) {
-                                                                                          return Padding(
-                                                                                            padding: const EdgeInsets.symmetric(vertical: 4.0),
-                                                                                            child: Container(
-                                                                                              padding: const EdgeInsets.all(8),
-                                                                                              decoration: BoxDecoration(
-                                                                                                border: Border.all(color: blackColor),
-                                                                                                borderRadius: BorderRadius.circular(8),
-                                                                                              ),
-                                                                                              child: Row(
-                                                                                                children: [
-                                                                                                  // Addon title & price/free label
-                                                                                                  Expanded(
-                                                                                                    child: Column(
-                                                                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                        SizedBox(height: 12),
+                                                                                        Column(
+                                                                                          children: p.addons!.map((e) {
+                                                                                            return Padding(
+                                                                                              padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                                                                              child: Container(
+                                                                                                padding: const EdgeInsets.all(8),
+                                                                                                decoration: BoxDecoration(
+                                                                                                  border: Border.all(color: blackColor),
+                                                                                                  borderRadius: BorderRadius.circular(8),
+                                                                                                ),
+                                                                                                child: Row(
+                                                                                                  children: [
+                                                                                                    // Addon title & price/free label
+                                                                                                    Expanded(
+                                                                                                      child: Column(
+                                                                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                                        children: [
+                                                                                                          Text(
+                                                                                                            e.name ?? '',
+                                                                                                            style: const TextStyle(fontWeight: FontWeight.bold),
+                                                                                                          ),
+                                                                                                          const SizedBox(height: 4),
+                                                                                                          Text(
+                                                                                                            e.isFree == true ? "Free (Max: ${e.maxQuantity})" : "₹ ${e.price?.toStringAsFixed(2) ?? '0.00'} (Max: ${e.maxQuantity})",
+                                                                                                            style: TextStyle(color: Colors.grey.shade600),
+                                                                                                          ),
+                                                                                                        ],
+                                                                                                      ),
+                                                                                                    ),
+
+                                                                                                    // Quantity selector
+                                                                                                    Row(
                                                                                                       children: [
-                                                                                                        Text(
-                                                                                                          e.name ?? '',
-                                                                                                          style: const TextStyle(fontWeight: FontWeight.bold),
+                                                                                                        IconButton(
+                                                                                                          icon: const Icon(Icons.remove),
+                                                                                                          onPressed: (e.quantity) > 0
+                                                                                                              ? () {
+                                                                                                                  setState(() {
+                                                                                                                    e.quantity = (e.quantity) - 1;
+                                                                                                                  });
+                                                                                                                }
+                                                                                                              : null,
                                                                                                         ),
-                                                                                                        const SizedBox(height: 4),
-                                                                                                        Text(
-                                                                                                          e.isFree == true ? "Free (Max: ${e.maxQuantity})" : "₹ ${e.price?.toStringAsFixed(2) ?? '0.00'} (Max: ${e.maxQuantity})",
-                                                                                                          style: TextStyle(color: Colors.grey.shade600),
+                                                                                                        Text('${e.quantity}'),
+                                                                                                        IconButton(
+                                                                                                          icon: const Icon(Icons.add, color: Colors.brown),
+                                                                                                          onPressed: (e.quantity) < (e.maxQuantity ?? 1)
+                                                                                                              ? () {
+                                                                                                                  setState(() {
+                                                                                                                    e.quantity = (e.quantity) + 1;
+                                                                                                                  });
+                                                                                                                }
+                                                                                                              : null,
                                                                                                         ),
                                                                                                       ],
-                                                                                                    ),
-                                                                                                  ),
-
-                                                                                                  // Quantity selector
-                                                                                                  Row(
-                                                                                                    children: [
-                                                                                                      IconButton(
-                                                                                                        icon: const Icon(Icons.remove),
-                                                                                                        onPressed: (e.quantity) > 0
-                                                                                                            ? () {
-                                                                                                                setState(() {
-                                                                                                                  e.quantity = (e.quantity) - 1;
-                                                                                                                });
-                                                                                                              }
-                                                                                                            : null,
-                                                                                                      ),
-                                                                                                      Text('${e.quantity}'),
-                                                                                                      IconButton(
-                                                                                                        icon: const Icon(Icons.add, color: Colors.brown),
-                                                                                                        onPressed: (e.quantity) < (e.maxQuantity ?? 1)
-                                                                                                            ? () {
-                                                                                                                setState(() {
-                                                                                                                  e.quantity = (e.quantity) + 1;
-                                                                                                                });
-                                                                                                              }
-                                                                                                            : null,
-                                                                                                      ),
-                                                                                                    ],
-                                                                                                  )
-                                                                                                ],
+                                                                                                    )
+                                                                                                  ],
+                                                                                                ),
                                                                                               ),
-                                                                                            ),
-                                                                                          );
-                                                                                        }).toList(),
-                                                                                      ),
-                                                                                      SizedBox(height: 20),
-                                                                                      Row(
-                                                                                        mainAxisAlignment: MainAxisAlignment.end,
-                                                                                        children: [
-                                                                                          ElevatedButton(
-                                                                                            onPressed: () {
-                                                                                              setState(() {
-                                                                                                if (counter > 1 || counter == 1) {
-                                                                                                  counter--;
-                                                                                                }
-                                                                                              });
-
-                                                                                              Navigator.of(context).pop();
-                                                                                            },
-                                                                                            style: ElevatedButton.styleFrom(
-                                                                                              backgroundColor: greyColor.shade400,
-                                                                                              minimumSize: Size(80, 40),
-                                                                                              padding: EdgeInsets.all(20),
-                                                                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                                                                            ),
-                                                                                            child: Text('Cancel', style: MyTextStyle.f14(blackColor)),
-                                                                                          ),
-                                                                                          SizedBox(width: 8),
-                                                                                          ElevatedButton(
-                                                                                            onPressed: () {
-                                                                                              setState(() {
-                                                                                                isSplitPayment = false;
-                                                                                                if (widget.isEditingOrder != true) {
-                                                                                                  selectDineIn = true;
-                                                                                                }
-                                                                                                final index = billingItems.indexWhere((item) => item['_id'] == p.id);
-                                                                                                if (index != -1) {
-                                                                                                  billingItems[index]['qty'] = billingItems[index]['qty'] + 1;
-                                                                                                } else {
-                                                                                                  billingItems.add({
-                                                                                                    "_id": p.id,
-                                                                                                    "basePrice": p.basePrice,
-                                                                                                    "image": p.image,
-                                                                                                    "qty": 1,
-                                                                                                    "name": p.name,
-                                                                                                    "selectedAddons": p.addons!
-                                                                                                        .where((addon) => addon.quantity > 0) // Simple condition - only check quantity
-                                                                                                        .map((addon) => {
-                                                                                                              "_id": addon.id,
-                                                                                                              "price": addon.price,
-                                                                                                              "quantity": addon.quantity,
-                                                                                                              "name": addon.name,
-                                                                                                              "isAvailable": addon.isAvailable,
-                                                                                                              "maxQuantity": addon.maxQuantity,
-                                                                                                              "isFree": addon.isFree,
-                                                                                                            })
-                                                                                                        .toList()
-                                                                                                  });
-                                                                                                }
-                                                                                                debugPrint("billingItems: $billingItems");
-                                                                                                context.read<FoodCategoryBloc>().add(AddToBilling(List.from(billingItems)));
-
+                                                                                            );
+                                                                                          }).toList(),
+                                                                                        ),
+                                                                                        SizedBox(height: 20),
+                                                                                        Row(
+                                                                                          mainAxisAlignment: MainAxisAlignment.end,
+                                                                                          children: [
+                                                                                            ElevatedButton(
+                                                                                              onPressed: () {
                                                                                                 setState(() {
-                                                                                                  for (var addon in p.addons!) {
-                                                                                                    addon.isSelected = false;
-                                                                                                    addon.quantity = 0;
+                                                                                                  if (counter > 1 || counter == 1) {
+                                                                                                    counter--;
                                                                                                   }
                                                                                                 });
+
                                                                                                 Navigator.of(context).pop();
-                                                                                              });
-                                                                                            },
-                                                                                            style: ElevatedButton.styleFrom(
-                                                                                              backgroundColor: appPrimaryColor,
-                                                                                              minimumSize: Size(80, 40),
-                                                                                              padding: EdgeInsets.all(20),
-                                                                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                                                                              },
+                                                                                              style: ElevatedButton.styleFrom(
+                                                                                                backgroundColor: greyColor.shade400,
+                                                                                                minimumSize: Size(80, 40),
+                                                                                                padding: EdgeInsets.all(20),
+                                                                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                                                                              ),
+                                                                                              child: Text('Cancel', style: MyTextStyle.f14(blackColor)),
                                                                                             ),
-                                                                                            child: Text('Add to Bill', style: MyTextStyle.f14(whiteColor)),
-                                                                                          ),
-                                                                                        ],
-                                                                                      ),
-                                                                                    ],
+                                                                                            SizedBox(width: 8),
+                                                                                            ElevatedButton(
+                                                                                              onPressed: () {
+                                                                                                setState(() {
+                                                                                                  isSplitPayment = false;
+                                                                                                  if (widget.isEditingOrder != true) {
+                                                                                                    selectDineIn = true;
+                                                                                                  }
+                                                                                                  final index = billingItems.indexWhere((item) => item['_id'] == p.id);
+                                                                                                  if (index != -1) {
+                                                                                                    billingItems[index]['qty'] = billingItems[index]['qty'] + 1;
+                                                                                                  } else {
+                                                                                                    billingItems.add({
+                                                                                                      "_id": p.id,
+                                                                                                      "basePrice": p.basePrice,
+                                                                                                      "image": p.image,
+                                                                                                      "qty": 1,
+                                                                                                      "name": p.name,
+                                                                                                      "selectedAddons": p.addons!
+                                                                                                          .where((addon) => addon.quantity > 0) // Simple condition - only check quantity
+                                                                                                          .map((addon) => {
+                                                                                                                "_id": addon.id,
+                                                                                                                "price": addon.price,
+                                                                                                                "quantity": addon.quantity,
+                                                                                                                "name": addon.name,
+                                                                                                                "isAvailable": addon.isAvailable,
+                                                                                                                "maxQuantity": addon.maxQuantity,
+                                                                                                                "isFree": addon.isFree,
+                                                                                                              })
+                                                                                                          .toList()
+                                                                                                    });
+                                                                                                  }
+                                                                                                  debugPrint("billingItems: $billingItems");
+                                                                                                  context.read<FoodCategoryBloc>().add(AddToBilling(List.from(billingItems)));
+
+                                                                                                  setState(() {
+                                                                                                    for (var addon in p.addons!) {
+                                                                                                      addon.isSelected = false;
+                                                                                                      addon.quantity = 0;
+                                                                                                    }
+                                                                                                  });
+                                                                                                  Navigator.of(context).pop();
+                                                                                                });
+                                                                                              },
+                                                                                              style: ElevatedButton.styleFrom(
+                                                                                                backgroundColor: appPrimaryColor,
+                                                                                                minimumSize: Size(80, 40),
+                                                                                                padding: EdgeInsets.all(20),
+                                                                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                                                                              ),
+                                                                                              child: Text('Add to Bill', style: MyTextStyle.f14(whiteColor)),
+                                                                                            ),
+                                                                                          ],
+                                                                                        ),
+                                                                                      ],
+                                                                                    ),
                                                                                   ),
                                                                                 ),
-                                                                              ),
-                                                                            );
-                                                                          }),
-                                                                        ),
-                                                                      );
-                                                                    },
-                                                                  );
-                                                                } else {
-                                                                  setState(() {
-                                                                    isSplitPayment =
-                                                                        false;
-                                                                    if (widget
-                                                                            .isEditingOrder !=
-                                                                        true) {
-                                                                      selectDineIn =
-                                                                          true;
-                                                                    }
-                                                                    final index =
-                                                                        billingItems.indexWhere((item) =>
-                                                                            item['_id'] ==
-                                                                            p.id);
-                                                                    if (index !=
-                                                                        -1) {
-                                                                      billingItems[
-                                                                              index]
-                                                                          [
-                                                                          'qty'] = billingItems[index]
-                                                                              [
-                                                                              'qty'] +
-                                                                          1;
-                                                                    } else {
-                                                                      billingItems
-                                                                          .add({
-                                                                        "_id": p
-                                                                            .id,
-                                                                        "basePrice":
-                                                                            p.basePrice,
-                                                                        "image":
-                                                                            p.image,
-                                                                        "qty":
-                                                                            1,
-                                                                        "name":
-                                                                            p.name,
-                                                                        "selectedAddons": p
-                                                                            .addons!
-                                                                            .where((addon) =>
-                                                                                addon.quantity >
-                                                                                0) // Simple condition - only check quantity
-                                                                            .map((addon) =>
-                                                                                {
-                                                                                  "_id": addon.id,
-                                                                                  "price": addon.price,
-                                                                                  "quantity": addon.quantity,
-                                                                                  "name": addon.name,
-                                                                                  "isAvailable": addon.isAvailable,
-                                                                                  "maxQuantity": addon.maxQuantity,
-                                                                                  "isFree": addon.isFree,
-                                                                                })
-                                                                            .toList()
-                                                                      });
-                                                                    }
-                                                                    debugPrint(
-                                                                        'billingItems: ${jsonEncode(billingItems)}');
-                                                                    context
-                                                                        .read<
-                                                                            FoodCategoryBloc>()
-                                                                        .add(AddToBilling(
-                                                                            List.from(billingItems)));
-                                                                  });
-                                                                }
-                                                              });
-                                                            },
-                                                            style:
-                                                                ElevatedButton
-                                                                    .styleFrom(
-                                                              backgroundColor:
-                                                                  appPrimaryColor,
-                                                              shape:
-                                                                  RoundedRectangleBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            20),
-                                                              ),
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                      .symmetric(
-                                                                      horizontal:
-                                                                          20,
-                                                                      vertical:
-                                                                          8),
-                                                            ),
-                                                            child: Text(
-                                                                "Add to Billing",
-                                                                style: MyTextStyle.f12(
-                                                                    whiteColor,
-                                                                    weight: FontWeight
-                                                                        .bold)),
-                                                          )
-                                                        : Row(
-                                                            mainAxisAlignment:
-                                                                MainAxisAlignment
-                                                                    .center,
-                                                            children: [
-                                                              CircleAvatar(
-                                                                radius: 16,
-                                                                backgroundColor:
-                                                                    greyColor200,
-                                                                child:
-                                                                    IconButton(
-                                                                  icon: const Icon(
-                                                                      Icons
-                                                                          .remove,
-                                                                      size: 16,
-                                                                      color:
-                                                                          blackColor),
-                                                                  onPressed:
-                                                                      () {
+                                                                              );
+                                                                            }),
+                                                                          ),
+                                                                        );
+                                                                      },
+                                                                    );
+                                                                  } else {
                                                                     setState(
                                                                         () {
                                                                       isSplitPayment =
                                                                           false;
-                                                                      selectDineIn =
-                                                                          true;
-                                                                      final index = billingItems.indexWhere((item) =>
-                                                                          item[
-                                                                              '_id'] ==
-                                                                          p.id);
-                                                                      if (index !=
-                                                                              -1 &&
-                                                                          billingItems[index]['qty'] >
-                                                                              1) {
-                                                                        billingItems[index]
-                                                                            [
-                                                                            'qty'] = billingItems[index]
-                                                                                ['qty'] -
-                                                                            1;
-                                                                      } else {
-                                                                        billingItems.removeWhere((item) =>
-                                                                            item['_id'] ==
-                                                                            p.id);
-                                                                      }
 
-                                                                      debugPrint(
-                                                                          "billingItems: $billingItems");
-                                                                      context
-                                                                          .read<
-                                                                              FoodCategoryBloc>()
-                                                                          .add(AddToBilling(
-                                                                              List.from(billingItems)));
-                                                                    });
-                                                                  },
-                                                                ),
-                                                              ),
-                                                              Padding(
-                                                                padding: const EdgeInsets
-                                                                    .symmetric(
-                                                                    horizontal:
-                                                                        12),
-                                                                child: Text(
-                                                                  "$counter",
-                                                                  style: MyTextStyle
-                                                                      .f16(
-                                                                          blackColor),
-                                                                ),
-                                                              ),
-                                                              CircleAvatar(
-                                                                radius: 16,
-                                                                backgroundColor:
-                                                                    appPrimaryColor,
-                                                                child:
-                                                                    IconButton(
-                                                                  icon: const Icon(
-                                                                      Icons.add,
-                                                                      size: 16,
-                                                                      color:
-                                                                          whiteColor),
-                                                                  onPressed:
-                                                                      () {
-                                                                    setState(
-                                                                        () {
-                                                                      isSplitPayment =
-                                                                          false;
-                                                                      selectDineIn =
-                                                                          true;
+                                                                      if (widget
+                                                                              .isEditingOrder !=
+                                                                          true) {
+                                                                        selectDineIn =
+                                                                            true;
+                                                                      }
                                                                       final index = billingItems.indexWhere((item) =>
                                                                           item[
                                                                               '_id'] ==
@@ -927,21 +827,180 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                               .toList()
                                                                         });
                                                                       }
-
                                                                       debugPrint(
-                                                                          "billingItems: $billingItems");
+                                                                          'billingItems: ${jsonEncode(billingItems)}');
                                                                       context
                                                                           .read<
                                                                               FoodCategoryBloc>()
                                                                           .add(AddToBilling(
                                                                               List.from(billingItems)));
                                                                     });
-                                                                  },
+                                                                  }
+                                                                });
+                                                              },
+                                                              style:
+                                                                  ElevatedButton
+                                                                      .styleFrom(
+                                                                backgroundColor:
+                                                                    appPrimaryColor,
+                                                                shape:
+                                                                    RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              20),
                                                                 ),
+                                                                padding: const EdgeInsets
+                                                                    .symmetric(
+                                                                    horizontal:
+                                                                        20,
+                                                                    vertical:
+                                                                        8),
                                                               ),
-                                                            ],
-                                                          )
-                                                  ],
+                                                              child: Text(
+                                                                  "Add to Billing",
+                                                                  style: MyTextStyle.f12(
+                                                                      whiteColor,
+                                                                      weight: FontWeight
+                                                                          .bold)),
+                                                            )
+                                                          : Row(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .center,
+                                                              children: [
+                                                                CircleAvatar(
+                                                                  radius: 16,
+                                                                  backgroundColor:
+                                                                      greyColor200,
+                                                                  child:
+                                                                      IconButton(
+                                                                    icon: const Icon(
+                                                                        Icons
+                                                                            .remove,
+                                                                        size:
+                                                                            16,
+                                                                        color:
+                                                                            blackColor),
+                                                                    onPressed:
+                                                                        () {
+                                                                      setState(
+                                                                          () {
+                                                                        isSplitPayment =
+                                                                            false;
+                                                                        selectDineIn =
+                                                                            true;
+                                                                        final index = billingItems.indexWhere((item) =>
+                                                                            item['_id'] ==
+                                                                            p.id);
+                                                                        if (index !=
+                                                                                -1 &&
+                                                                            billingItems[index]['qty'] >
+                                                                                1) {
+                                                                          billingItems[index]
+                                                                              [
+                                                                              'qty'] = billingItems[index]
+                                                                                  ['qty'] -
+                                                                              1;
+                                                                        } else {
+                                                                          billingItems.removeWhere((item) =>
+                                                                              item['_id'] ==
+                                                                              p.id);
+                                                                        }
+
+                                                                        debugPrint(
+                                                                            "billingItems: $billingItems");
+                                                                        context
+                                                                            .read<FoodCategoryBloc>()
+                                                                            .add(AddToBilling(List.from(billingItems)));
+                                                                      });
+                                                                    },
+                                                                  ),
+                                                                ),
+                                                                Padding(
+                                                                  padding: const EdgeInsets
+                                                                      .symmetric(
+                                                                      horizontal:
+                                                                          12),
+                                                                  child: Text(
+                                                                    "$counter",
+                                                                    style: MyTextStyle
+                                                                        .f16(
+                                                                            blackColor),
+                                                                  ),
+                                                                ),
+                                                                CircleAvatar(
+                                                                  radius: 16,
+                                                                  backgroundColor:
+                                                                      appPrimaryColor,
+                                                                  child:
+                                                                      IconButton(
+                                                                    icon: const Icon(
+                                                                        Icons
+                                                                            .add,
+                                                                        size:
+                                                                            16,
+                                                                        color:
+                                                                            whiteColor),
+                                                                    onPressed:
+                                                                        () {
+                                                                      setState(
+                                                                          () {
+                                                                        isSplitPayment =
+                                                                            false;
+                                                                        selectDineIn =
+                                                                            true;
+                                                                        final index = billingItems.indexWhere((item) =>
+                                                                            item['_id'] ==
+                                                                            p.id);
+                                                                        if (index !=
+                                                                            -1) {
+                                                                          billingItems[index]
+                                                                              [
+                                                                              'qty'] = billingItems[index]
+                                                                                  ['qty'] +
+                                                                              1;
+                                                                        } else {
+                                                                          billingItems
+                                                                              .add({
+                                                                            "_id":
+                                                                                p.id,
+                                                                            "basePrice":
+                                                                                p.basePrice,
+                                                                            "image":
+                                                                                p.image,
+                                                                            "qty":
+                                                                                1,
+                                                                            "name":
+                                                                                p.name,
+                                                                            "selectedAddons": p.addons!
+                                                                                .where((addon) => addon.quantity > 0) // Simple condition - only check quantity
+                                                                                .map((addon) => {
+                                                                                      "_id": addon.id,
+                                                                                      "price": addon.price,
+                                                                                      "quantity": addon.quantity,
+                                                                                      "name": addon.name,
+                                                                                      "isAvailable": addon.isAvailable,
+                                                                                      "maxQuantity": addon.maxQuantity,
+                                                                                      "isFree": addon.isFree,
+                                                                                    })
+                                                                                .toList()
+                                                                          });
+                                                                        }
+
+                                                                        debugPrint(
+                                                                            "billingItems: $billingItems");
+                                                                        context
+                                                                            .read<FoodCategoryBloc>()
+                                                                            .add(AddToBilling(List.from(billingItems)));
+                                                                      });
+                                                                    },
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            )
+                                                    ],
+                                                  ),
                                                 ),
                                               ),
                                             );
@@ -1392,6 +1451,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                             "";
                                                         widget.isEditingOrder =
                                                             false;
+                                                        balance = 0;
                                                       });
                                                       context
                                                           .read<
@@ -1824,16 +1884,59 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                 ),
                                               if (widget.isEditingOrder ==
                                                       true &&
-                                                  widget.existingOrder?.data!
-                                                          .orderStatus ==
-                                                      "COMPLETED")
-                                                Text(
-                                                  "Order already paid. No additional payment required unless items are added",
-                                                  style: MyTextStyle.f14(
-                                                      greyColor,
-                                                      weight: FontWeight.w400),
-                                                ),
-                                              if (isCompleteOrder == true)
+                                                  widget.existingOrder?.data
+                                                          ?.orderStatus ==
+                                                      "COMPLETED") ...[
+                                                if (balance > 0) ...[
+                                                  Text(
+                                                    "Additional payment of ₹${balance.toStringAsFixed(2)} required.",
+                                                    style: MyTextStyle.f14(
+                                                        redColor,
+                                                        weight:
+                                                            FontWeight.bold),
+                                                  )
+                                                ] else if (balance < 0) ...[
+                                                  Text(
+                                                    "₹${(balance * -1).toStringAsFixed(2)} will be refunded or adjusted.",
+                                                    style: MyTextStyle.f14(
+                                                        Colors.green,
+                                                        weight:
+                                                            FontWeight.bold),
+                                                  )
+                                                ] else ...[
+                                                  Text(
+                                                    "Order already paid. No additional payment required unless items are added",
+                                                    style: MyTextStyle.f14(
+                                                        greyColor,
+                                                        weight:
+                                                            FontWeight.w400),
+                                                  )
+                                                ]
+                                              ],
+                                              if ((isCompleteOrder == true &&
+                                                      postAddToBillingModel
+                                                              .total !=
+                                                          widget.existingOrder
+                                                              ?.data!.total &&
+                                                      widget.isEditingOrder ==
+                                                          true &&
+                                                      widget.existingOrder?.data!
+                                                              .orderStatus ==
+                                                          "COMPLETED") ||
+                                                  ((widget.isEditingOrder ==
+                                                              false ||
+                                                          widget.isEditingOrder ==
+                                                              null) &&
+                                                      isCompleteOrder ==
+                                                          true) ||
+                                                  (isCompleteOrder == true &&
+                                                      widget.isEditingOrder ==
+                                                          true &&
+                                                      widget
+                                                              .existingOrder
+                                                              ?.data!
+                                                              .orderStatus ==
+                                                          "WAITLIST"))
                                                 Container(
                                                   margin: const EdgeInsets.only(
                                                       top: 15),
@@ -1937,7 +2040,30 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                     ],
                                                   ),
                                                 ),
-                                              if (isCompleteOrder == true)
+                                              if ((isCompleteOrder == true &&
+                                                      postAddToBillingModel
+                                                              .total !=
+                                                          widget.existingOrder
+                                                              ?.data!.total &&
+                                                      widget.isEditingOrder ==
+                                                          true &&
+                                                      widget.existingOrder?.data!
+                                                              .orderStatus ==
+                                                          "COMPLETED") ||
+                                                  ((widget.isEditingOrder ==
+                                                              false ||
+                                                          widget.isEditingOrder ==
+                                                              null) &&
+                                                      isCompleteOrder ==
+                                                          true) ||
+                                                  (isCompleteOrder == true &&
+                                                      widget.isEditingOrder ==
+                                                          true &&
+                                                      widget
+                                                              .existingOrder
+                                                              ?.data!
+                                                              .orderStatus ==
+                                                          "WAITLIST"))
                                                 !isSplitPayment
                                                     ? Column(
                                                         crossAxisAlignment:
@@ -2135,7 +2261,30 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                       ],
                                                     )
                                                   : const SizedBox.shrink(),
-                                              if (isCompleteOrder == true)
+                                              if ((isCompleteOrder == true &&
+                                                      postAddToBillingModel
+                                                              .total !=
+                                                          widget.existingOrder
+                                                              ?.data!.total &&
+                                                      widget.isEditingOrder ==
+                                                          true &&
+                                                      widget.existingOrder?.data!
+                                                              .orderStatus ==
+                                                          "COMPLETED") ||
+                                                  ((widget.isEditingOrder ==
+                                                              false ||
+                                                          widget.isEditingOrder ==
+                                                              null) &&
+                                                      isCompleteOrder ==
+                                                          true) ||
+                                                  (isCompleteOrder == true &&
+                                                      widget.isEditingOrder ==
+                                                          true &&
+                                                      widget
+                                                              .existingOrder
+                                                              ?.data!
+                                                              .orderStatus ==
+                                                          "WAITLIST"))
                                                 isSplitPayment
                                                     ? Column(
                                                         crossAxisAlignment:
@@ -2576,17 +2725,67 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                       if ((widget.isEditingOrder == true && (postAddToBillingModel.total != widget.existingOrder?.data!.total && widget.existingOrder?.data!.orderStatus == "COMPLETED")) ||
                                                                           (widget.isEditingOrder == true &&
                                                                               widget.existingOrder?.data!.orderStatus == "WAITLIST")) {
+                                                                        if (balance <
+                                                                            0) {
+                                                                          debugPrint(
+                                                                              "updateOrderApibal<0");
+                                                                          debugPrint(
+                                                                              "updateOrderIsCompletebal<0:$isCompleteOrder");
+                                                                          debugPrint(
+                                                                              "updateOrderexistIdbal<0:${widget.existingOrder!.data!.id}");
+
+                                                                          List<Map<String, dynamic>>
+                                                                              payments =
+                                                                              [];
+                                                                          payments =
+                                                                              [
+                                                                            {
+                                                                              "amount": widget.existingOrder?.data!.orderStatus == "COMPLETED" ? (balance < 0 ? 0 : balance) : (postAddToBillingModel.total ?? 0).toDouble(),
+                                                                              "balanceAmount": 0,
+                                                                              "method": selectedFullPaymentMethod.toUpperCase(),
+                                                                            }
+                                                                          ];
+
+                                                                          final orderPayload =
+                                                                              buildOrderPayload(
+                                                                            postAddToBillingModel:
+                                                                                postAddToBillingModel,
+                                                                            tableId: selectDineIn == true
+                                                                                ? tableId
+                                                                                : null,
+                                                                            orderStatus:
+                                                                                'COMPLETED',
+                                                                            orderType: selectDineIn == true
+                                                                                ? 'DINE-IN'
+                                                                                : 'TAKE-AWAY',
+                                                                            payments:
+                                                                                payments,
+                                                                          );
+
+                                                                          debugPrint(
+                                                                              'Sending order: ${jsonEncode(orderPayload)}');
+                                                                          setState(
+                                                                              () {
+                                                                            completeLoad =
+                                                                                true;
+                                                                          });
+
+                                                                          // context.read<FoodCategoryBloc>().add(UpdateOrder(
+                                                                          //     jsonEncode(orderPayload),
+                                                                          //     widget.existingOrder!.data!.id));
+                                                                          balance =
+                                                                              0;
+                                                                          debugPrint(
+                                                                              "balanceAfterUpdate:$balance");
+                                                                        }
+                                                                      }
+                                                                      if (balance >=
+                                                                          0) {
                                                                         setState(
                                                                             () {
                                                                           isCompleteOrder =
                                                                               true;
                                                                         });
-                                                                        debugPrint(
-                                                                            "updateOrderApi");
-                                                                        debugPrint(
-                                                                            "updateOrderIsComplete:$isCompleteOrder");
-                                                                        debugPrint(
-                                                                            "updateOrderexistId:${widget.existingOrder!.data!.id}");
                                                                         if ((amountController.text.isNotEmpty && selectedFullPaymentMethod == "Cash") ||
                                                                             selectedFullPaymentMethod ==
                                                                                 "Card" ||
@@ -2598,7 +2797,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                           payments =
                                                                               [
                                                                             {
-                                                                              "amount": (postAddToBillingModel.total ?? 0).toDouble(),
+                                                                              "amount": widget.existingOrder?.data!.orderStatus == "COMPLETED" ? (balance < 0 ? 0 : balance) : (postAddToBillingModel.total ?? 0).toDouble(),
                                                                               "balanceAmount": 0,
                                                                               "method": selectedFullPaymentMethod.toUpperCase(),
                                                                             }
@@ -2631,6 +2830,10 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                           context.read<FoodCategoryBloc>().add(UpdateOrder(
                                                                               jsonEncode(orderPayload),
                                                                               widget.existingOrder!.data!.id));
+                                                                          balance =
+                                                                              0;
+                                                                          debugPrint(
+                                                                              "balanceAfterUpdate:$balance");
                                                                         }
                                                                       }
                                                                     }
@@ -2810,92 +3013,185 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                             ?.data!
                                                                             .orderStatus ==
                                                                         "WAITLIST")) {
-                                                              if (isSplitPayment) {
-                                                                for (int i = 0;
-                                                                    i < _paymentFieldCount;
-                                                                    i++) {
-                                                                  final method =
-                                                                      selectedPaymentMethods[
-                                                                          i];
-                                                                  final amountText =
-                                                                      splitAmountControllers[
-                                                                              i]
-                                                                          .text;
-                                                                  final amount =
-                                                                      double.tryParse(
-                                                                              amountText) ??
+                                                              if (balance < 0) {
+                                                                if (isSplitPayment) {
+                                                                  for (int i =
                                                                           0;
-                                                                  if (method ==
-                                                                          null ||
-                                                                      method
-                                                                          .isEmpty) {
-                                                                    showToast(
-                                                                        "Please select a payment method for split #${i + 1}",
-                                                                        context,
-                                                                        color:
-                                                                            false);
-                                                                    return;
-                                                                  }
+                                                                      i < _paymentFieldCount;
+                                                                      i++) {
+                                                                    final method =
+                                                                        selectedPaymentMethods[
+                                                                            i];
+                                                                    final amountText =
+                                                                        splitAmountControllers[i]
+                                                                            .text;
+                                                                    final amount =
+                                                                        double.tryParse(amountText) ??
+                                                                            0;
+                                                                    if (method ==
+                                                                            null ||
+                                                                        method
+                                                                            .isEmpty) {
+                                                                      showToast(
+                                                                          "Please select a payment method for split #${i + 1}",
+                                                                          context,
+                                                                          color:
+                                                                              false);
+                                                                      return;
+                                                                    }
 
-                                                                  payments.add({
-                                                                    "amount":
-                                                                        amount,
-                                                                    "balanceAmount":
-                                                                        0,
-                                                                    "method": method
-                                                                        .toUpperCase(),
-                                                                  });
+                                                                    payments
+                                                                        .add({
+                                                                      "amount":
+                                                                          amount,
+                                                                      "balanceAmount":
+                                                                          0,
+                                                                      "method":
+                                                                          method
+                                                                              .toUpperCase(),
+                                                                    });
+                                                                  }
+                                                                } else {
+                                                                  payments = [
+                                                                    {
+                                                                      "amount": (postAddToBillingModel.total ??
+                                                                              0)
+                                                                          .toDouble(),
+                                                                      "balanceAmount":
+                                                                          0,
+                                                                      "method":
+                                                                          selectedFullPaymentMethod
+                                                                              .toUpperCase(),
+                                                                    }
+                                                                  ];
                                                                 }
-                                                              } else {
-                                                                payments = [
-                                                                  {
-                                                                    "amount": (postAddToBillingModel.total ??
-                                                                            0)
-                                                                        .toDouble(),
-                                                                    "balanceAmount":
-                                                                        0,
-                                                                    "method":
-                                                                        selectedFullPaymentMethod
-                                                                            .toUpperCase(),
-                                                                  }
-                                                                ];
+
+                                                                final orderPayload =
+                                                                    buildOrderPayload(
+                                                                  postAddToBillingModel:
+                                                                      postAddToBillingModel,
+                                                                  tableId: selectDineIn ==
+                                                                          true
+                                                                      ? tableId
+                                                                      : null,
+                                                                  orderStatus:
+                                                                      'COMPLETED',
+                                                                  orderType: selectDineIn ==
+                                                                          true
+                                                                      ? 'DINE-IN'
+                                                                      : 'TAKE-AWAY',
+                                                                  payments:
+                                                                      payments,
+                                                                );
+
+                                                                debugPrint(
+                                                                    'Sending order: ${jsonEncode(orderPayload)}');
+                                                                // setState(() {
+                                                                //   completeLoad =
+                                                                //       true;
+                                                                // });
+                                                                // context
+                                                                //     .read<
+                                                                //         FoodCategoryBloc>()
+                                                                //     .add(UpdateOrder(
+                                                                //         jsonEncode(
+                                                                //             orderPayload),
+                                                                //         widget
+                                                                //             .existingOrder!
+                                                                //             .data!
+                                                                //             .id));
+                                                                balance = 0;
                                                               }
+                                                              if (balance >=
+                                                                  0) {
+                                                                if (isSplitPayment) {
+                                                                  for (int i =
+                                                                          0;
+                                                                      i < _paymentFieldCount;
+                                                                      i++) {
+                                                                    final method =
+                                                                        selectedPaymentMethods[
+                                                                            i];
+                                                                    final amountText =
+                                                                        splitAmountControllers[i]
+                                                                            .text;
+                                                                    final amount =
+                                                                        double.tryParse(amountText) ??
+                                                                            0;
+                                                                    if (method ==
+                                                                            null ||
+                                                                        method
+                                                                            .isEmpty) {
+                                                                      showToast(
+                                                                          "Please select a payment method for split #${i + 1}",
+                                                                          context,
+                                                                          color:
+                                                                              false);
+                                                                      return;
+                                                                    }
 
-                                                              final orderPayload =
-                                                                  buildOrderPayload(
-                                                                postAddToBillingModel:
-                                                                    postAddToBillingModel,
-                                                                tableId:
-                                                                    selectDineIn ==
-                                                                            true
-                                                                        ? tableId
-                                                                        : null,
-                                                                orderStatus:
-                                                                    'COMPLETED',
-                                                                orderType: selectDineIn ==
-                                                                        true
-                                                                    ? 'DINE-IN'
-                                                                    : 'TAKE-AWAY',
-                                                                payments:
-                                                                    payments,
-                                                              );
+                                                                    payments
+                                                                        .add({
+                                                                      "amount":
+                                                                          amount,
+                                                                      "balanceAmount":
+                                                                          0,
+                                                                      "method":
+                                                                          method
+                                                                              .toUpperCase(),
+                                                                    });
+                                                                  }
+                                                                } else {
+                                                                  payments = [
+                                                                    {
+                                                                      "amount": (postAddToBillingModel.total ??
+                                                                              0)
+                                                                          .toDouble(),
+                                                                      "balanceAmount":
+                                                                          0,
+                                                                      "method":
+                                                                          selectedFullPaymentMethod
+                                                                              .toUpperCase(),
+                                                                    }
+                                                                  ];
+                                                                }
 
-                                                              debugPrint(
-                                                                  'Sending order: ${jsonEncode(orderPayload)}');
-                                                              setState(() {
-                                                                completeLoad =
-                                                                    true;
-                                                              });
-                                                              context
-                                                                  .read<
-                                                                      FoodCategoryBloc>()
-                                                                  .add(UpdateOrder(
-                                                                      jsonEncode(
-                                                                          orderPayload),
-                                                                      widget
-                                                                          .existingOrder!
-                                                                          .data!
-                                                                          .id));
+                                                                final orderPayload =
+                                                                    buildOrderPayload(
+                                                                  postAddToBillingModel:
+                                                                      postAddToBillingModel,
+                                                                  tableId: selectDineIn ==
+                                                                          true
+                                                                      ? tableId
+                                                                      : null,
+                                                                  orderStatus:
+                                                                      'COMPLETED',
+                                                                  orderType: selectDineIn ==
+                                                                          true
+                                                                      ? 'DINE-IN'
+                                                                      : 'TAKE-AWAY',
+                                                                  payments:
+                                                                      payments,
+                                                                );
+
+                                                                debugPrint(
+                                                                    'Sending order: ${jsonEncode(orderPayload)}');
+                                                                setState(() {
+                                                                  completeLoad =
+                                                                      true;
+                                                                });
+                                                                context
+                                                                    .read<
+                                                                        FoodCategoryBloc>()
+                                                                    .add(UpdateOrder(
+                                                                        jsonEncode(
+                                                                            orderPayload),
+                                                                        widget
+                                                                            .existingOrder!
+                                                                            .data!
+                                                                            .id));
+                                                                balance = 0;
+                                                              }
                                                             }
                                                           },
                                                           style: ElevatedButton
@@ -2967,7 +3263,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
             billingItems.clear();
             selectedValue = null;
             tableId = null;
-            isCompleteOrder = false; // This was setting it to false!
+            isCompleteOrder = false;
             isSplitPayment = false;
             amountController.clear();
             selectedFullPaymentMethod = "";
