@@ -48,7 +48,7 @@ class _MyAppState extends State<MyApp> {
       return OverlaySupport.global(
         child: MaterialApp(
             debugShowCheckedModeBanner: false,
-            title: 'Roja Restaurant',
+            title: 'Indian Restaurants',
             theme: ThemeData(
               primaryColor: appPrimaryColor,
               unselectedWidgetColor: appPrimaryColor,

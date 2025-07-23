@@ -79,6 +79,7 @@ class Data {
     String? name,
     bool? isAvailable,
     String? image,
+    num? sortOrder,
     String? createdBy,
     String? createdAt,
     String? updatedAt,
@@ -89,6 +90,7 @@ class Data {
     _name = name;
     _isAvailable = isAvailable;
     _image = image;
+    _sortOrder = sortOrder;
     _createdBy = createdBy;
     _createdAt = createdAt;
     _updatedAt = updatedAt;
@@ -101,6 +103,7 @@ class Data {
     _name = json['name'];
     _isAvailable = json['isAvailable'];
     _image = json['image'];
+    _sortOrder = json['sortOrder'];
     _createdBy = json['createdBy'];
     _createdAt = json['createdAt'];
     _updatedAt = json['updatedAt'];
@@ -111,6 +114,7 @@ class Data {
   String? _name;
   bool? _isAvailable;
   String? _image;
+  num? _sortOrder;
   String? _createdBy;
   String? _createdAt;
   String? _updatedAt;
@@ -121,6 +125,7 @@ class Data {
     String? name,
     bool? isAvailable,
     String? image,
+    num? sortOrder,
     String? createdBy,
     String? createdAt,
     String? updatedAt,
@@ -132,6 +137,7 @@ class Data {
         name: name ?? _name,
         isAvailable: isAvailable ?? _isAvailable,
         image: image ?? _image,
+        sortOrder: sortOrder ?? _sortOrder,
         createdBy: createdBy ?? _createdBy,
         createdAt: createdAt ?? _createdAt,
         updatedAt: updatedAt ?? _updatedAt,
@@ -142,6 +148,7 @@ class Data {
   String? get name => _name;
   bool? get isAvailable => _isAvailable;
   String? get image => _image;
+  num? get sortOrder => _sortOrder;
   String? get createdBy => _createdBy;
   String? get createdAt => _createdAt;
   String? get updatedAt => _updatedAt;
@@ -154,6 +161,7 @@ class Data {
     map['name'] = _name;
     map['isAvailable'] = _isAvailable;
     map['image'] = _image;
+    map['sortOrder'] = _sortOrder;
     map['createdBy'] = _createdBy;
     map['createdAt'] = _createdAt;
     map['updatedAt'] = _updatedAt;

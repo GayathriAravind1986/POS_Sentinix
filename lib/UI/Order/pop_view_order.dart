@@ -237,7 +237,9 @@ Thank you!
                                 .replaceAll('\r\n', '\n')
                                 .replaceAll('\r', '\n');
                             await printerService.printText(receipt);
-                            await Future.delayed(Duration(milliseconds: 300));
+                            receipt += '\n\n\n\n\n';
+                            Navigator.pop(context);
+                            await Future.delayed(Duration(seconds: 2));
                             await printerService.fullCut();
                           },
                           style: ElevatedButton.styleFrom(

@@ -56,13 +56,15 @@ class OrderViewViewState extends State<OrderViewView> {
   bool orderLoad = false;
   bool view = false;
   final todayDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+  final yesterdayDate = DateFormat('yyyy-MM-dd')
+      .format(DateTime.now().subtract(Duration(days: 1)));
   String? fromDate;
   String? type;
 
   void refreshOrders() {
     if (!mounted || !context.mounted) return;
     context.read<OrderTodayBloc>().add(
-          OrderTodayList(todayDate, todayDate),
+          OrderTodayList(yesterdayDate, todayDate),
         );
     setState(() {
       orderLoad = true;
@@ -76,7 +78,7 @@ class OrderViewViewState extends State<OrderViewView> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         widget.orderAllKey?.currentState?.refreshOrders();
         context.read<OrderTodayBloc>().add(
-              OrderTodayList(todayDate, todayDate),
+              OrderTodayList(yesterdayDate, todayDate),
             );
         setState(() {
           orderLoad = true;
@@ -84,7 +86,7 @@ class OrderViewViewState extends State<OrderViewView> {
       });
     } else {
       context.read<OrderTodayBloc>().add(
-            OrderTodayList(todayDate, todayDate),
+            OrderTodayList(yesterdayDate, todayDate),
           );
       setState(() {
         orderLoad = true;
@@ -336,7 +338,7 @@ class OrderViewViewState extends State<OrderViewView> {
                 if (value == true) {
                   context
                       .read<OrderTodayBloc>()
-                      .add(OrderTodayList(todayDate, todayDate));
+                      .add(OrderTodayList(yesterdayDate, todayDate));
                 }
               });
             }

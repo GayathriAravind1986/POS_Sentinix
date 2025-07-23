@@ -13,6 +13,7 @@ import 'package:simple/ModelClass/Order/Get_view_order_model.dart';
 import 'package:simple/ModelClass/Order/Post_generate_order_model.dart';
 import 'package:simple/ModelClass/Order/Update_generate_order_model.dart';
 import 'package:simple/ModelClass/Order/get_order_list_today_model.dart';
+import 'package:simple/ModelClass/ShopDetails/get_shop_details_model.dart';
 import 'package:simple/Reusable/constant.dart';
 
 import '../ModelClass/Table/Get_table_model.dart';
@@ -197,6 +198,47 @@ class ApiProvider {
       }
     } catch (error) {
       return GetTableModel()..errorResponse = handleError(error);
+    }
+  }
+
+  /// Shop Details - Fetch API Integration
+  Future<GetShopDetailsModel> getShopDetailsAPI() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var token = sharedPreferences.getString("token");
+    try {
+      var dio = Dio();
+      var response = await dio.request(
+        '${Constants.baseUrl}api/shops',
+        options: Options(
+          method: 'GET',
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        if (response.data['success'] == true) {
+          GetShopDetailsModel getShopDetailsResponse =
+              GetShopDetailsModel.fromJson(response.data);
+          return getShopDetailsResponse;
+        }
+      } else {
+        return GetShopDetailsModel()
+          ..errorResponse = ErrorResponse(
+            message: "Error: ${response.data['message'] ?? 'Unknown error'}",
+          );
+      }
+      return GetShopDetailsModel()
+        ..errorResponse = ErrorResponse(message: "Unexpected error occurred.");
+    } on DioException catch (dioError) {
+      if (dioError.response?.statusCode == 401) {
+        return GetShopDetailsModel()
+          ..errorResponse = ErrorResponse(message: "Invalid Credential");
+      } else {
+        return GetShopDetailsModel()..errorResponse = handleError(dioError);
+      }
+    } catch (error) {
+      return GetShopDetailsModel()..errorResponse = handleError(error);
     }
   }
 

@@ -27,7 +27,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         child: Row(
           children: [
             Text(
-              'Roja Restaurant',
+              'Indian Restaurants',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,

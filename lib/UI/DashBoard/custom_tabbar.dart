@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:simple/Alertbox/AlertDialogBox.dart';
+import 'package:simple/Bloc/Category/category_bloc.dart';
 import 'package:simple/Bloc/demo/demo_bloc.dart';
 import 'package:simple/ModelClass/Order/Get_view_order_model.dart';
 import 'package:simple/UI/CustomAppBar/custom_appbar.dart';
@@ -47,8 +48,11 @@ class DashBoard extends StatefulWidget {
 class _DashBoardState extends State<DashBoard> {
   final GlobalKey<OrderViewViewState> orderAllTabKey =
       GlobalKey<OrderViewViewState>();
+  final GlobalKey<FoodOrderingScreenViewState> foodKey =
+      GlobalKey<FoodOrderingScreenViewState>();
   int selectedIndex = 0;
   bool orderLoad = false;
+  bool hasRefreshedOrder = false;
 
   @override
   void initState() {
@@ -61,7 +65,18 @@ class _DashBoardState extends State<DashBoard> {
   void _refreshOrders() {
     final orderAllTabState = orderAllTabKey.currentState;
     if (orderAllTabState != null) {
+      debugPrint("foodKeyState exists, calling refreshOrder()");
       orderAllTabState.refreshOrders();
+    }
+  }
+
+  void _refreshHome() {
+    final foodKeyState = foodKey.currentState;
+    if (foodKeyState != null) {
+      debugPrint("foodKeyState exists, calling refreshHome()");
+      foodKeyState?.refreshHome();
+    } else {
+      debugPrint("foodKeyState is NULL — check if key is assigned properly");
     }
   }
 
@@ -75,7 +90,13 @@ class _DashBoardState extends State<DashBoard> {
             setState(() {
               selectedIndex = index;
             });
+            if (index == 0 && !hasRefreshedOrder) {
+              hasRefreshedOrder = true;
+              WidgetsBinding.instance
+                  .addPostFrameCallback((_) => _refreshHome());
+            }
             if (index == 1) {
+              hasRefreshedOrder = false;
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 _refreshOrders();
               });
@@ -88,10 +109,24 @@ class _DashBoardState extends State<DashBoard> {
         body: IndexedStack(
           index: selectedIndex,
           children: [
-            FoodOrderingScreen(
-              existingOrder: widget.existingOrder,
-              isEditingOrder: widget.isEditingOrder,
-            ),
+            hasRefreshedOrder == true
+                ? BlocProvider(
+                    create: (_) => FoodCategoryBloc(),
+                    child: FoodOrderingScreenView(
+                      key: foodKey,
+                      existingOrder: widget.existingOrder,
+                      isEditingOrder: widget.isEditingOrder,
+                      hasRefreshedOrder: hasRefreshedOrder,
+                    ))
+                : BlocProvider(
+                    create: (_) => FoodCategoryBloc(),
+                    child: FoodOrderingScreen(
+                      key: foodKey,
+                      existingOrder: widget.existingOrder,
+                      isEditingOrder: widget.isEditingOrder,
+                      hasRefreshedOrder: hasRefreshedOrder,
+                    ),
+                  ),
             OrdersTabbedScreen(
               key: PageStorageKey('OrdersTabbedScreen'),
               orderAllKey: orderAllTabKey,

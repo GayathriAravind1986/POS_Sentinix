@@ -67,7 +67,7 @@ class LoginScreenViewState extends State<LoginScreenView> {
                 decoration: BoxDecoration(
                   color: whiteColor,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: blueColor),
+                  border: Border.all(color: appPrimaryColor),
                   boxShadow: [
                     BoxShadow(
                       color: blackColor12,
@@ -81,7 +81,7 @@ class LoginScreenViewState extends State<LoginScreenView> {
                   children: [
                     // Title
                     Text(
-                      'Roja Restaurant',
+                      'Indian Restaurants',
                       style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
