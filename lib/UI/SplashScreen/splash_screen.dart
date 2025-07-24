@@ -16,26 +16,46 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation _animation;
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
+  late Animation<double> _scaleAnimation;
   dynamic token;
 
-  getToken() async {
+  @override
+  void initState() {
+    super.initState();
+    callApis();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    );
+
+    _scaleAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.5,
+    ).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeOut,
+      ),
+    );
+
+    _controller.forward();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Timer(const Duration(seconds: 2), () => onTimerFinished());
+    });
+  }
+
+  Future<void> callApis() async {
+    await getToken();
+  }
+
+  Future<void> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       token = prefs.getString("token");
     });
-    debugPrint("SplashToken:$token");
-  }
-
-  callApis() async {
-    await getToken();
+    debugPrint("SplashToken: $token");
   }
 
   void onTimerFinished() {
@@ -45,79 +65,56 @@ class _SplashScreenState extends State<SplashScreen>
               context,
               MaterialPageRoute(
                 builder: (context) => const LoginScreen(),
-              ))
+              ),
+            )
           : Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(
-                  builder: (context) => const DashBoardScreen(
-                        selectTab: 0,
-                      )),
-              (Route<dynamic> route) => false);
+                builder: (context) => const DashBoardScreen(selectTab: 0),
+              ),
+              (Route<dynamic> route) => false,
+            );
     }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
+
     return Scaffold(
-        backgroundColor: whiteColor,
-        body: Stack(
-          children: [
-            Container(
-              height: size.height,
-              width: size.width,
-              decoration: const BoxDecoration(
-                color: whiteColor,
-              ),
-            ),
-            Center(
-                child: AnimatedBuilder(
+      backgroundColor: whiteColor,
+      body: Stack(
+        children: [
+          Container(
+            height: size.height,
+            width: size.width,
+            color: whiteColor,
+          ),
+          Center(
+            child: AnimatedBuilder(
               animation: _controller,
-              child: Container(
-                width: 10,
-                height: 10,
-                color: Colors.transparent,
-                child: Center(
-                  child: Image.asset(
-                    Images.logoWithName,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
-              builder: (BuildContext context, Widget? child) {
+              builder: (context, child) {
                 return Transform.scale(
-                  scale: _animation.value,
-                  child: Transform.rotate(
-                    origin: Offset.zero,
-                    angle: _controller.value * 8,
+                  scale: _scaleAnimation.value,
+                  child: Opacity(
+                    opacity: _controller.value,
                     child: child,
                   ),
                 );
               },
-            )),
-          ],
-        ));
-  }
-
-  @override
-  void initState() {
-    callApis();
-    super.initState();
-
-    _controller = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 2000));
-    _animation = Tween<double>(
-      begin: 500,
-      end: 0,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.ease,
+              child: Image.asset(
+                Images.logoWithName,
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+        ],
       ),
     );
-    _controller.forward();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Timer(const Duration(seconds: 2), () => onTimerFinished());
-    });
   }
 }

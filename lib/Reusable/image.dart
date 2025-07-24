@@ -1,4 +1,4 @@
 class Images {
-  static const String logoWithName = 'assets/image/sentinix_logo.png';
+  static const String logoWithName = 'assets/image/logo.jpg';
   static const String all = 'assets/image/all.png';
 }

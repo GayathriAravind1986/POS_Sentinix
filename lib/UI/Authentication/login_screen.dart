@@ -5,6 +5,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:simple/Alertbox/snackBarAlert.dart';
 import 'package:simple/Bloc/Authentication/login_bloc.dart';
 import 'package:simple/ModelClass/Authentication/Post_login_model.dart';
+import 'package:simple/ModelClass/ShopDetails/get_shop_details_without_token_model.dart';
 import 'package:simple/Reusable/color.dart';
 import 'package:simple/Reusable/customTextfield.dart';
 import 'package:simple/Reusable/space.dart';
@@ -35,6 +36,9 @@ class LoginScreenView extends StatefulWidget {
 
 class LoginScreenViewState extends State<LoginScreenView> {
   PostLoginModel postLoginModel = PostLoginModel();
+  GetShopDetailsWithoutTokenModel getShopDetailsModel =
+      GetShopDetailsWithoutTokenModel();
+
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   TextEditingController email = TextEditingController();
   TextEditingController password = TextEditingController();
@@ -42,9 +46,13 @@ class LoginScreenViewState extends State<LoginScreenView> {
   String? errorMessage;
   var showPassword = true;
   bool loginLoad = false;
+  bool appbarLoad = false;
+
   @override
   void initState() {
     super.initState();
+    context.read<LoginInBloc>().add(ShopDetails());
+    appbarLoad = true;
   }
 
   @override
@@ -56,140 +64,143 @@ class LoginScreenViewState extends State<LoginScreenView> {
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
     Widget mainContainer() {
-      return Form(
-        key: _formKey,
-        child: Stack(
-          children: [
-            Center(
-              child: Container(
-                width: size.width * 0.5,
-                padding: EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: whiteColor,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: appPrimaryColor),
-                  boxShadow: [
-                    BoxShadow(
-                      color: blackColor12,
-                      blurRadius: 8,
-                      offset: Offset(0, 4),
-                    )
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Title
-                    Text(
-                      'Indian Restaurants',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: appPrimaryColor,
+      return getShopDetailsModel.data == null
+          ? Container()
+          : Form(
+              key: _formKey,
+              child: Stack(
+                children: [
+                  Center(
+                    child: Container(
+                      width: size.width * 0.5,
+                      padding: EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: whiteColor,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: appPrimaryColor),
+                        boxShadow: [
+                          BoxShadow(
+                            color: blackColor12,
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          )
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            getShopDetailsModel.data!.name ?? "",
+                            style: TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.bold,
+                              color: appPrimaryColor,
+                            ),
+                          ),
+                          SizedBox(height: 16),
+
+                          // Subtitle
+                          Text('Sign in to start your session'),
+                          SizedBox(height: 12),
+
+                          // Email field
+                          CustomTextField(
+                              hint: "Email Address",
+                              readOnly: false,
+                              controller: email,
+                              baseColor: appPrimaryColor,
+                              borderColor: appGreyColor,
+                              errorColor: redColor,
+                              inputType: TextInputType.text,
+                              showSuffixIcon: false,
+                              FTextInputFormatter:
+                                  FilteringTextInputFormatter.allow(
+                                      RegExp("[a-zA-Z0-9.@]")),
+                              obscureText: false,
+                              maxLength: 30,
+                              onChanged: (val) {
+                                _formKey.currentState!.validate();
+                              },
+                              validator: (value) {
+                                if (value != null) {
+                                  if (value.isEmpty) {
+                                    return 'Please enter your email';
+                                  } else if (!emailRegex.hasMatch(value)) {
+                                    return 'Please enter valid email';
+                                  } else {
+                                    return null;
+                                  }
+                                }
+                                return null;
+                              }),
+                          SizedBox(height: 12),
+
+                          // Password field
+                          CustomTextField(
+                              hint: "Password",
+                              readOnly: false,
+                              controller: password,
+                              baseColor: appPrimaryColor,
+                              borderColor: appGreyColor,
+                              errorColor: redColor,
+                              inputType: TextInputType.text,
+                              obscureText: showPassword,
+                              showSuffixIcon: true,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  showPassword
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                  color: appGreyColor,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    showPassword = !showPassword;
+                                  });
+                                },
+                              ),
+                              maxLength: 80,
+                              onChanged: (val) {
+                                _formKey.currentState!.validate();
+                              },
+                              validator: (value) {
+                                if (value != null) {
+                                  if (value.isEmpty) {
+                                    return 'Please enter your password';
+                                  } else {
+                                    return null;
+                                  }
+                                }
+                                return null;
+                              }),
+                          SizedBox(height: 12),
+                          loginLoad
+                              ? const SpinKitCircle(
+                                  color: appPrimaryColor, size: 30)
+                              : InkWell(
+                                  onTap: () {
+                                    if (_formKey.currentState!.validate()) {
+                                      setState(() {
+                                        loginLoad = true;
+                                      });
+                                      context.read<LoginInBloc>().add(LoginIn(
+                                            email.text,
+                                            password.text,
+                                          ));
+                                    }
+                                  },
+                                  child: appButton(
+                                      height: 50,
+                                      width: size.width * 0.85,
+                                      buttonText: "Login"),
+                                ),
+                        ],
                       ),
                     ),
-                    SizedBox(height: 16),
-
-                    // Subtitle
-                    Text('Sign in to start your session'),
-                    SizedBox(height: 12),
-
-                    // Email field
-                    CustomTextField(
-                        hint: "Email Address",
-                        readOnly: false,
-                        controller: email,
-                        baseColor: appPrimaryColor,
-                        borderColor: appGreyColor,
-                        errorColor: redColor,
-                        inputType: TextInputType.text,
-                        showSuffixIcon: false,
-                        FTextInputFormatter: FilteringTextInputFormatter.allow(
-                            RegExp("[a-zA-Z0-9.@]")),
-                        obscureText: false,
-                        maxLength: 30,
-                        onChanged: (val) {
-                          _formKey.currentState!.validate();
-                        },
-                        validator: (value) {
-                          if (value != null) {
-                            if (value.isEmpty) {
-                              return 'Please enter your email';
-                            } else if (!emailRegex.hasMatch(value)) {
-                              return 'Please enter valid email';
-                            } else {
-                              return null;
-                            }
-                          }
-                          return null;
-                        }),
-                    SizedBox(height: 12),
-
-                    // Password field
-                    CustomTextField(
-                        hint: "Password",
-                        readOnly: false,
-                        controller: password,
-                        baseColor: appPrimaryColor,
-                        borderColor: appGreyColor,
-                        errorColor: redColor,
-                        inputType: TextInputType.text,
-                        obscureText: showPassword,
-                        showSuffixIcon: true,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            showPassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                            color: appGreyColor,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              showPassword = !showPassword;
-                            });
-                          },
-                        ),
-                        maxLength: 80,
-                        onChanged: (val) {
-                          _formKey.currentState!.validate();
-                        },
-                        validator: (value) {
-                          if (value != null) {
-                            if (value.isEmpty) {
-                              return 'Please enter your password';
-                            } else {
-                              return null;
-                            }
-                          }
-                          return null;
-                        }),
-                    SizedBox(height: 12),
-                    loginLoad
-                        ? const SpinKitCircle(color: appPrimaryColor, size: 30)
-                        : InkWell(
-                            onTap: () {
-                              if (_formKey.currentState!.validate()) {
-                                setState(() {
-                                  loginLoad = true;
-                                });
-                                context.read<LoginInBloc>().add(LoginIn(
-                                      email.text,
-                                      password.text,
-                                    ));
-                              }
-                            },
-                            child: appButton(
-                                height: 50,
-                                width: size.width * 0.85,
-                                buttonText: "Login"),
-                          ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
-      );
+            );
     }
 
     return Scaffold(
@@ -221,6 +232,20 @@ class LoginScreenViewState extends State<LoginScreenView> {
                 setState(() {
                   loginLoad = false;
                 });
+              }
+              return true;
+            }
+            if (current is GetShopDetailsWithoutTokenModel) {
+              getShopDetailsModel = current;
+              if (getShopDetailsModel.success == true) {
+                setState(() {
+                  appbarLoad = false;
+                });
+              } else {
+                setState(() {
+                  appbarLoad = false;
+                });
+                showToast("ShopName not found", context, color: false);
               }
               return true;
             }

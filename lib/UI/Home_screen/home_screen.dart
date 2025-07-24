@@ -73,7 +73,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
   PostAddToBillingModel postAddToBillingModel = PostAddToBillingModel();
   PostGenerateOrderModel postGenerateOrderModel = PostGenerateOrderModel();
   GetTableModel getTableModel = GetTableModel();
-  GetShopDetailsModel getShopDetailsModel = GetShopDetailsModel();
   UpdateGenerateOrderModel updateGenerateOrderModel =
       UpdateGenerateOrderModel();
 
@@ -211,7 +210,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
           FoodProductItem(selectedCatId.toString(), searchController.text));
     }
     context.read<FoodCategoryBloc>().add(TableDine());
-    context.read<FoodCategoryBloc>().add(ShopDetails());
     setState(() {
       categoryLoad = true;
     });
@@ -416,10 +414,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                               ),
                             ),
                             displayedCategories.isEmpty
-                                ? Center(
-                                    child: Text("No category found",
-                                        style: MyTextStyle.f18(blackColor,
-                                            weight: FontWeight.bold)))
+                                ? Container()
                                 : SizedBox(
                                     height: size.height * 0.13,
                                     width: size.width * 0.6,
@@ -472,10 +467,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                   getProductByCatIdModel.rows == null ||
                                           getProductByCatIdModel.rows == [] ||
                                           getProductByCatIdModel.rows!.isEmpty
-                                      ? Center(
-                                          child: Text('No products found',
-                                              style: MyTextStyle.f18(blackColor,
-                                                  weight: FontWeight.bold)))
+                                      ? Container()
                                       : GridView.builder(
                                           padding: EdgeInsets.all(12),
                                           gridDelegate:
@@ -1756,6 +1748,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                                   setState(() {
                                                                                     billingItems.removeWhere((item) => item['_id'] == e.id);
                                                                                     context.read<FoodCategoryBloc>().add(AddToBilling(List.from(billingItems)));
+                                                                                    resetCartState();
                                                                                   });
                                                                                 },
                                                                               ),
@@ -3336,20 +3329,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
               categoryLoad = false;
             });
             showToast("No Tables found", context, color: false);
-          }
-          return true;
-        }
-        if (current is GetShopDetailsModel) {
-          getShopDetailsModel = current;
-          if (getShopDetailsModel.success == true) {
-            setState(() {
-              categoryLoad = false;
-            });
-          } else {
-            setState(() {
-              categoryLoad = false;
-            });
-            showToast("ShopName not found", context, color: false);
           }
           return true;
         }

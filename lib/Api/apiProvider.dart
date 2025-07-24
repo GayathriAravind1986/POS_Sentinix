@@ -14,6 +14,7 @@ import 'package:simple/ModelClass/Order/Post_generate_order_model.dart';
 import 'package:simple/ModelClass/Order/Update_generate_order_model.dart';
 import 'package:simple/ModelClass/Order/get_order_list_today_model.dart';
 import 'package:simple/ModelClass/ShopDetails/get_shop_details_model.dart';
+import 'package:simple/ModelClass/ShopDetails/get_shop_details_without_token_model.dart';
 import 'package:simple/Reusable/constant.dart';
 
 import '../ModelClass/Table/Get_table_model.dart';
@@ -239,6 +240,37 @@ class ApiProvider {
       }
     } catch (error) {
       return GetShopDetailsModel()..errorResponse = handleError(error);
+    }
+  }
+
+  /// shop details without token - API integration
+  Future<GetShopDetailsWithoutTokenModel>
+      getShopDetailsWithoutTokenAPI() async {
+    try {
+      var dio = Dio();
+      var response = await dio.request(
+        '${Constants.baseUrl}api/shops/getall',
+        options: Options(
+          method: 'GET',
+        ),
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        if (response.data['success'] == true) {
+          GetShopDetailsWithoutTokenModel getShopDetailsWithoutTokenResponse =
+              GetShopDetailsWithoutTokenModel.fromJson(response.data);
+          return getShopDetailsWithoutTokenResponse;
+        }
+      } else {
+        return GetShopDetailsWithoutTokenModel()
+          ..errorResponse = ErrorResponse(
+            message: "Error: ${response.data['message'] ?? 'Unknown error'}",
+          );
+      }
+      return GetShopDetailsWithoutTokenModel()
+        ..errorResponse = ErrorResponse(message: "Unexpected error occurred.");
+    } catch (error) {
+      return GetShopDetailsWithoutTokenModel()
+        ..errorResponse = handleError(error);
     }
   }
 
