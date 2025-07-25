@@ -38,6 +38,21 @@ String formatReceiptForMiniPrinter(dynamic order, dynamic invoice) {
     return ' ' * leftPadding + text;
   }
 
+  String formatAddress(String rawAddress, int lineWidth) {
+    List<String> addressLines = [];
+
+    for (int i = 0; i < rawAddress.length; i += lineWidth) {
+      int end = (i + lineWidth < rawAddress.length)
+          ? i + lineWidth
+          : rawAddress.length;
+      String line = rawAddress.substring(i, end);
+      int padding = ((lineWidth - line.length) / 2).floor();
+      addressLines.add(' ' * padding + line);
+    }
+
+    return addressLines.join('\n');
+  }
+
   String formatAmountRow(String label, double amount, {bool isBold = false}) {
     String amountStr = '₹${amount.toStringAsFixed(2)}';
     int totalWidth = 32;
@@ -55,19 +70,37 @@ String formatReceiptForMiniPrinter(dynamic order, dynamic invoice) {
     String priceStr = '₹${price.toStringAsFixed(2)}';
     String totalStr = '₹${total.toStringAsFixed(2)}';
 
-    int nameWidth = 16; // width for name
-    int qtyWidth = 3;
-    int priceWidth = 8;
-    int totalWidth = 8;
+    int nameWidth = 14;
+    int qtyWidth = 4;
+    int priceWidth = 7;
+    int totalWidth = 7;
 
-    String truncatedName =
-        name.length > nameWidth ? '${name.substring(0, nameWidth - 1)}…' : name;
-    String paddedName = truncatedName.padRight(nameWidth);
+    // Split name into chunks of `nameWidth`
+    List<String> nameLines = [];
+    for (int i = 0; i < name.length; i += nameWidth) {
+      int end = (i + nameWidth < name.length) ? i + nameWidth : name.length;
+      nameLines.add(name.substring(i, end));
+    }
+
+    // Prepare aligned first line
     String paddedQty = qtyStr.padLeft(qtyWidth);
     String paddedPrice = priceStr.padLeft(priceWidth);
     String paddedTotal = totalStr.padLeft(totalWidth);
 
-    return '$paddedName $paddedQty $paddedPrice $paddedTotal';
+    // Combine
+    String result = '';
+    for (int i = 0; i < nameLines.length; i++) {
+      if (i == 0) {
+        // First line with qty/price/total
+        String paddedName = nameLines[i].padRight(nameWidth);
+        result += '$paddedName$paddedQty$paddedPrice$paddedTotal';
+      } else {
+        // Remaining lines, only show name
+        result += '\n${nameLines[i]}';
+      }
+    }
+
+    return result;
   }
 
   String formatOrderItems(dynamic order) {
@@ -126,8 +159,11 @@ String formatReceiptForMiniPrinter(dynamic order, dynamic invoice) {
         getProperty(order, 'orderNumber', 'N/A')?.toString() ?? 'N/A';
     String orderType =
         getProperty(order, 'orderType', 'TAKE-AWAY')?.toString() ?? 'TAKE-AWAY';
+    String formattedOrderType =
+        orderType == 'DINE-IN' ? 'DINE-IN' : 'TAKE-AWAY';
     String tableName =
-        getProperty(order, 'tableName', 'N/A')?.toString() ?? 'N/A';
+        getProperty(invoice, 'tableName', 'N/A')?.toString() ?? 'N/A';
+    String formattedTableName = orderType == 'DINE-IN' ? tableName : 'N/A';
     double subtotal = (getProperty(order, 'subtotal', 0.0) ?? 0.0).toDouble();
     double tax = (getProperty(order, 'tax', 0.0) ?? 0.0).toDouble();
     double total = (getProperty(order, 'total', 0.0) ?? 0.0).toDouble();
@@ -137,9 +173,10 @@ String formatReceiptForMiniPrinter(dynamic order, dynamic invoice) {
             'Restaurant';
     String address =
         getProperty(invoice, 'address', 'N/A')?.toString() ?? 'N/A';
+
     String phone = getProperty(invoice, 'phone', 'N/A')?.toString() ?? 'N/A';
-    String gstNumber =
-        getProperty(invoice, 'gstNumber', 'N/A')?.toString() ?? 'N/A';
+    // String gstNumber =
+    //     getProperty(invoice, 'gstNumber', 'N/A')?.toString() ?? 'N/A';
     String paidBy =
         getProperty(invoice, 'paidBy', 'Cash')?.toString() ?? 'Cash';
 
@@ -165,19 +202,20 @@ String formatReceiptForMiniPrinter(dynamic order, dynamic invoice) {
       formattedDate = DateFormat('dd/MM/yyyy hh:mm a').format(DateTime.now());
     }
     String headerRow =
-        '${'Item'.padRight(16)} ${'Qty'.padLeft(3)} ${'Price'.padLeft(8)} ${'Total'.padLeft(8)}';
+        '${'Item'.padRight(14)} ${'Qty'.padLeft(4)} ${'Price'.padLeft(7)} ${'Total'.padLeft(7)}';
+    String bold(String text) => '\x1B\x45\x01$text\x1B\x45\x00';
 
     String separator = '-' * headerRow.length;
     String receipt = '''
+${centerText(bold("ஒரே ஒரு முறை சுவைத்து பாருங்கள்"), 28)}
 ${centerText(businessName, 32)}
-${centerText(address, 32)}
+${formatAddress(address, 32)}
 ${centerText("Phone: $phone", 32)}
-${centerText("GST: $gstNumber", 32)}
 
 Order#: $orderNumber
 $formattedDate
-Type: $orderType
-Table: ${orderType == 'DINE-IN' ? tableName : 'N/A'}
+Type: $formattedOrderType
+Table: $formattedTableName
 
 $separator
 $headerRow

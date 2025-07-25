@@ -39,6 +39,7 @@ class _OrderInvoiceDialogState extends State<OrderInvoiceDialog> {
   @override
   Widget build(BuildContext context) {
     final invoice = widget.getViewOrderModel.data!.invoice;
+    var size = MediaQuery.of(context).size;
     return widget.getViewOrderModel.data == null
         ? Container(
             padding:
@@ -75,10 +76,22 @@ class _OrderInvoiceDialogState extends State<OrderInvoiceDialog> {
                     ])),
                     const SizedBox(height: 4),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Address:",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text(invoice.address ?? 'N/A'),
+                        Text(
+                          "Address: ",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            invoice.address ?? 'N/A',
+                            style: TextStyle(color: Colors.black),
+                            softWrap: true,
+                          ),
+                        ),
                       ],
                     ),
                     Row(
@@ -88,13 +101,13 @@ class _OrderInvoiceDialogState extends State<OrderInvoiceDialog> {
                         Text(invoice.phone ?? 'N/A'),
                       ],
                     ),
-                    Row(
-                      children: [
-                        Text("GST Number:",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text(invoice.gstNumber ?? 'N/A'),
-                      ],
-                    ),
+                    // Row(
+                    //   children: [
+                    //     Text("GST Number:",
+                    //         style: TextStyle(fontWeight: FontWeight.bold)),
+                    //     Text(invoice.gstNumber ?? 'N/A'),
+                    //   ],
+                    // ),
                     Row(
                       children: [
                         Text("Order ID:",
@@ -150,7 +163,7 @@ class _OrderInvoiceDialogState extends State<OrderInvoiceDialog> {
                     ...invoice.invoiceItems!.map((item) => Padding(
                           padding: const EdgeInsets.symmetric(vertical: 2),
                           child: Text(
-                            "${item.name} x${item.qty} - ${invoice.currencySymbol}${item.taxPrice!.toStringAsFixed(2)}${item.isAddon == true ? " (Addon)" : ""}",
+                            "${item.name} x${item.qty} - ${invoice.currencySymbol}${invoice.subtotal!.toStringAsFixed(2)}${item.isAddon == true ? " (Addon)" : ""}",
                             style: TextStyle(
                               color: item.isAddon == true
                                   ? greyColor[600]
@@ -229,7 +242,8 @@ Tax: ₹${order.tax!.toStringAsFixed(2)}
 Total: ₹${order.total!.toStringAsFixed(2)}
 -----------------------------
 Payment: ${invoice.paidBy}
-Thank you!
+Thank you! Visit Again 🙏
+\n\n\n\n\n
 ''';
 
                             await printerService.init();
@@ -237,7 +251,6 @@ Thank you!
                                 .replaceAll('\r\n', '\n')
                                 .replaceAll('\r', '\n');
                             await printerService.printText(receipt);
-                            receipt += '\n\n\n\n\n';
                             Navigator.pop(context);
                             await Future.delayed(Duration(seconds: 2));
                             await printerService.fullCut();

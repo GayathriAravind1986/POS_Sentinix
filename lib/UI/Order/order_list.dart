@@ -265,17 +265,18 @@ class OrderViewViewState extends State<OrderViewView> {
                                         },
                                       ),
                                       SizedBox(width: 4),
-                                      IconButton(
-                                        padding: EdgeInsets.zero,
-                                        constraints: BoxConstraints(),
-                                        icon: Icon(Icons.delete,
-                                            color: appPrimaryColor, size: 20),
-                                        onPressed: () {
-                                          context
-                                              .read<OrderTodayBloc>()
-                                              .add(DeleteOrder(order.id));
-                                        },
-                                      ),
+                                      if (order.orderStatus != 'COMPLETED')
+                                        IconButton(
+                                          padding: EdgeInsets.zero,
+                                          constraints: BoxConstraints(),
+                                          icon: Icon(Icons.delete,
+                                              color: appPrimaryColor, size: 20),
+                                          onPressed: () {
+                                            context
+                                                .read<OrderTodayBloc>()
+                                                .add(DeleteOrder(order.id));
+                                          },
+                                        ),
                                     ],
                                   ),
                                 ],

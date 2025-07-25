@@ -191,7 +191,7 @@ class Invoice {
     String? gstNumber,
     String? currencySymbol,
     String? printType,
-    List<Items>? items,
+    List<InvoiceItems>? invoiceItems,
     num? subtotal,
     num? salesTax,
     num? total,
@@ -200,7 +200,8 @@ class Invoice {
     String? date,
     String? paidBy,
     String? transactionId,
-    String? tableNo,
+    String? tableNum,
+    String? tableName,
   }) {
     _businessName = businessName;
     _address = address;
@@ -208,7 +209,7 @@ class Invoice {
     _gstNumber = gstNumber;
     _currencySymbol = currencySymbol;
     _printType = printType;
-    _items = items;
+    _invoiceItems = invoiceItems;
     _subtotal = subtotal;
     _salesTax = salesTax;
     _total = total;
@@ -217,7 +218,8 @@ class Invoice {
     _date = date;
     _paidBy = paidBy;
     _transactionId = transactionId;
-    _tableNo = tableNo;
+    _tableNum = tableNum;
+    _tableName = tableName;
   }
 
   Invoice.fromJson(dynamic json) {
@@ -227,10 +229,10 @@ class Invoice {
     _gstNumber = json['gstNumber'];
     _currencySymbol = json['currencySymbol'];
     _printType = json['printType'];
-    if (json['items'] != null) {
-      _items = [];
-      json['items'].forEach((v) {
-        _items?.add(Items.fromJson(v));
+    if (json['invoice_items'] != null) {
+      _invoiceItems = [];
+      json['invoice_items'].forEach((v) {
+        _invoiceItems?.add(InvoiceItems.fromJson(v));
       });
     }
     _subtotal = json['subtotal'];
@@ -241,7 +243,8 @@ class Invoice {
     _date = json['date'];
     _paidBy = json['paidBy'];
     _transactionId = json['transactionId'];
-    _tableNo = json['tableNo'];
+    _tableNum = json['tableNum'];
+    _tableName = json['tableName'];
   }
   String? _businessName;
   String? _address;
@@ -249,7 +252,7 @@ class Invoice {
   String? _gstNumber;
   String? _currencySymbol;
   String? _printType;
-  List<Items>? _items;
+  List<InvoiceItems>? _invoiceItems;
   num? _subtotal;
   num? _salesTax;
   num? _total;
@@ -258,7 +261,8 @@ class Invoice {
   String? _date;
   String? _paidBy;
   String? _transactionId;
-  String? _tableNo;
+  String? _tableNum;
+  String? _tableName;
   Invoice copyWith({
     String? businessName,
     String? address,
@@ -266,7 +270,7 @@ class Invoice {
     String? gstNumber,
     String? currencySymbol,
     String? printType,
-    List<Items>? items,
+    List<InvoiceItems>? invoiceItems,
     num? subtotal,
     num? salesTax,
     num? total,
@@ -275,7 +279,8 @@ class Invoice {
     String? date,
     String? paidBy,
     String? transactionId,
-    String? tableNo,
+    String? tableNum,
+    String? tableName,
   }) =>
       Invoice(
         businessName: businessName ?? _businessName,
@@ -284,7 +289,7 @@ class Invoice {
         gstNumber: gstNumber ?? _gstNumber,
         currencySymbol: currencySymbol ?? _currencySymbol,
         printType: printType ?? _printType,
-        items: items ?? _items,
+        invoiceItems: invoiceItems ?? _invoiceItems,
         subtotal: subtotal ?? _subtotal,
         salesTax: salesTax ?? _salesTax,
         total: total ?? _total,
@@ -293,7 +298,8 @@ class Invoice {
         date: date ?? _date,
         paidBy: paidBy ?? _paidBy,
         transactionId: transactionId ?? _transactionId,
-        tableNo: tableNo ?? _tableNo,
+        tableNum: tableNum ?? _tableNum,
+        tableName: tableName ?? _tableName,
       );
   String? get businessName => _businessName;
   String? get address => _address;
@@ -301,7 +307,7 @@ class Invoice {
   String? get gstNumber => _gstNumber;
   String? get currencySymbol => _currencySymbol;
   String? get printType => _printType;
-  List<Items>? get items => _items;
+  List<InvoiceItems>? get invoiceItems => _invoiceItems;
   num? get subtotal => _subtotal;
   num? get salesTax => _salesTax;
   num? get total => _total;
@@ -310,7 +316,8 @@ class Invoice {
   String? get date => _date;
   String? get paidBy => _paidBy;
   String? get transactionId => _transactionId;
-  String? get tableNo => _tableNo;
+  String? get tableNum => _tableNum;
+  String? get tableName => _tableName;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -320,8 +327,8 @@ class Invoice {
     map['gstNumber'] = _gstNumber;
     map['currencySymbol'] = _currencySymbol;
     map['printType'] = _printType;
-    if (_items != null) {
-      map['items'] = _items?.map((v) => v.toJson()).toList();
+    if (_invoiceItems != null) {
+      map['invoice_items'] = _invoiceItems?.map((v) => v.toJson()).toList();
     }
     map['subtotal'] = _subtotal;
     map['salesTax'] = _salesTax;
@@ -331,7 +338,8 @@ class Invoice {
     map['date'] = _date;
     map['paidBy'] = _paidBy;
     map['transactionId'] = _transactionId;
-    map['tableNo'] = _tableNo;
+    map['tableNum'] = _tableNum;
+    map['tableName'] = _tableName;
     return map;
   }
 }
@@ -342,63 +350,71 @@ class Invoice {
 /// taxPrice : 34.11021240191162
 /// totalPrice : 223.60021240191162
 
-// class Items {
-//   Items({
-//     String? name,
-//     num? basePrice,
-//     num? qty,
-//     num? taxPrice,
-//     num? totalPrice,
-//   }) {
-//     _name = name;
-//     _basePrice = basePrice;
-//     _qty = qty;
-//     _taxPrice = taxPrice;
-//     _totalPrice = totalPrice;
-//   }
-//
-//   Items.fromJson(dynamic json) {
-//     _name = json['name'];
-//     _basePrice = json['basePrice'];
-//     _qty = json['qty'];
-//     _taxPrice = json['taxPrice'];
-//     _totalPrice = json['totalPrice'];
-//   }
-//   String? _name;
-//   num? _basePrice;
-//   num? _qty;
-//   num? _taxPrice;
-//   num? _totalPrice;
-//   Items copyWith({
-//     String? name,
-//     num? basePrice,
-//     num? qty,
-//     num? taxPrice,
-//     num? totalPrice,
-//   }) =>
-//       Items(
-//         name: name ?? _name,
-//         basePrice: basePrice ?? _basePrice,
-//         qty: qty ?? _qty,
-//         taxPrice: taxPrice ?? _taxPrice,
-//         totalPrice: totalPrice ?? _totalPrice,
-//       );
-//   String? get name => _name;
-//   num? get basePrice => _basePrice;
-//   num? get qty => _qty;
-//   num? get taxPrice => _taxPrice;
-//   num? get totalPrice => _totalPrice;
-//
-//   Map<String, dynamic> toJson() {
-//     final map = <String, dynamic>{};
-//     map['name'] = _name;
-//     map['basePrice'] = _basePrice;
-//     map['qty'] = _qty;
-//     map['taxPrice'] = _taxPrice;
-//     map['totalPrice'] = _totalPrice;
-//     return map;
-//   }
-// }
+class InvoiceItems {
+  InvoiceItems({
+    String? name,
+    num? basePrice,
+    num? qty,
+    num? taxPrice,
+    num? totalPrice,
+    bool? isAddon,
+  }) {
+    _name = name;
+    _basePrice = basePrice;
+    _qty = qty;
+    _taxPrice = taxPrice;
+    _totalPrice = totalPrice;
+    _isAddon = isAddon;
+  }
+
+  InvoiceItems.fromJson(dynamic json) {
+    _name = json['name'];
+    _basePrice = json['basePrice'];
+    _qty = json['qty'];
+    _taxPrice = json['taxPrice'];
+    _totalPrice = json['totalPrice'];
+    _isAddon = json['isAddon'];
+  }
+  String? _name;
+  num? _basePrice;
+  num? _qty;
+  num? _taxPrice;
+  num? _totalPrice;
+  bool? _isAddon;
+  InvoiceItems copyWith({
+    String? name,
+    num? basePrice,
+    num? qty,
+    num? taxPrice,
+    num? totalPrice,
+    bool? isAddon,
+  }) =>
+      InvoiceItems(
+        name: name ?? _name,
+        basePrice: basePrice ?? _basePrice,
+        qty: qty ?? _qty,
+        taxPrice: taxPrice ?? _taxPrice,
+        totalPrice: totalPrice ?? _totalPrice,
+        isAddon: isAddon ?? _isAddon,
+      );
+  String? get name => _name;
+  num? get basePrice => _basePrice;
+  num? get qty => _qty;
+  num? get taxPrice => _taxPrice;
+  num? get totalPrice => _totalPrice;
+  bool? get isAddon => _isAddon;
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+    map['name'] = _name;
+    map['basePrice'] = _basePrice;
+    map['qty'] = _qty;
+    map['taxPrice'] = _taxPrice;
+    map['totalPrice'] = _totalPrice;
+    map['isAddon'] = _isAddon;
+    return map;
+  }
+}
 
 /// _id : "687641b8ff518ce12520c9b3"
 /// orderNumber : "ORD-20250715-0008"
@@ -414,6 +430,7 @@ class Order {
     String? orderNumber,
     List<Items>? items,
     num? subtotal,
+    String? orderType,
     num? tax,
     num? total,
     String? createdAt,
@@ -422,6 +439,7 @@ class Order {
     _orderNumber = orderNumber;
     _items = items;
     _subtotal = subtotal;
+    _orderType = orderType;
     _tax = tax;
     _total = total;
     _createdAt = createdAt;
@@ -437,6 +455,7 @@ class Order {
       });
     }
     _subtotal = json['subtotal'];
+    _orderType = json['orderType'];
     _tax = json['tax'];
     _total = json['total'];
     _createdAt = json['createdAt'];
@@ -445,6 +464,7 @@ class Order {
   String? _orderNumber;
   List<Items>? _items;
   num? _subtotal;
+  String? _orderType;
   num? _tax;
   num? _total;
   String? _createdAt;
@@ -453,6 +473,7 @@ class Order {
     String? orderNumber,
     List<Items>? items,
     num? subtotal,
+    String? orderType,
     num? tax,
     num? total,
     String? createdAt,
@@ -462,6 +483,7 @@ class Order {
         orderNumber: orderNumber ?? _orderNumber,
         items: items ?? _items,
         subtotal: subtotal ?? _subtotal,
+        orderType: orderType ?? _orderType,
         tax: tax ?? _tax,
         total: total ?? _total,
         createdAt: createdAt ?? _createdAt,
@@ -470,6 +492,7 @@ class Order {
   String? get orderNumber => _orderNumber;
   List<Items>? get items => _items;
   num? get subtotal => _subtotal;
+  String? get orderType => _orderType;
   num? get tax => _tax;
   num? get total => _total;
   String? get createdAt => _createdAt;
@@ -482,6 +505,7 @@ class Order {
       map['items'] = _items?.map((v) => v.toJson()).toList();
     }
     map['subtotal'] = _subtotal;
+    map['orderType'] = _orderType;
     map['tax'] = _tax;
     map['total'] = _total;
     map['createdAt'] = _createdAt;
