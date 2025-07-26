@@ -239,7 +239,8 @@ ${order.items!.map((item) => "${item.name} x${item.quantity}  ₹${item.subtotal
 -----------------------------
 Subtotal: ₹${order.subtotal!.toStringAsFixed(2)}
 Tax: ₹${order.tax!.toStringAsFixed(2)}
-Total: ₹${order.total!.toStringAsFixed(2)}
+Tips: ₹${order.tipAmount!.toStringAsFixed(2)}
+Total: ₹${(order.total! + order.tipAmount!).toStringAsFixed(2)}
 -----------------------------
 Payment: ${invoice.paidBy}
 Thank you! Visit Again 🙏

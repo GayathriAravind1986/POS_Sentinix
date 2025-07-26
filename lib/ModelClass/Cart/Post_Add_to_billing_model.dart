@@ -9,14 +9,18 @@ class PostAddToBillingModel {
   PostAddToBillingModel({
     List<Items>? items,
     num? subtotal,
+    num? totalDiscount,
     num? totalTax,
     num? total,
+    DiscountSummary? discountSummary,
     ErrorResponse? errorResponse,
   }) {
     _items = items;
     _subtotal = subtotal;
+    _totalDiscount = totalDiscount;
     _totalTax = totalTax;
     _total = total;
+    _discountSummary = discountSummary;
   }
 
   PostAddToBillingModel.fromJson(dynamic json) {
@@ -27,8 +31,12 @@ class PostAddToBillingModel {
       });
     }
     _subtotal = json['subtotal'];
+    _totalDiscount = json['totalDiscount'];
     _totalTax = json['totalTax'];
     _total = json['total'];
+    _discountSummary = json['discountSummary'] != null
+        ? DiscountSummary.fromJson(json['discountSummary'])
+        : null;
     if (json['errors'] != null && json['errors'] is Map<String, dynamic>) {
       errorResponse = ErrorResponse.fromJson(json['errors']);
     } else {
@@ -37,25 +45,33 @@ class PostAddToBillingModel {
   }
   List<Items>? _items;
   num? _subtotal;
+  num? _totalDiscount;
   num? _totalTax;
   num? _total;
+  DiscountSummary? _discountSummary;
   ErrorResponse? errorResponse;
   PostAddToBillingModel copyWith({
     List<Items>? items,
     num? subtotal,
+    num? totalDiscount,
     num? totalTax,
     num? total,
+    DiscountSummary? discountSummary,
   }) =>
       PostAddToBillingModel(
         items: items ?? _items,
         subtotal: subtotal ?? _subtotal,
+        totalDiscount: totalDiscount ?? _totalDiscount,
         totalTax: totalTax ?? _totalTax,
         total: total ?? _total,
+        discountSummary: discountSummary ?? _discountSummary,
       );
   List<Items>? get items => _items;
   num? get subtotal => _subtotal;
+  num? get totalDiscount => _totalDiscount;
   num? get totalTax => _totalTax;
   num? get total => _total;
+  DiscountSummary? get discountSummary => _discountSummary;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -63,8 +79,12 @@ class PostAddToBillingModel {
       map['items'] = _items?.map((v) => v.toJson()).toList();
     }
     map['subtotal'] = _subtotal;
+    map['totalDiscount'] = _totalDiscount;
     map['totalTax'] = _totalTax;
     map['total'] = _total;
+    if (_discountSummary != null) {
+      map['discountSummary'] = _discountSummary?.toJson();
+    }
     if (errorResponse != null) {
       map['errors'] = errorResponse!.toJson();
     }
@@ -82,6 +102,48 @@ class PostAddToBillingModel {
 /// appliedTaxes : [{"name":"CGST","percentage":9,"amount":10.8,"isInclusive":false},{"name":"SGST","percentage":9,"amount":10.8,"isInclusive":false}]
 /// hasAddons : false // Added this property
 /// addons : [] // Added this property
+class DiscountSummary {
+  DiscountSummary({
+    num? totalDiscountsApplied,
+    num? totalDiscountAmount,
+    num? averageDiscountPerItem,
+  }) {
+    _totalDiscountsApplied = totalDiscountsApplied;
+    _totalDiscountAmount = totalDiscountAmount;
+    _averageDiscountPerItem = averageDiscountPerItem;
+  }
+
+  DiscountSummary.fromJson(dynamic json) {
+    _totalDiscountsApplied = json['totalDiscountsApplied'];
+    _totalDiscountAmount = json['totalDiscountAmount'];
+    _averageDiscountPerItem = json['averageDiscountPerItem'];
+  }
+  num? _totalDiscountsApplied;
+  num? _totalDiscountAmount;
+  num? _averageDiscountPerItem;
+  DiscountSummary copyWith({
+    num? totalDiscountsApplied,
+    num? totalDiscountAmount,
+    num? averageDiscountPerItem,
+  }) =>
+      DiscountSummary(
+        totalDiscountsApplied: totalDiscountsApplied ?? _totalDiscountsApplied,
+        totalDiscountAmount: totalDiscountAmount ?? _totalDiscountAmount,
+        averageDiscountPerItem:
+            averageDiscountPerItem ?? _averageDiscountPerItem,
+      );
+  num? get totalDiscountsApplied => _totalDiscountsApplied;
+  num? get totalDiscountAmount => _totalDiscountAmount;
+  num? get averageDiscountPerItem => _averageDiscountPerItem;
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+    map['totalDiscountsApplied'] = _totalDiscountsApplied;
+    map['totalDiscountAmount'] = _totalDiscountAmount;
+    map['averageDiscountPerItem'] = _averageDiscountPerItem;
+    return map;
+  }
+}
 
 class Items {
   Items({

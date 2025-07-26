@@ -113,6 +113,7 @@ class Invoice {
     String? transactionId,
     String? tableNo,
     String? tableName,
+    num? tipAmount,
   }) {
     _businessName = businessName;
     _address = address;
@@ -131,6 +132,7 @@ class Invoice {
     _transactionId = transactionId;
     _tableNo = tableNo;
     _tableName = tableName;
+    _tipAmount = tipAmount;
   }
 
   Invoice.fromJson(dynamic json) {
@@ -156,6 +158,7 @@ class Invoice {
     _transactionId = json['transactionId'];
     _tableNo = json['tableNo'];
     _tableName = json['tableName'];
+    _tipAmount = json['tipAmount'];
   }
   String? _businessName;
   String? _address;
@@ -174,6 +177,7 @@ class Invoice {
   String? _transactionId;
   String? _tableNo;
   String? _tableName;
+  num? _tipAmount;
   Invoice copyWith({
     String? businessName,
     String? address,
@@ -192,6 +196,7 @@ class Invoice {
     String? transactionId,
     String? tableNo,
     String? tableName,
+    num? tipAmount,
   }) =>
       Invoice(
         businessName: businessName ?? _businessName,
@@ -211,6 +216,7 @@ class Invoice {
         transactionId: transactionId ?? _transactionId,
         tableNo: tableNo ?? _tableNo,
         tableName: tableName ?? _tableName,
+        tipAmount: tipAmount ?? _tipAmount,
       );
   String? get businessName => _businessName;
   String? get address => _address;
@@ -229,6 +235,7 @@ class Invoice {
   String? get transactionId => _transactionId;
   String? get tableNo => _tableNo;
   String? get tableName => _tableName;
+  num? get tipAmount => _tipAmount;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -251,6 +258,7 @@ class Invoice {
     map['transactionId'] = _transactionId;
     map['tableNo'] = _tableNo;
     map['tableName'] = _tableName;
+    map['tipAmount'] = _tipAmount;
     return map;
   }
 }

@@ -76,6 +76,9 @@ class Data {
     String? orderType,
     String? orderStatus,
     Operator? operator,
+    bool? isDiscountApplied,
+    num? discountAmount,
+    num? tipAmount,
     String? notes,
     String? createdAt,
     String? updatedAt,
@@ -94,6 +97,9 @@ class Data {
     _orderType = orderType;
     _orderStatus = orderStatus;
     _operator = operator;
+    _isDiscountApplied = isDiscountApplied;
+    _discountAmount = discountAmount;
+    _tipAmount = tipAmount;
     _notes = notes;
     _createdAt = createdAt;
     _updatedAt = updatedAt;
@@ -120,6 +126,9 @@ class Data {
     _orderStatus = json['orderStatus'];
     _operator =
         json['operator'] != null ? Operator.fromJson(json['operator']) : null;
+    _isDiscountApplied = json['isDiscountApplied'];
+    _discountAmount = json['discountAmount'];
+    _tipAmount = json['tipAmount'];
     _notes = json['notes'];
     _createdAt = json['createdAt'];
     _updatedAt = json['updatedAt'];
@@ -144,6 +153,9 @@ class Data {
   String? _orderType;
   String? _orderStatus;
   Operator? _operator;
+  bool? _isDiscountApplied;
+  num? _discountAmount;
+  num? _tipAmount;
   String? _notes;
   String? _createdAt;
   String? _updatedAt;
@@ -162,6 +174,9 @@ class Data {
     String? orderType,
     String? orderStatus,
     Operator? operator,
+    bool? isDiscountApplied,
+    num? discountAmount,
+    num? tipAmount,
     String? notes,
     String? createdAt,
     String? updatedAt,
@@ -181,6 +196,9 @@ class Data {
         orderType: orderType ?? _orderType,
         orderStatus: orderStatus ?? _orderStatus,
         operator: operator ?? _operator,
+        isDiscountApplied: isDiscountApplied ?? _isDiscountApplied,
+        discountAmount: discountAmount ?? _discountAmount,
+        tipAmount: tipAmount ?? _tipAmount,
         notes: notes ?? _notes,
         createdAt: createdAt ?? _createdAt,
         updatedAt: updatedAt ?? _updatedAt,
@@ -199,6 +217,9 @@ class Data {
   String? get orderType => _orderType;
   String? get orderStatus => _orderStatus;
   Operator? get operator => _operator;
+  bool? get isDiscountApplied => _isDiscountApplied;
+  num? get discountAmount => _discountAmount;
+  num? get tipAmount => _tipAmount;
   String? get notes => _notes;
   String? get createdAt => _createdAt;
   String? get updatedAt => _updatedAt;
@@ -223,6 +244,9 @@ class Data {
     if (_operator != null) {
       map['operator'] = _operator?.toJson();
     }
+    map['isDiscountApplied'] = _isDiscountApplied;
+    map['discountAmount'] = _discountAmount;
+    map['tipAmount'] = _tipAmount;
     map['notes'] = _notes;
     map['createdAt'] = _createdAt;
     map['updatedAt'] = _updatedAt;

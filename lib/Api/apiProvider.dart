@@ -85,7 +85,7 @@ class ApiProvider {
     try {
       var dio = Dio();
       var response = await dio.request(
-        '${Constants.baseUrl}api/categories',
+        '${Constants.baseUrl}api/categories?limit=100',
         options: Options(
           method: 'GET',
           headers: {
@@ -276,11 +276,14 @@ class ApiProvider {
 
   /// Add to Billing - Post API Integration
   Future<PostAddToBillingModel> postAddToBillingAPI(
-      List<Map<String, dynamic>> billingItems) async {
+      List<Map<String, dynamic>> billingItems, bool? isDiscount) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var token = sharedPreferences.getString("token");
     try {
-      final dataMap = {"items": billingItems};
+      final dataMap = {
+        "items": billingItems,
+        "isApplicableDiscount": isDiscount
+      };
       var data = json.encode(dataMap);
       var dio = Dio();
       var response = await dio.request(

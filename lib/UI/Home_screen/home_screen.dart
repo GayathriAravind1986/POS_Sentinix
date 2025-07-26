@@ -15,7 +15,6 @@ import 'package:simple/ModelClass/HomeScreen/Category&Product/Get_product_by_cat
 import 'package:simple/ModelClass/Order/Get_view_order_model.dart';
 import 'package:simple/ModelClass/Order/Post_generate_order_model.dart';
 import 'package:simple/ModelClass/Order/Update_generate_order_model.dart';
-import 'package:simple/ModelClass/ShopDetails/get_shop_details_model.dart';
 import 'package:simple/ModelClass/Table/Get_table_model.dart';
 import 'package:simple/Reusable/color.dart';
 import 'package:simple/Reusable/image.dart';
@@ -115,6 +114,25 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
   dynamic selectedValue;
   dynamic tableId;
 
+  bool showTipField = false;
+  final TextEditingController tipController = TextEditingController();
+  double tipAmount = 0.0;
+  void toggleTipField() {
+    setState(() {
+      showTipField = !showTipField;
+      if (!showTipField) {
+        tipAmount = 0.0;
+        tipController.clear();
+      }
+    });
+  }
+
+  void updateTip(String value) {
+    setState(() {
+      tipAmount = double.tryParse(value) ?? 0.0;
+    });
+  }
+
   String? errorMessage;
   bool categoryLoad = false;
   bool orderLoad = false;
@@ -128,6 +146,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
   double paidAmount = 0.0;
   double balanceAmount = 0.0;
   bool isCartLoaded = false;
+  bool isDiscountApplied = false;
   List<Map<String, dynamic>> billingItems = [];
   late IPrinterService printerService;
 
@@ -233,7 +252,8 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
       tableId = data.tableNo;
       selectedValue = data.tableName;
       isCartLoaded = true;
-
+      isDiscountApplied =
+          widget.existingOrder?.data!.isDiscountApplied ?? false;
       billingItems = data.items?.map((e) {
             final product = e.product;
             return {
@@ -258,9 +278,8 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
             };
           }).toList() ??
           [];
-      context
-          .read<FoodCategoryBloc>()
-          .add(AddToBilling(List.from(billingItems)));
+      context.read<FoodCategoryBloc>().add(AddToBilling(List.from(billingItems),
+          widget.existingOrder?.data!.isDiscountApplied));
     });
   }
 
@@ -275,7 +294,10 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
       selectedFullPaymentMethod = "";
       widget.isEditingOrder = false;
       balance = 0;
-      context.read<FoodCategoryBloc>().add(AddToBilling([]));
+      if (billingItems.isEmpty || billingItems == []) {
+        isDiscountApplied = false;
+      }
+      context.read<FoodCategoryBloc>().add(AddToBilling([], isDiscountApplied));
     });
   }
 
@@ -308,10 +330,10 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
               .toList()
           : [];
 
-      debugPrint("paidItemInwidget:$paidItemIds");
       double total = (postAddToBillingModel.total ?? 0).toDouble();
       double paidAmount = (widget.existingOrder?.data?.total ?? 0).toDouble();
       balance = total - paidAmount;
+      double finalTotal = total + tipAmount;
       @override
       Widget price(String label, String value, {bool isBold = false}) {
         return SizedBox(
@@ -501,6 +523,35 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                       orElse: () => {},
                                                     )['qty'] ??
                                                     0;
+                                            final bool isPaidItem = paidItemIds
+                                                .contains(p.id ?? '');
+                                            final paidQty = widget
+                                                    .existingOrder?.data?.items
+                                                    ?.firstWhereOrNull((item) =>
+                                                        item.product?.id ==
+                                                        p.id)
+                                                    ?.quantity ??
+                                                0;
+
+                                            final currentQty =
+                                                billingItems.firstWhere(
+                                                      (item) =>
+                                                          item['_id'] == p.id,
+                                                      orElse: () =>
+                                                          <String, dynamic>{
+                                                        'qty': 0
+                                                      },
+                                                    )['qty'] ??
+                                                    0;
+
+                                            final bool disableDecrement =
+                                                widget.isEditingOrder == true &&
+                                                    widget.existingOrder?.data
+                                                            ?.orderStatus ==
+                                                        "COMPLETED" &&
+                                                    paidItemIds
+                                                        .contains(p.id) &&
+                                                    currentQty <= paidQty;
                                             return InkWell(
                                               onTap: () {
                                                 setState(() {
@@ -716,7 +767,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                                           .toList()
                                                                                     });
                                                                                   }
-                                                                                  context.read<FoodCategoryBloc>().add(AddToBilling(List.from(billingItems)));
+                                                                                  context.read<FoodCategoryBloc>().add(AddToBilling(List.from(billingItems), isDiscountApplied));
 
                                                                                   setState(() {
                                                                                     for (var addon in p.addons!) {
@@ -807,7 +858,8 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                               FoodCategoryBloc>()
                                                           .add(AddToBilling(
                                                               List.from(
-                                                                  billingItems)));
+                                                                  billingItems),
+                                                              isDiscountApplied));
                                                     });
                                                   }
                                                 });
@@ -944,39 +996,26 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                       color:
                                                                           blackColor),
                                                                   onPressed:
-                                                                      () {
-                                                                    setState(
-                                                                        () {
-                                                                      isSplitPayment =
-                                                                          false;
-                                                                      selectDineIn =
-                                                                          true;
-                                                                      final index = billingItems.indexWhere((item) =>
-                                                                          item[
-                                                                              '_id'] ==
-                                                                          p.id);
-                                                                      if (index !=
-                                                                              -1 &&
-                                                                          billingItems[index]['qty'] >
-                                                                              1) {
-                                                                        billingItems[index]
-                                                                            [
-                                                                            'qty'] = billingItems[index]
-                                                                                ['qty'] -
-                                                                            1;
-                                                                      } else {
-                                                                        billingItems.removeWhere((item) =>
-                                                                            item['_id'] ==
-                                                                            p.id);
-                                                                      }
+                                                                      disableDecrement
+                                                                          ? null
+                                                                          : () {
+                                                                              setState(() {
+                                                                                isSplitPayment = false;
+                                                                                selectDineIn = true;
+                                                                                final index = billingItems.indexWhere((item) => item['_id'] == p.id);
+                                                                                if (index != -1 && billingItems[index]['qty'] > 1) {
+                                                                                  billingItems[index]['qty'] = billingItems[index]['qty'] - 1;
+                                                                                } else {
+                                                                                  billingItems.removeWhere((item) => item['_id'] == p.id);
+                                                                                  if (billingItems.isEmpty || billingItems == []) {
+                                                                                    isDiscountApplied = false;
+                                                                                  }
+                                                                                }
 
-                                                                      context
-                                                                          .read<
-                                                                              FoodCategoryBloc>()
-                                                                          .add(AddToBilling(
-                                                                              List.from(billingItems)));
-                                                                    });
-                                                                  },
+                                                                                context.read<FoodCategoryBloc>().add(AddToBilling(List.from(billingItems), isDiscountApplied));
+                                                                                debugPrint("isDiscountwhen remove item:$isDiscountApplied");
+                                                                              });
+                                                                            },
                                                                 ),
                                                               ),
                                                               Padding(
@@ -1053,7 +1092,8 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                           .read<
                                                                               FoodCategoryBloc>()
                                                                           .add(AddToBilling(
-                                                                              List.from(billingItems)));
+                                                                              List.from(billingItems),
+                                                                              isDiscountApplied));
                                                                     });
                                                                   },
                                                                 ),
@@ -1496,12 +1536,17 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                     widget.isEditingOrder =
                                                         false;
                                                     balance = 0;
+                                                    if (billingItems.isEmpty ||
+                                                        billingItems == []) {
+                                                      isDiscountApplied = false;
+                                                    }
                                                   });
                                                   context
                                                       .read<FoodCategoryBloc>()
                                                       .add(AddToBilling(
                                                           List.from(
-                                                              billingItems)));
+                                                              billingItems),
+                                                          isDiscountApplied));
                                                 },
                                                 icon: const Icon(Icons.refresh),
                                               ),
@@ -1591,10 +1636,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                               final bool isPaidItem =
                                                   paidItemIds
                                                       .contains(e.id ?? '');
-                                              debugPrint(
-                                                  "billingItem:$billingItems");
-                                              debugPrint(
-                                                  "paidItem:$isPaidItem");
                                               final paidQty = widget
                                                       .existingOrder
                                                       ?.data
@@ -1627,6 +1668,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                       paidItemIds
                                                           .contains(e.id) &&
                                                       currentQty <= paidQty;
+
                                               return Padding(
                                                 padding:
                                                     const EdgeInsets.symmetric(
@@ -1722,7 +1764,10 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                                   } else {
                                                                                     billingItems.removeWhere((item) => item['_id'] == e.id); // Using dot notation
                                                                                   }
-                                                                                  context.read<FoodCategoryBloc>().add(AddToBilling(List.from(billingItems)));
+                                                                                  if (billingItems.isEmpty || billingItems == []) {
+                                                                                    isDiscountApplied = false;
+                                                                                  }
+                                                                                  context.read<FoodCategoryBloc>().add(AddToBilling(List.from(billingItems), isDiscountApplied));
                                                                                 });
                                                                               },
                                                                   ),
@@ -1792,9 +1837,9 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                                 : []
                                                                           });
                                                                         }
-                                                                        context
-                                                                            .read<FoodCategoryBloc>()
-                                                                            .add(AddToBilling(List.from(billingItems)));
+                                                                        context.read<FoodCategoryBloc>().add(AddToBilling(
+                                                                            List.from(billingItems),
+                                                                            isDiscountApplied));
                                                                       });
                                                                     },
                                                                   ),
@@ -1817,7 +1862,10 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                           : () {
                                                                               setState(() {
                                                                                 billingItems.removeWhere((item) => item['_id'] == e.id);
-                                                                                context.read<FoodCategoryBloc>().add(AddToBilling(List.from(billingItems)));
+                                                                                if (billingItems.isEmpty || billingItems == []) {
+                                                                                  isDiscountApplied = false;
+                                                                                }
+                                                                                context.read<FoodCategoryBloc>().add(AddToBilling(List.from(billingItems), isDiscountApplied));
                                                                               });
                                                                             },
                                                                     ),
@@ -1873,12 +1921,18 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                                 if (addonsList[addonIndex]['quantity'] > 1) {
                                                                                   setState(() {
                                                                                     addonsList[addonIndex]['quantity'] = addonsList[addonIndex]['quantity'] - 1;
-                                                                                    context.read<FoodCategoryBloc>().add(AddToBilling(List.from(billingItems)));
+                                                                                    if (billingItems.isEmpty || billingItems == []) {
+                                                                                      isDiscountApplied = false;
+                                                                                    }
+                                                                                    context.read<FoodCategoryBloc>().add(AddToBilling(List.from(billingItems), isDiscountApplied));
                                                                                   });
                                                                                 } else {
                                                                                   setState(() {
                                                                                     addonsList.removeAt(addonIndex);
-                                                                                    context.read<FoodCategoryBloc>().add(AddToBilling(List.from(billingItems)));
+                                                                                    if (billingItems.isEmpty || billingItems == []) {
+                                                                                      isDiscountApplied = false;
+                                                                                    }
+                                                                                    context.read<FoodCategoryBloc>().add(AddToBilling(List.from(billingItems), isDiscountApplied));
                                                                                   });
                                                                                 }
                                                                               },
@@ -1894,7 +1948,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
 
                                                                                 setState(() {
                                                                                   addonsList[addonIndex]['quantity'] = addonsList[addonIndex]['quantity'] + 1;
-                                                                                  context.read<FoodCategoryBloc>().add(AddToBilling(List.from(billingItems)));
+                                                                                  context.read<FoodCategoryBloc>().add(AddToBilling(List.from(billingItems), isDiscountApplied));
                                                                                 });
                                                                               },
                                                                             ),
@@ -1972,7 +2026,96 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                     "₹ ${postAddToBillingModel.totalTax}"),
                                               ]),
                                           SizedBox(height: 8),
-                                          Divider(),
+                                          if (double.parse(postAddToBillingModel
+                                                  .totalDiscount
+                                                  .toString()) >
+                                              0)
+                                            const Divider(thickness: 1),
+                                          if (double.parse(postAddToBillingModel
+                                                  .totalDiscount
+                                                  .toString()) >
+                                              0)
+                                            Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Row(
+                                                    children: [
+                                                      Text(
+                                                        "Apply Discount",
+                                                        style: MyTextStyle.f14(
+                                                            blackColor),
+                                                      ),
+                                                      Transform.scale(
+                                                        scale: 0.7,
+                                                        child: SizedBox(
+                                                          height: 24,
+                                                          child: Switch(
+                                                            value:
+                                                                isDiscountApplied,
+                                                            onChanged: (value) {
+                                                              setState(() {
+                                                                final isEditingCompletedOrder = widget
+                                                                            .existingOrder !=
+                                                                        null &&
+                                                                    (widget.existingOrder!.data!.orderStatus ==
+                                                                            "COMPLETED" ||
+                                                                        widget.existingOrder!.data!.orderStatus ==
+                                                                            "WAITLIST");
+
+                                                                final allowToggle = widget
+                                                                            .existingOrder ==
+                                                                        null ||
+                                                                    !isEditingCompletedOrder ||
+                                                                    !isDiscountApplied;
+
+                                                                if (allowToggle) {
+                                                                  isDiscountApplied =
+                                                                      value;
+                                                                  debugPrint(
+                                                                      "isDiscountApplied:$isDiscountApplied");
+
+                                                                  context
+                                                                      .read<
+                                                                          FoodCategoryBloc>()
+                                                                      .add(
+                                                                        AddToBilling(
+                                                                            List.from(billingItems),
+                                                                            isDiscountApplied),
+                                                                      );
+                                                                } else {
+                                                                  debugPrint(
+                                                                      "Toggle not allowed: editing completed order with discount already applied.");
+                                                                }
+                                                              });
+                                                            },
+                                                            activeColor:
+                                                                whiteColor,
+                                                            activeTrackColor:
+                                                                appPrimaryColor,
+                                                            inactiveThumbColor:
+                                                                whiteColor,
+                                                            inactiveTrackColor:
+                                                                greyColor,
+                                                            materialTapTargetSize:
+                                                                MaterialTapTargetSize
+                                                                    .shrinkWrap,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  Text(
+                                                    '-₹ ${postAddToBillingModel.totalDiscount?.toStringAsFixed(2)}',
+                                                    style: const TextStyle(
+                                                        color: Colors.green,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 16),
+                                                  ),
+                                                ]),
+                                          const Divider(thickness: 1),
                                           Row(
                                               mainAxisAlignment:
                                                   MainAxisAlignment
@@ -1990,6 +2133,100 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                         weight:
                                                             FontWeight.bold)),
                                               ]),
+                                          const Divider(thickness: 1),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              const Text("Add Tip",
+                                                  style:
+                                                      TextStyle(fontSize: 16)),
+                                              GestureDetector(
+                                                onTap: toggleTipField,
+                                                child: Text(
+                                                  showTipField ? "Hide" : "Add",
+                                                  style: const TextStyle(
+                                                    color: Colors.blue,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          if (showTipField) ...[
+                                            const SizedBox(height: 8),
+                                            Row(
+                                              children: [
+                                                const Text("₹"),
+                                                const SizedBox(width: 4),
+                                                Expanded(
+                                                  child: TextField(
+                                                    controller: tipController,
+                                                    keyboardType:
+                                                        TextInputType.number,
+                                                    onChanged: updateTip,
+                                                    decoration:
+                                                        const InputDecoration(
+                                                      hintText:
+                                                          "Enter tip amount",
+                                                      border:
+                                                          OutlineInputBorder(),
+                                                      focusedBorder:
+                                                          OutlineInputBorder(
+                                                        borderSide: BorderSide(
+                                                          color:
+                                                              appPrimaryColor, // Your app's primary color
+                                                          width: 2.0,
+                                                        ),
+                                                      ),
+                                                      contentPadding:
+                                                          EdgeInsets.symmetric(
+                                                              horizontal: 10),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                          const SizedBox(height: 12),
+                                          if (tipAmount > 0)
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                const Text("Tip Amount",
+                                                    style: TextStyle(
+                                                        fontSize: 16)),
+                                                Text(
+                                                  '₹ ${tipAmount.toStringAsFixed(2)}',
+                                                  style: const TextStyle(
+                                                      fontSize: 16,
+                                                      color: Colors.green,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                              ],
+                                            ),
+                                          const Divider(thickness: 2),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              const Text("Final Total",
+                                                  style: TextStyle(
+                                                      fontSize: 18,
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                              Text(
+                                                '₹ ${finalTotal.toStringAsFixed(2)}',
+                                                style: const TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                            ],
+                                          ),
                                           SizedBox(height: 12),
                                           Row(
                                               mainAxisAlignment:
@@ -2681,6 +2918,15 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                             true
                                                                         ? 'DINE-IN'
                                                                         : 'TAKE-AWAY',
+                                                                    discountAmount: postAddToBillingModel
+                                                                        .totalDiscount!
+                                                                        .toStringAsFixed(
+                                                                            2),
+                                                                    isDiscountApplied:
+                                                                        isDiscountApplied,
+                                                                    tipAmount:
+                                                                        tipController
+                                                                            .text,
                                                                     payments: widget.isEditingOrder ==
                                                                             true
                                                                         ? []
@@ -2690,6 +2936,8 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                     orderLoad =
                                                                         true;
                                                                   });
+                                                                  debugPrint(
+                                                                      "payloadsave:${jsonEncode(orderPayload)}");
                                                                   if (widget.isEditingOrder ==
                                                                           true &&
                                                                       (postAddToBillingModel.total !=
@@ -2710,8 +2958,8 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                               false);
                                                                       setState(
                                                                           () {
-                                                                        orderLoad =
-                                                                            false;
+                                                                        // orderLoad =
+                                                                        //     false;
                                                                       });
                                                                     } else {
                                                                       setState(
@@ -2902,6 +3150,13 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                                 true
                                                                             ? 'DINE-IN'
                                                                             : 'TAKE-AWAY',
+                                                                        discountAmount: postAddToBillingModel
+                                                                            .totalDiscount!
+                                                                            .toStringAsFixed(2),
+                                                                        isDiscountApplied:
+                                                                            isDiscountApplied,
+                                                                        tipAmount:
+                                                                            tipController.text,
                                                                         payments:
                                                                             payments,
                                                                       );
@@ -2956,6 +3211,13 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                                 true
                                                                             ? 'DINE-IN'
                                                                             : 'TAKE-AWAY',
+                                                                        discountAmount: postAddToBillingModel
+                                                                            .totalDiscount!
+                                                                            .toStringAsFixed(2),
+                                                                        isDiscountApplied:
+                                                                            isDiscountApplied,
+                                                                        tipAmount:
+                                                                            tipController.text,
                                                                         payments:
                                                                             payments,
                                                                       );
@@ -3065,6 +3327,13 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                           orderType: selectDineIn == true
                                                                               ? 'DINE-IN'
                                                                               : 'TAKE-AWAY',
+                                                                          discountAmount: postAddToBillingModel
+                                                                              .totalDiscount!
+                                                                              .toStringAsFixed(2),
+                                                                          isDiscountApplied:
+                                                                              isDiscountApplied,
+                                                                          tipAmount:
+                                                                              tipController.text,
                                                                           payments:
                                                                               payments,
                                                                         );
@@ -3225,6 +3494,16 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                         true
                                                                     ? 'DINE-IN'
                                                                     : 'TAKE-AWAY',
+                                                            discountAmount:
+                                                                postAddToBillingModel
+                                                                    .totalDiscount!
+                                                                    .toStringAsFixed(
+                                                                        2),
+                                                            isDiscountApplied:
+                                                                isDiscountApplied,
+                                                            tipAmount:
+                                                                tipController
+                                                                    .text,
                                                             payments: payments,
                                                           );
                                                           setState(() {
@@ -3315,6 +3594,16 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                           true
                                                                       ? 'DINE-IN'
                                                                       : 'TAKE-AWAY',
+                                                              discountAmount:
+                                                                  postAddToBillingModel
+                                                                      .totalDiscount!
+                                                                      .toStringAsFixed(
+                                                                          2),
+                                                              isDiscountApplied:
+                                                                  isDiscountApplied,
+                                                              tipAmount:
+                                                                  tipController
+                                                                      .text,
                                                               payments:
                                                                   payments,
                                                             );
@@ -3413,6 +3702,16 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                           true
                                                                       ? 'DINE-IN'
                                                                       : 'TAKE-AWAY',
+                                                              discountAmount:
+                                                                  postAddToBillingModel
+                                                                      .totalDiscount!
+                                                                      .toStringAsFixed(
+                                                                          2),
+                                                              isDiscountApplied:
+                                                                  isDiscountApplied,
+                                                              tipAmount:
+                                                                  tipController
+                                                                      .text,
                                                               payments:
                                                                   payments,
                                                             );
@@ -3515,11 +3814,14 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
             selectedFullPaymentMethod = "";
             widget.isEditingOrder = false;
             balance = 0;
+            if (billingItems.isEmpty || billingItems == []) {
+              isDiscountApplied = false;
+            }
           });
 
           context
               .read<FoodCategoryBloc>()
-              .add(AddToBilling(List.from(billingItems)));
+              .add(AddToBilling(List.from(billingItems), isDiscountApplied));
           if (shouldPrintReceipt == true &&
               postGenerateOrderModel.message != null) {
             printGenerateOrderReceipt();
@@ -3546,10 +3848,13 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
             selectedFullPaymentMethod = "";
             widget.isEditingOrder = false;
             balance = 0;
+            if (billingItems.isEmpty || billingItems == []) {
+              isDiscountApplied = false;
+            }
           });
           context
               .read<FoodCategoryBloc>()
-              .add(AddToBilling(List.from(billingItems)));
+              .add(AddToBilling(List.from(billingItems), isDiscountApplied));
 
           if (shouldPrintReceipt == true &&
               updateGenerateOrderModel.message != null) {

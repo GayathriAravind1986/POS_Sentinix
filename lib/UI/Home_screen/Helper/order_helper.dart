@@ -5,6 +5,9 @@ Map<String, dynamic> buildOrderPayload({
   String? tableId,
   required String orderStatus,
   required String orderType,
+  required String discountAmount,
+  required bool isDiscountApplied,
+  required String tipAmount,
   required List<Map<String, dynamic>> payments,
 }) {
   final now = DateTime.now().toUtc();
@@ -35,5 +38,8 @@ Map<String, dynamic> buildOrderPayload({
     "tableNo": tableId,
     "tax": postAddToBillingModel.totalTax,
     "total": postAddToBillingModel.total,
+    "discountAmount": double.parse(discountAmount),
+    "isDiscountApplied": isDiscountApplied,
+    "tipAmount": double.tryParse(tipAmount) ?? 0.0,
   };
 }

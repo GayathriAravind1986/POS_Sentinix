@@ -202,6 +202,8 @@ class Invoice {
     String? transactionId,
     String? tableNum,
     String? tableName,
+    String? orderType,
+    num? tipAmount,
   }) {
     _businessName = businessName;
     _address = address;
@@ -220,6 +222,8 @@ class Invoice {
     _transactionId = transactionId;
     _tableNum = tableNum;
     _tableName = tableName;
+    _orderType = orderType;
+    _tipAmount = tipAmount;
   }
 
   Invoice.fromJson(dynamic json) {
@@ -245,6 +249,8 @@ class Invoice {
     _transactionId = json['transactionId'];
     _tableNum = json['tableNum'];
     _tableName = json['tableName'];
+    _orderType = json['orderType'];
+    _tipAmount = json['tipAmount'];
   }
   String? _businessName;
   String? _address;
@@ -263,6 +269,8 @@ class Invoice {
   String? _transactionId;
   String? _tableNum;
   String? _tableName;
+  String? _orderType;
+  num? _tipAmount;
   Invoice copyWith({
     String? businessName,
     String? address,
@@ -281,6 +289,8 @@ class Invoice {
     String? transactionId,
     String? tableNum,
     String? tableName,
+    String? orderType,
+    num? tipAmount,
   }) =>
       Invoice(
         businessName: businessName ?? _businessName,
@@ -300,6 +310,8 @@ class Invoice {
         transactionId: transactionId ?? _transactionId,
         tableNum: tableNum ?? _tableNum,
         tableName: tableName ?? _tableName,
+        orderType: orderType ?? _orderType,
+        tipAmount: tipAmount ?? _tipAmount,
       );
   String? get businessName => _businessName;
   String? get address => _address;
@@ -318,6 +330,8 @@ class Invoice {
   String? get transactionId => _transactionId;
   String? get tableNum => _tableNum;
   String? get tableName => _tableName;
+  String? get orderType => _orderType;
+  num? get tipAmount => _tipAmount;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -340,6 +354,8 @@ class Invoice {
     map['transactionId'] = _transactionId;
     map['tableNum'] = _tableNum;
     map['tableName'] = _tableName;
+    map['orderType'] = _orderType;
+    map['tipAmount'] = _tipAmount;
     return map;
   }
 }
