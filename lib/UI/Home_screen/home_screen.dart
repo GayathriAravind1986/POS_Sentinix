@@ -215,12 +215,13 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
+                //  mainAxisSize: MainAxisSize.min,
                 children: [
                   RepaintBoundary(
                     key: receiptKey,
-                    child: SizedBox(
+                    child: Container(
                       width: 384,
+                      color: whiteColor,
                       child: getReceiptWidget(
                         businessName: businessName,
                         address: address,
@@ -241,9 +242,16 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                   const SizedBox(height: 20),
                   ElevatedButton.icon(
                     onPressed: () async {
+                      if (kIsWeb ||
+                          defaultTargetPlatform != TargetPlatform.android) {
+                        debugPrint("printBitmap is only supported on Android.");
+                        Navigator.pop(context);
+                        return;
+                      }
                       try {
                         Uint8List? imageBytes =
                             await captureReceiptAsImage(receiptKey);
+                        debugPrint("imageBytes:$imageBytes");
                         if (imageBytes != null) {
                           await printerService.printBitmap(imageBytes);
                         }
@@ -319,12 +327,13 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
+                // mainAxisSize: MainAxisSize.min,
                 children: [
                   RepaintBoundary(
                     key: receiptKey,
-                    child: SizedBox(
+                    child: Container(
                       width: 384,
+                      color: whiteColor,
                       child: getReceiptWidget(
                         businessName: businessName,
                         address: address,
