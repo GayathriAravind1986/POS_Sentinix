@@ -5,7 +5,6 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:simple/Alertbox/snackBarAlert.dart';
 import 'package:simple/Bloc/Authentication/login_bloc.dart';
 import 'package:simple/ModelClass/Authentication/Post_login_model.dart';
-import 'package:simple/ModelClass/ShopDetails/get_shop_details_without_token_model.dart';
 import 'package:simple/Reusable/color.dart';
 import 'package:simple/Reusable/customTextfield.dart';
 import 'package:simple/Reusable/space.dart';
@@ -44,7 +43,6 @@ class LoginScreenViewState extends State<LoginScreenView> {
   String? errorMessage;
   var showPassword = true;
   bool loginLoad = false;
-
   @override
   void initState() {
     super.initState();
@@ -206,6 +204,7 @@ class LoginScreenViewState extends State<LoginScreenView> {
                   loginLoad = false;
                 });
                 showToast('${postLoginModel.message}', context, color: true);
+
                 Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(
                         builder: (context) => const DashBoardScreen(

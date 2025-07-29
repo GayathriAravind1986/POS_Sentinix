@@ -66,12 +66,8 @@ class ApiProvider {
       return PostLoginModel()
         ..errorResponse = ErrorResponse(message: "Unexpected error occurred.");
     } on DioException catch (dioError) {
-      if (dioError.response?.statusCode == 401) {
-        return PostLoginModel()
-          ..errorResponse = ErrorResponse(message: "Invalid email or password");
-      } else {
-        return PostLoginModel()..errorResponse = handleError(dioError);
-      }
+      final errorResponse = handleError(dioError);
+      return PostLoginModel()..errorResponse = errorResponse;
     } catch (error) {
       return PostLoginModel()..errorResponse = handleError(error);
     }
@@ -82,6 +78,7 @@ class ApiProvider {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var token = sharedPreferences.getString("token");
     debugPrint("token:$token");
+
     try {
       var dio = Dio();
       var response = await dio.request(
@@ -93,6 +90,7 @@ class ApiProvider {
           },
         ),
       );
+
       if (response.statusCode == 200 && response.data != null) {
         if (response.data['success'] == true) {
           GetCategoryModel getCategoryResponse =
@@ -103,19 +101,20 @@ class ApiProvider {
         return GetCategoryModel()
           ..errorResponse = ErrorResponse(
             message: "Error: ${response.data['message'] ?? 'Unknown error'}",
+            statusCode: response.statusCode,
           );
       }
       return GetCategoryModel()
-        ..errorResponse = ErrorResponse(message: "Unexpected error occurred.");
+        ..errorResponse = ErrorResponse(
+          message: "Unexpected error occurred.",
+          statusCode: 500,
+        );
     } on DioException catch (dioError) {
-      if (dioError.response?.statusCode == 401) {
-        return GetCategoryModel()
-          ..errorResponse = ErrorResponse(message: "Invalid Credential");
-      } else {
-        return GetCategoryModel()..errorResponse = handleError(dioError);
-      }
+      final errorResponse = handleError(dioError);
+      return GetCategoryModel()..errorResponse = errorResponse;
     } catch (error) {
-      return GetCategoryModel()..errorResponse = handleError(error);
+      final errorResponse = handleError(error);
+      return GetCategoryModel()..errorResponse = errorResponse;
     }
   }
 
@@ -145,17 +144,17 @@ class ApiProvider {
         return GetProductByCatIdModel()
           ..errorResponse = ErrorResponse(
             message: "Error: ${response.data['message'] ?? 'Unknown error'}",
+            statusCode: response.statusCode,
           );
       }
       return GetProductByCatIdModel()
-        ..errorResponse = ErrorResponse(message: "Unexpected error occurred.");
+        ..errorResponse = ErrorResponse(
+          message: "Unexpected error occurred.",
+          statusCode: 500,
+        );
     } on DioException catch (dioError) {
-      if (dioError.response?.statusCode == 401) {
-        return GetProductByCatIdModel()
-          ..errorResponse = ErrorResponse(message: "Invalid Credential");
-      } else {
-        return GetProductByCatIdModel()..errorResponse = handleError(dioError);
-      }
+      final errorResponse = handleError(dioError);
+      return GetProductByCatIdModel()..errorResponse = errorResponse;
     } catch (error) {
       return GetProductByCatIdModel()..errorResponse = handleError(error);
     }
@@ -186,17 +185,17 @@ class ApiProvider {
         return GetTableModel()
           ..errorResponse = ErrorResponse(
             message: "Error: ${response.data['message'] ?? 'Unknown error'}",
+            statusCode: response.statusCode,
           );
       }
       return GetTableModel()
-        ..errorResponse = ErrorResponse(message: "Unexpected error occurred.");
+        ..errorResponse = ErrorResponse(
+          message: "Unexpected error occurred.",
+          statusCode: 500,
+        );
     } on DioException catch (dioError) {
-      if (dioError.response?.statusCode == 401) {
-        return GetTableModel()
-          ..errorResponse = ErrorResponse(message: "Invalid Credential");
-      } else {
-        return GetTableModel()..errorResponse = handleError(dioError);
-      }
+      final errorResponse = handleError(dioError);
+      return GetTableModel()..errorResponse = errorResponse;
     } catch (error) {
       return GetTableModel()..errorResponse = handleError(error);
     }
@@ -227,17 +226,17 @@ class ApiProvider {
         return GetShopDetailsModel()
           ..errorResponse = ErrorResponse(
             message: "Error: ${response.data['message'] ?? 'Unknown error'}",
+            statusCode: response.statusCode,
           );
       }
       return GetShopDetailsModel()
-        ..errorResponse = ErrorResponse(message: "Unexpected error occurred.");
+        ..errorResponse = ErrorResponse(
+          message: "Unexpected error occurred.",
+          statusCode: 500,
+        );
     } on DioException catch (dioError) {
-      if (dioError.response?.statusCode == 401) {
-        return GetShopDetailsModel()
-          ..errorResponse = ErrorResponse(message: "Invalid Credential");
-      } else {
-        return GetShopDetailsModel()..errorResponse = handleError(dioError);
-      }
+      final errorResponse = handleError(dioError);
+      return GetShopDetailsModel()..errorResponse = errorResponse;
     } catch (error) {
       return GetShopDetailsModel()..errorResponse = handleError(error);
     }
@@ -264,10 +263,17 @@ class ApiProvider {
         return GetShopDetailsWithoutTokenModel()
           ..errorResponse = ErrorResponse(
             message: "Error: ${response.data['message'] ?? 'Unknown error'}",
+            statusCode: response.statusCode,
           );
       }
       return GetShopDetailsWithoutTokenModel()
-        ..errorResponse = ErrorResponse(message: "Unexpected error occurred.");
+        ..errorResponse = ErrorResponse(
+          message: "Unexpected error occurred.",
+          statusCode: 500,
+        );
+    } on DioException catch (dioError) {
+      final errorResponse = handleError(dioError);
+      return GetShopDetailsWithoutTokenModel()..errorResponse = errorResponse;
     } catch (error) {
       return GetShopDetailsWithoutTokenModel()
         ..errorResponse = handleError(error);
@@ -310,16 +316,14 @@ class ApiProvider {
         }
       } else {
         return PostAddToBillingModel()
-          ..errorResponse =
-              ErrorResponse(message: "Unexpected error occurred.");
+          ..errorResponse = ErrorResponse(
+            message: "Error: ${response.data['message'] ?? 'Unknown error'}",
+            statusCode: response.statusCode,
+          );
       }
     } on DioException catch (dioError) {
-      if (dioError.response?.statusCode == 401) {
-        return PostAddToBillingModel()
-          ..errorResponse = ErrorResponse(message: "Invalid Credential");
-      } else {
-        return PostAddToBillingModel()..errorResponse = handleError(dioError);
-      }
+      final errorResponse = handleError(dioError);
+      return PostAddToBillingModel()..errorResponse = errorResponse;
     } catch (error) {
       return PostAddToBillingModel()..errorResponse = handleError(error);
     }
@@ -351,17 +355,17 @@ class ApiProvider {
         return GetOrderListTodayModel()
           ..errorResponse = ErrorResponse(
             message: "Error: ${response.data['message'] ?? 'Unknown error'}",
+            statusCode: response.statusCode,
           );
       }
       return GetOrderListTodayModel()
-        ..errorResponse = ErrorResponse(message: "Unexpected error occurred.");
+        ..errorResponse = ErrorResponse(
+          message: "Unexpected error occurred.",
+          statusCode: 500,
+        );
     } on DioException catch (dioError) {
-      if (dioError.response?.statusCode == 401) {
-        return GetOrderListTodayModel()
-          ..errorResponse = ErrorResponse(message: "Invalid Credential");
-      } else {
-        return GetOrderListTodayModel()..errorResponse = handleError(dioError);
-      }
+      final errorResponse = handleError(dioError);
+      return GetOrderListTodayModel()..errorResponse = errorResponse;
     } catch (error) {
       return GetOrderListTodayModel()..errorResponse = handleError(error);
     }
@@ -401,16 +405,14 @@ class ApiProvider {
         }
       } else {
         return PostGenerateOrderModel()
-          ..errorResponse =
-              ErrorResponse(message: "Unexpected error occurred.");
+          ..errorResponse = ErrorResponse(
+            message: "Error: ${response.data['message'] ?? 'Unknown error'}",
+            statusCode: response.statusCode,
+          );
       }
     } on DioException catch (dioError) {
-      if (dioError.response?.statusCode == 401) {
-        return PostGenerateOrderModel()
-          ..errorResponse = ErrorResponse(message: "Invalid Credential");
-      } else {
-        return PostGenerateOrderModel()..errorResponse = handleError(dioError);
-      }
+      final errorResponse = handleError(dioError);
+      return PostGenerateOrderModel()..errorResponse = errorResponse;
     } catch (error) {
       return PostGenerateOrderModel()..errorResponse = handleError(error);
     }
@@ -441,17 +443,17 @@ class ApiProvider {
         return DeleteOrderModel()
           ..errorResponse = ErrorResponse(
             message: "Error: ${response.data['message'] ?? 'Unknown error'}",
+            statusCode: response.statusCode,
           );
       }
       return DeleteOrderModel()
-        ..errorResponse = ErrorResponse(message: "Unexpected error occurred.");
+        ..errorResponse = ErrorResponse(
+          message: "Unexpected error occurred.",
+          statusCode: 500,
+        );
     } on DioException catch (dioError) {
-      if (dioError.response?.statusCode == 401) {
-        return DeleteOrderModel()
-          ..errorResponse = ErrorResponse(message: "Invalid Credential");
-      } else {
-        return DeleteOrderModel()..errorResponse = handleError(dioError);
-      }
+      final errorResponse = handleError(dioError);
+      return DeleteOrderModel()..errorResponse = errorResponse;
     } catch (error) {
       return DeleteOrderModel()..errorResponse = handleError(error);
     }
@@ -482,17 +484,17 @@ class ApiProvider {
         return GetViewOrderModel()
           ..errorResponse = ErrorResponse(
             message: "Error: ${response.data['message'] ?? 'Unknown error'}",
+            statusCode: response.statusCode,
           );
       }
       return GetViewOrderModel()
-        ..errorResponse = ErrorResponse(message: "Unexpected error occurred.");
+        ..errorResponse = ErrorResponse(
+          message: "Unexpected error occurred.",
+          statusCode: 500,
+        );
     } on DioException catch (dioError) {
-      if (dioError.response?.statusCode == 401) {
-        return GetViewOrderModel()
-          ..errorResponse = ErrorResponse(message: "Invalid Credential");
-      } else {
-        return GetViewOrderModel()..errorResponse = handleError(dioError);
-      }
+      final errorResponse = handleError(dioError);
+      return GetViewOrderModel()..errorResponse = errorResponse;
     } catch (error) {
       return GetViewOrderModel()..errorResponse = handleError(error);
     }
@@ -532,17 +534,14 @@ class ApiProvider {
         }
       } else {
         return UpdateGenerateOrderModel()
-          ..errorResponse =
-              ErrorResponse(message: "Unexpected error occurred.");
+          ..errorResponse = ErrorResponse(
+            message: "Error: ${response.data['message'] ?? 'Unknown error'}",
+            statusCode: response.statusCode,
+          );
       }
     } on DioException catch (dioError) {
-      if (dioError.response?.statusCode == 401) {
-        return UpdateGenerateOrderModel()
-          ..errorResponse = ErrorResponse(message: "Invalid Credential");
-      } else {
-        return UpdateGenerateOrderModel()
-          ..errorResponse = handleError(dioError);
-      }
+      final errorResponse = handleError(dioError);
+      return UpdateGenerateOrderModel()..errorResponse = errorResponse;
     } catch (error) {
       return UpdateGenerateOrderModel()..errorResponse = handleError(error);
     }
@@ -560,66 +559,107 @@ class ApiProvider {
         case DioExceptionType.cancel:
           errorDescription.code = "0";
           errorDescription.message = "Request Cancelled";
+          errorResponse.statusCode = 0;
           break;
 
         case DioExceptionType.connectionTimeout:
           errorDescription.code = "522";
           errorDescription.message = "Connection Timeout";
+          errorResponse.statusCode = 522;
           break;
 
         case DioExceptionType.sendTimeout:
           errorDescription.code = "408";
           errorDescription.message = "Send Timeout";
+          errorResponse.statusCode = 408;
           break;
 
         case DioExceptionType.receiveTimeout:
           errorDescription.code = "408";
           errorDescription.message = "Receive Timeout";
+          errorResponse.statusCode = 408;
           break;
 
         case DioExceptionType.badResponse:
           if (dioException.response != null) {
             final statusCode = dioException.response!.statusCode!;
             errorDescription.code = statusCode.toString();
+            errorResponse.statusCode = statusCode;
 
             if (statusCode == 401) {
-              errorDescription.message = "Unauthorized: Invalid credentials";
+              errorDescription.message = "Session expired. Please login again.";
+              errorResponse.message = "Session expired. Please login again.";
+            } else if (statusCode == 403) {
+              errorDescription.message = "Access forbidden";
+              errorResponse.message = "Access forbidden";
+            } else if (statusCode == 404) {
+              errorDescription.message = "Resource not found";
+              errorResponse.message = "Resource not found";
             } else if (statusCode == 500) {
               errorDescription.message = "Internal Server Error";
-            } else {
-              // fallback to API-provided message
+              errorResponse.message = "Internal Server Error";
+            } else if (statusCode >= 400 && statusCode < 500) {
+              // Client errors - try to get API message
               try {
-                final message =
-                    dioException.response!.data["errors"][0]["message"];
+                final apiMessage = dioException.response!.data["message"] ??
+                    dioException.response!.data["errors"]?[0]?["message"];
+                errorDescription.message =
+                    apiMessage ?? "Client error occurred";
+                errorResponse.message = apiMessage ?? "Client error occurred";
+              } catch (_) {
+                errorDescription.message = "Client error occurred";
+                errorResponse.message = "Client error occurred";
+              }
+            } else if (statusCode >= 500) {
+              // Server errors
+              errorDescription.message = "Server error occurred";
+              errorResponse.message = "Server error occurred";
+            } else {
+              // Other status codes - fallback to API-provided message
+              try {
+                final message = dioException.response!.data["message"] ??
+                    dioException.response!.data["errors"]?[0]?["message"];
                 errorDescription.message = message ?? "Something went wrong";
+                errorResponse.message = message ?? "Something went wrong";
               } catch (_) {
                 errorDescription.message = "Unexpected error response";
+                errorResponse.message = "Unexpected error response";
               }
             }
           } else {
             errorDescription.code = "500";
             errorDescription.message = "Internal Server Error";
+            errorResponse.statusCode = 500;
+            errorResponse.message = "Internal Server Error";
           }
           break;
 
         case DioExceptionType.unknown:
           errorDescription.code = "500";
           errorDescription.message = "Unknown error occurred";
+          errorResponse.statusCode = 500;
+          errorResponse.message = "Unknown error occurred";
           break;
 
         case DioExceptionType.badCertificate:
           errorDescription.code = "495";
           errorDescription.message = "Bad SSL Certificate";
+          errorResponse.statusCode = 495;
+          errorResponse.message = "Bad SSL Certificate";
           break;
 
         case DioExceptionType.connectionError:
           errorDescription.code = "500";
           errorDescription.message = "Connection error occurred";
+          errorResponse.statusCode = 500;
+          errorResponse.message = "Connection error occurred";
           break;
       }
     } else {
       errorDescription.code = "500";
       errorDescription.message = "An unexpected error occurred";
+      errorResponse.statusCode = 500;
+      errorResponse.message = "An unexpected error occurred";
     }
 
     errorResponse.errors = [errorDescription];

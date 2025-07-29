@@ -163,7 +163,7 @@ class _OrderInvoiceDialogState extends State<OrderInvoiceDialog> {
                     ...invoice.invoiceItems!.map((item) => Padding(
                           padding: const EdgeInsets.symmetric(vertical: 2),
                           child: Text(
-                            "${item.name} x${item.qty} - ${invoice.currencySymbol}${invoice.subtotal!.toStringAsFixed(2)}${item.isAddon == true ? " (Addon)" : ""}",
+                            "${item.name} x${item.qty} - ${invoice.currencySymbol}${item.totalPrice!.toStringAsFixed(2)}${item.isAddon == true ? " (Addon)" : ""}",
                             style: TextStyle(
                               color: item.isAddon == true
                                   ? greyColor[600]
@@ -171,11 +171,6 @@ class _OrderInvoiceDialogState extends State<OrderInvoiceDialog> {
                             ),
                           ),
                         )),
-                    const SizedBox(height: 5),
-                    Text("Total: ",
-                        style: TextStyle(fontWeight: FontWeight.bold)),
-                    Text(
-                        "${invoice.currencySymbol}${invoice.subtotal!.toStringAsFixed(2)}"),
                     const SizedBox(height: 8),
                     const Divider(),
                     Row(

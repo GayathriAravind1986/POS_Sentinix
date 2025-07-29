@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple/Alertbox/snackBarAlert.dart';
 import 'package:simple/Bloc/Order/order_list_bloc.dart';
 import 'package:simple/ModelClass/Order/Delete_order_model.dart';
@@ -11,6 +12,7 @@ import 'package:simple/ModelClass/Order/Get_view_order_model.dart';
 import 'package:simple/ModelClass/Order/get_order_list_today_model.dart';
 import 'package:simple/Reusable/color.dart';
 import 'package:simple/Reusable/text_styles.dart';
+import 'package:simple/UI/Authentication/login_screen.dart';
 import 'package:simple/UI/DashBoard/custom_tabbar.dart';
 import 'package:simple/UI/Order/Helper/time_formatter.dart';
 import 'package:simple/UI/Order/pop_view_order.dart';
@@ -53,6 +55,7 @@ class OrderViewViewState extends State<OrderViewView> {
   GetOrderListTodayModel getOrderListTodayModel = GetOrderListTodayModel();
   DeleteOrderModel deleteOrderModel = DeleteOrderModel();
   GetViewOrderModel getViewOrderModel = GetViewOrderModel();
+  String? errorMessage;
   bool orderLoad = false;
   bool view = false;
   final todayDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
@@ -294,6 +297,10 @@ class OrderViewViewState extends State<OrderViewView> {
       buildWhen: ((previous, current) {
         if (current is GetOrderListTodayModel) {
           getOrderListTodayModel = current;
+          if (getOrderListTodayModel.errorResponse?.isUnauthorized == true) {
+            _handle401Error();
+            return true;
+          }
           if (getOrderListTodayModel.success == true) {
             setState(() {
               orderLoad = false;
@@ -307,6 +314,10 @@ class OrderViewViewState extends State<OrderViewView> {
         }
         if (current is DeleteOrderModel) {
           deleteOrderModel = current;
+          if (deleteOrderModel.errorResponse?.isUnauthorized == true) {
+            _handle401Error();
+            return true;
+          }
           if (deleteOrderModel.success == true) {
             showToast("${deleteOrderModel.message}", context, color: true);
             context
@@ -319,6 +330,10 @@ class OrderViewViewState extends State<OrderViewView> {
         }
         if (current is GetViewOrderModel) {
           getViewOrderModel = current;
+          if (getViewOrderModel.errorResponse?.isUnauthorized == true) {
+            _handle401Error();
+            return true;
+          }
           if (getViewOrderModel.success == true) {
             if (view == true) {
               showDialog(
@@ -351,6 +366,18 @@ class OrderViewViewState extends State<OrderViewView> {
       builder: (context, dynamic) {
         return mainContainer();
       },
+    );
+  }
+
+  void _handle401Error() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    await sharedPreferences.remove("token");
+    await sharedPreferences.clear();
+    showToast("Session expired. Please login again.", context, color: false);
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => LoginScreen()),
+      (Route<dynamic> route) => false,
     );
   }
 }

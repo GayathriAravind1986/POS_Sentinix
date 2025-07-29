@@ -1,15 +1,16 @@
-/// ErrorResponse Class in API Integration
 class ErrorResponse {
-  String? message; // Add message field directly
+  String? message; // Direct message field
   List<Errors>? errors; // List of errors
+  int? statusCode; // Add status code for better error handling
 
-  // Constructor with the message and errors fields
-  ErrorResponse({this.message, this.errors});
+  // Constructor with message, errors, and statusCode fields
+  ErrorResponse({this.message, this.errors, this.statusCode});
 
   // JSON deserialization
   ErrorResponse.fromJson(Map<String, dynamic> json) {
     // Parse message directly from JSON
     message = json['message'];
+    statusCode = json['statusCode'];
 
     // Parse list of errors if present
     if (json['errors'] != null) {
@@ -29,12 +30,31 @@ class ErrorResponse {
       data['message'] = message;
     }
 
+    // Add status code to the JSON
+    if (statusCode != null) {
+      data['statusCode'] = statusCode;
+    }
+
     // Add list of errors if present
     if (errors != null) {
       data['errors'] = errors!.map((v) => v.toJson()).toList();
     }
 
     return data;
+  }
+
+  // Helper method to check if error is 401
+  bool get isUnauthorized => statusCode == 401;
+
+  // Helper method to get the first error message
+  String get firstErrorMessage {
+    if (message != null && message!.isNotEmpty) {
+      return message!;
+    }
+    if (errors != null && errors!.isNotEmpty) {
+      return errors!.first.message ?? "Unknown error";
+    }
+    return "Unknown error";
   }
 }
 
