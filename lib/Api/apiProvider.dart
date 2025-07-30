@@ -13,6 +13,7 @@ import 'package:simple/ModelClass/Order/Get_view_order_model.dart';
 import 'package:simple/ModelClass/Order/Post_generate_order_model.dart';
 import 'package:simple/ModelClass/Order/Update_generate_order_model.dart';
 import 'package:simple/ModelClass/Order/get_order_list_today_model.dart';
+import 'package:simple/ModelClass/Report/Get_report_model.dart';
 import 'package:simple/ModelClass/ShopDetails/get_shop_details_model.dart';
 import 'package:simple/ModelClass/ShopDetails/get_shop_details_without_token_model.dart';
 import 'package:simple/Reusable/constant.dart';
@@ -371,6 +372,48 @@ class ApiProvider {
     }
   }
 
+  /// ReportToday - Fetch API Integration
+  Future<GetReportModel> getReportTodayAPI(
+      String? fromDate, String? toDate) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var token = sharedPreferences.getString("token");
+    try {
+      var dio = Dio();
+      var response = await dio.request(
+        '${Constants.baseUrl}api/generate-order/sales-report?from_date=$fromDate&to_date=$toDate',
+        options: Options(
+          method: 'GET',
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        if (response.data['success'] == true) {
+          GetReportModel getReportListTodayResponse =
+              GetReportModel.fromJson(response.data);
+          return getReportListTodayResponse;
+        }
+      } else {
+        return GetReportModel()
+          ..errorResponse = ErrorResponse(
+            message: "Error: ${response.data['message'] ?? 'Unknown error'}",
+            statusCode: response.statusCode,
+          );
+      }
+      return GetReportModel()
+        ..errorResponse = ErrorResponse(
+          message: "Unexpected error occurred.",
+          statusCode: 500,
+        );
+    } on DioException catch (dioError) {
+      final errorResponse = handleError(dioError);
+      return GetReportModel()..errorResponse = errorResponse;
+    } catch (error) {
+      return GetReportModel()..errorResponse = handleError(error);
+    }
+  }
+
   /// Generate Order - Post API Integration
   Future<PostGenerateOrderModel> postGenerateOrderAPI(
       final String orderPayloadJson) async {
@@ -587,8 +630,34 @@ class ApiProvider {
             errorResponse.statusCode = statusCode;
 
             if (statusCode == 401) {
-              errorDescription.message = "Session expired. Please login again.";
-              errorResponse.message = "Session expired. Please login again.";
+              try {
+                final message = dioException.response!.data["message"] ??
+                    dioException.response!.data["error"] ??
+                    dioException.response!.data["errors"]?[0]?["message"];
+
+                if (message != null &&
+                    (message.toLowerCase().contains("token") ||
+                        message.toLowerCase().contains("expired"))) {
+                  errorDescription.message =
+                      "Session expired. Please login again.";
+                  errorResponse.message =
+                      "Session expired. Please login again.";
+                } else if (message != null &&
+                    (message.toLowerCase().contains("invalid credentials") ||
+                        message.toLowerCase().contains("unauthorized") ||
+                        message.toLowerCase().contains("incorrect"))) {
+                  errorDescription.message =
+                      "Invalid credentials. Please try again.";
+                  errorResponse.message =
+                      "Invalid credentials. Please try again.";
+                } else {
+                  errorDescription.message = message;
+                  errorResponse.message = message;
+                }
+              } catch (_) {
+                errorDescription.message = "Unauthorized access";
+                errorResponse.message = "Unauthorized access";
+              }
             } else if (statusCode == 403) {
               errorDescription.message = "Access forbidden";
               errorResponse.message = "Access forbidden";

@@ -9,7 +9,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
-//import 'package:screenshot/screenshot.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple/Alertbox/snackBarAlert.dart';
 import 'package:simple/Bloc/Category/category_bloc.dart';
@@ -155,7 +154,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
   List<Map<String, dynamic>> billingItems = [];
   late IPrinterService printerService;
   GlobalKey receiptKey = GlobalKey();
-  //final ScreenshotController screenshotController = ScreenshotController();
 
   String formatInvoiceDate(String? dateStr) {
     DateTime dateTime;
@@ -175,117 +173,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
     }
     return DateFormat('dd/MM/yyyy hh:mm a').format(dateTime);
   }
-
-  // Future<void> printGenerateOrderReceipt() async {
-  //   try {
-  //     printerService.init();
-  //
-  //     List<Map<String, dynamic>> items = postGenerateOrderModel.order!.items!
-  //         .map((e) => {
-  //               'name': e.name,
-  //               'qty': e.quantity,
-  //               'price': e.unitPrice,
-  //               'total': (e.quantity ?? 0) * (e.unitPrice ?? 0),
-  //             })
-  //         .toList();
-  //
-  //     String businessName =
-  //         postGenerateOrderModel.invoice!.businessName ?? 'Business Name';
-  //     String address =
-  //         postGenerateOrderModel.invoice!.address ?? 'Business Address';
-  //     double taxPercent = (postGenerateOrderModel.order!.tax ?? 0.0).toDouble();
-  //     String orderNumber = postGenerateOrderModel.order!.orderNumber ?? 'N/A';
-  //     String paymentMethod = postGenerateOrderModel.invoice!.paidBy ?? '';
-  //     String phone = postGenerateOrderModel.invoice!.phone ?? '';
-  //     double subTotal =
-  //         (postGenerateOrderModel.invoice!.subtotal ?? 0.0).toDouble();
-  //     double total = (postGenerateOrderModel.invoice!.total ?? 0.0).toDouble();
-  //     String orderType = postGenerateOrderModel.order!.orderType ?? '';
-  //     String tableName = orderType == 'DINE-IN'
-  //         ? postGenerateOrderModel.invoice!.tableName.toString()
-  //         : 'N/A';
-  //     String date = formatInvoiceDate(postGenerateOrderModel.invoice?.date);
-  //
-  //     await showDialog(
-  //       context: context,
-  //       barrierColor: blackColor45, // slight dimming
-  //       builder: (_) => Dialog(
-  //         backgroundColor: Colors.transparent,
-  //         insetPadding:
-  //             const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-  //         child: SingleChildScrollView(
-  //           child: Container(
-  //             padding: const EdgeInsets.all(16),
-  //             decoration: BoxDecoration(
-  //               color: whiteColor,
-  //               borderRadius: BorderRadius.circular(16),
-  //             ),
-  //             child: Column(
-  //               //  mainAxisSize: MainAxisSize.min,
-  //               children: [
-  //                 RepaintBoundary(
-  //                   key: receiptKey,
-  //                   child: Container(
-  //                     width: 384,
-  //                     color: whiteColor,
-  //                     child: getReceiptWidget(
-  //                       businessName: businessName,
-  //                       address: address,
-  //                       items: items,
-  //                       tax: taxPercent,
-  //                       paidBy: paymentMethod,
-  //                       tamilTagline: 'ஒரே ஒரு முறை சுவைத்து பாருங்கள்',
-  //                       phone: phone,
-  //                       subtotal: subTotal,
-  //                       total: total,
-  //                       orderNumber: orderNumber,
-  //                       tableName: tableName,
-  //                       orderType: orderType,
-  //                       date: date,
-  //                     ),
-  //                   ),
-  //                 ),
-  //                 const SizedBox(height: 20),
-  //                 ElevatedButton.icon(
-  //                   onPressed: () async {
-  //                     if (kIsWeb ||
-  //                         defaultTargetPlatform != TargetPlatform.android) {
-  //                       debugPrint("printBitmap is only supported on Android.");
-  //                       Navigator.pop(context);
-  //                       return;
-  //                     }
-  //                     try {
-  //                       Uint8List? imageBytes =
-  //                           await captureReceiptAsImage(receiptKey);
-  //                       debugPrint("imageBytes:$imageBytes");
-  //                       if (imageBytes != null) {
-  //                         await printerService.printBitmap(imageBytes);
-  //                       }
-  //                       await Future.delayed(Duration(seconds: 2));
-  //                       await printerService.fullCut();
-  //                       debugPrint("Printed receipt successfully.");
-  //                       Navigator.pop(context); // Close dialog
-  //                     } catch (e) {
-  //                       print("Print failed: $e");
-  //                     }
-  //                   },
-  //                   icon: const Icon(Icons.print),
-  //                   label: const Text("Print"),
-  //                   style: ElevatedButton.styleFrom(
-  //                     backgroundColor: blueColor,
-  //                     foregroundColor: whiteColor,
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //         ),
-  //       ),
-  //     );
-  //   } catch (e) {
-  //     debugPrint("Error printing receipt: $e");
-  //   }
-  // }
 
   Future<void> printGenerateOrderReceipt() async {
     try {
@@ -351,12 +238,11 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                       orderType: orderType,
                       date: date,
                       status: orderStatus,
-                      // controller: screenshotController
                     ),
                   ),
                   const SizedBox(height: 20),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ElevatedButton.icon(
                         onPressed: () async {
@@ -367,13 +253,15 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                           //   return;
                           // }
                           try {
-                            // Try monochrome version first
+                            await Future.delayed(
+                                const Duration(milliseconds: 300));
+                            await WidgetsBinding.instance.endOfFrame;
                             Uint8List? imageBytes =
                                 await captureMonochromeReceipt(receiptKey);
 
                             if (imageBytes != null) {
                               await printerService.printBitmap(imageBytes);
-                              await Future.delayed(Duration(seconds: 2));
+                              await Future.delayed(Duration(seconds: 3));
                               await printerService.fullCut();
                               debugPrint(
                                   "Printed monochrome receipt successfully.");
@@ -384,64 +272,21 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                           }
                         },
                         icon: const Icon(Icons.print),
-                        label: const Text("Print (B&W)"),
+                        label: const Text("Print"),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: greenColor,
                           foregroundColor: whiteColor,
                         ),
                       ),
-                      // ElevatedButton.icon(
-                      //   onPressed: () async {
-                      //     // if (kIsWeb ||
-                      //     //     defaultTargetPlatform != TargetPlatform.android) {
-                      //     //   debugPrint("printBitmap is only supported on Android.");
-                      //     //   Navigator.pop(context);
-                      //     //   return;
-                      //     // }
-                      //     try {
-                      //       printReceiptImage();
-                      //     } catch (e) {
-                      //       print("Monochrome print failed: $e");
-                      //     }
-                      //   },
-                      //   icon: const Icon(Icons.print),
-                      //   label: const Text("Print (Screenshot)"),
-                      //   style: ElevatedButton.styleFrom(
-                      //     backgroundColor: Colors.green,
-                      //     foregroundColor: whiteColor,
-                      //   ),
-                      // ),
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                          // if (kIsWeb ||
-                          //     defaultTargetPlatform != TargetPlatform.android) {
-                          //   debugPrint(
-                          //       "printBitmap is only supported on Android.");
-                          //   Navigator.pop(context);
-                          //   return;
-                          // }
-                          try {
-                            // Standard thermal print
-                            Uint8List? imageBytes =
-                                await captureThermalReceiptAsImage(receiptKey);
-
-                            if (imageBytes != null) {
-                              await printerService.printBitmap(imageBytes);
-                              await Future.delayed(Duration(seconds: 2));
-                              await printerService.fullCut();
-                              debugPrint(
-                                  "Printed thermal receipt successfully.");
-                              Navigator.pop(context);
-                            }
-                          } catch (e) {
-                            print("Standard print failed: $e");
-                          }
-                        },
-                        icon: const Icon(Icons.print),
-                        label: const Text("Print (Standard)"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: blueColor,
-                          foregroundColor: whiteColor,
+                      horizontalSpace(width: 10),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.09,
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text(
+                            "CLOSE",
+                            style: TextStyle(color: appPrimaryColor),
+                          ),
                         ),
                       ),
                     ],
@@ -456,22 +301,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
       debugPrint("Error printing receipt: $e");
     }
   }
-
-  // Future<void> printReceiptImage() async {
-  //   Uint8List? image = await screenshotController.capture(
-  //     pixelRatio: 2.0,
-  //   );
-  //
-  //   if (image != null) {
-  //     await IminPrinterPlatform.instance.printBitmap(image);
-  //     await Future.delayed(Duration(seconds: 2));
-  //     await printerService.fullCut();
-  //     debugPrint("Printed monochrome receipt successfully.");
-  //     Navigator.pop(context);
-  //   } else {
-  //     print("Failed to capture image");
-  //   }
-  // }
 
   Future<void> printUpdateOrderReceipt() async {
     try {
@@ -537,13 +366,11 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                         tableName: tableName,
                         orderType: orderType,
                         date: date,
-                        status: orderStatus
-                        //controller: screenshotController
-                        ),
+                        status: orderStatus),
                   ),
                   const SizedBox(height: 20),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ElevatedButton.icon(
                         onPressed: () async {
@@ -554,13 +381,15 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                           //   return;
                           // }
                           try {
-                            // Try monochrome version first
+                            await Future.delayed(
+                                const Duration(milliseconds: 300));
+                            await WidgetsBinding.instance.endOfFrame;
                             Uint8List? imageBytes =
                                 await captureMonochromeReceipt(receiptKey);
 
                             if (imageBytes != null) {
                               await printerService.printBitmap(imageBytes);
-                              await Future.delayed(Duration(seconds: 2));
+                              await Future.delayed(Duration(seconds: 3));
                               await printerService.fullCut();
                               debugPrint(
                                   "Printed monochrome receipt successfully.");
@@ -571,64 +400,21 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                           }
                         },
                         icon: const Icon(Icons.print),
-                        label: const Text("Print (B&W)"),
+                        label: const Text("Print"),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                           foregroundColor: whiteColor,
                         ),
                       ),
-                      // ElevatedButton.icon(
-                      //   onPressed: () async {
-                      //     // if (kIsWeb ||
-                      //     //     defaultTargetPlatform != TargetPlatform.android) {
-                      //     //   debugPrint("printBitmap is only supported on Android.");
-                      //     //   Navigator.pop(context);
-                      //     //   return;
-                      //     // }
-                      //     try {
-                      //       printReceiptImage();
-                      //     } catch (e) {
-                      //       print("Monochrome print failed: $e");
-                      //     }
-                      //   },
-                      //   icon: const Icon(Icons.print),
-                      //   label: const Text("Print (Screenshot)"),
-                      //   style: ElevatedButton.styleFrom(
-                      //     backgroundColor: Colors.green,
-                      //     foregroundColor: whiteColor,
-                      //   ),
-                      // ),
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                          // if (kIsWeb ||
-                          //     defaultTargetPlatform != TargetPlatform.android) {
-                          //   debugPrint(
-                          //       "printBitmap is only supported on Android.");
-                          //   Navigator.pop(context);
-                          //   return;
-                          // }
-                          try {
-                            // Standard thermal print
-                            Uint8List? imageBytes =
-                                await captureThermalReceiptAsImage(receiptKey);
-
-                            if (imageBytes != null) {
-                              await printerService.printBitmap(imageBytes);
-                              await Future.delayed(Duration(seconds: 2));
-                              await printerService.fullCut();
-                              debugPrint(
-                                  "Printed thermal receipt successfully.");
-                              Navigator.pop(context);
-                            }
-                          } catch (e) {
-                            print("Standard print failed: $e");
-                          }
-                        },
-                        icon: const Icon(Icons.print),
-                        label: const Text("Print (Standard)"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: blueColor,
-                          foregroundColor: whiteColor,
+                      horizontalSpace(width: 10),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.09,
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text(
+                            "CLOSE",
+                            style: TextStyle(color: appPrimaryColor),
+                          ),
                         ),
                       ),
                     ],

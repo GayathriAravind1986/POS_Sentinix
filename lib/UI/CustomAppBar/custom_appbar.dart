@@ -67,17 +67,17 @@ class CustomAppBarViewState extends State<CustomAppBarView> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     Widget mainContainer() {
-      return getShopDetailsModel.data == null
-          ? Container()
-          : AppBar(
-              backgroundColor: whiteColor,
-              elevation: 0,
-              automaticallyImplyLeading: false,
-              title: Container(
-                margin: EdgeInsets.only(left: 10),
-                child: Row(
-                  children: [
-                    Text(
+      return AppBar(
+        backgroundColor: whiteColor,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: Container(
+          margin: EdgeInsets.only(left: 10),
+          child: Row(
+            children: [
+              getShopDetailsModel.data == null
+                  ? Text("")
+                  : Text(
                       getShopDetailsModel.data!.name ?? "",
                       style: TextStyle(
                         fontSize: 20,
@@ -85,63 +85,77 @@ class CustomAppBarViewState extends State<CustomAppBarView> {
                         color: appPrimaryColor,
                       ),
                     ),
-                    SizedBox(width: size.width * 0.3),
-                    Row(
-                      children: [
-                        TextButton.icon(
-                          onPressed: () => widget.onTabSelected(0),
-                          icon: Icon(
-                            Icons.home_outlined,
-                            size: 30,
-                            color: widget.selectedIndex == 0
-                                ? appPrimaryColor
-                                : greyColor,
-                          ),
-                          label: Text(
-                            "Home",
-                            style: MyTextStyle.f16(
-                              weight: FontWeight.bold,
-                              widget.selectedIndex == 0
-                                  ? appPrimaryColor
-                                  : greyColor,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 16),
-                        TextButton.icon(
-                          onPressed: () => widget.onTabSelected(1),
-                          icon: Icon(
-                            Icons.shopping_cart_outlined,
-                            size: 30,
-                            color: widget.selectedIndex == 1
-                                ? appPrimaryColor
-                                : greyColor,
-                          ),
-                          label: Text(
-                            "Orders",
-                            style: MyTextStyle.f16(
-                              weight: FontWeight.bold,
-                              widget.selectedIndex == 1
-                                  ? appPrimaryColor
-                                  : greyColor,
-                            ),
-                          ),
-                        ),
-                      ],
+              SizedBox(width: size.width * 0.3),
+              Row(
+                children: [
+                  TextButton.icon(
+                    onPressed: () => widget.onTabSelected(0),
+                    icon: Icon(
+                      Icons.home_outlined,
+                      size: 30,
+                      color: widget.selectedIndex == 0
+                          ? appPrimaryColor
+                          : greyColor,
                     ),
-                  ],
-                ),
-              ),
-              actions: [
-                Container(
-                  padding: EdgeInsets.only(right: 20),
-                  child: IconButton(
-                    icon: Icon(Icons.logout, color: appPrimaryColor),
-                    onPressed: widget.onLogout,
+                    label: Text(
+                      "Home",
+                      style: MyTextStyle.f16(
+                        weight: FontWeight.bold,
+                        widget.selectedIndex == 0 ? appPrimaryColor : greyColor,
+                      ),
+                    ),
                   ),
-                ),
-              ],
-            );
+                  SizedBox(width: 16),
+                  TextButton.icon(
+                    onPressed: () => widget.onTabSelected(1),
+                    icon: Icon(
+                      Icons.shopping_cart_outlined,
+                      size: 30,
+                      color: widget.selectedIndex == 1
+                          ? appPrimaryColor
+                          : greyColor,
+                    ),
+                    label: Text(
+                      "Orders",
+                      style: MyTextStyle.f16(
+                        weight: FontWeight.bold,
+                        widget.selectedIndex == 1 ? appPrimaryColor : greyColor,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  TextButton.icon(
+                    onPressed: () => widget.onTabSelected(2),
+                    icon: Icon(
+                      Icons.note_alt_outlined,
+                      size: 30,
+                      color: widget.selectedIndex == 2
+                          ? appPrimaryColor
+                          : greyColor,
+                    ),
+                    label: Text(
+                      "Report",
+                      style: MyTextStyle.f16(
+                        weight: FontWeight.bold,
+                        widget.selectedIndex == 2 ? appPrimaryColor : greyColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          Container(
+            padding: EdgeInsets.only(right: 20),
+            child: IconButton(
+              icon: Icon(Icons.logout, color: appPrimaryColor),
+              onPressed: widget.onLogout,
+            ),
+          ),
+        ],
+      );
     }
 
     return BlocBuilder<FoodCategoryBloc, dynamic>(

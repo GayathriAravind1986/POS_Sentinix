@@ -338,7 +338,7 @@ class OrderViewViewState extends State<OrderViewView> {
             if (view == true) {
               showDialog(
                 context: context,
-                builder: (context) => OrderInvoiceDialog(getViewOrderModel),
+                builder: (context) => ThermalReceiptDialog(getViewOrderModel),
               );
             } else {
               Navigator.of(context)

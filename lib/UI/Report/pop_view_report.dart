@@ -1,26 +1,30 @@
 import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:simple/ModelClass/Order/Get_view_order_model.dart';
+import 'package:simple/ModelClass/Report/Get_report_model.dart';
 import 'package:simple/Reusable/color.dart';
 import 'package:simple/Reusable/space.dart';
 import 'package:simple/Reusable/text_styles.dart';
 import 'package:simple/UI/Home_screen/Widget/another_imin_printer/imin_abstract.dart';
 import 'package:simple/UI/Home_screen/Widget/another_imin_printer/mock_imin_printer_chrome.dart';
 import 'package:simple/UI/Home_screen/Widget/another_imin_printer/real_device_printer.dart';
-import 'package:simple/UI/IminHelper/printer_helper.dart';
+import 'package:simple/UI/IminHelper/Report_helper.dart';
 
-class ThermalReceiptDialog extends StatefulWidget {
-  final GetViewOrderModel getViewOrderModel;
+class ThermalReportReceiptDialog extends StatefulWidget {
+  final GetReportModel getReportModel;
 
-  const ThermalReceiptDialog(this.getViewOrderModel, {super.key});
+  const ThermalReportReceiptDialog(this.getReportModel, {super.key});
 
   @override
-  State<ThermalReceiptDialog> createState() => _ThermalReceiptDialogState();
+  State<ThermalReportReceiptDialog> createState() =>
+      _ThermalReportReceiptDialogState();
 }
 
-class _ThermalReceiptDialogState extends State<ThermalReceiptDialog> {
+class _ThermalReportReceiptDialogState
+    extends State<ThermalReportReceiptDialog> {
   late IPrinterService printerService;
   final GlobalKey receiptKey = GlobalKey();
 
@@ -41,40 +45,32 @@ class _ThermalReceiptDialogState extends State<ThermalReceiptDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final order = widget.getViewOrderModel.data!;
-    final invoice = order.invoice!;
     var size = MediaQuery.of(context).size;
-    List<Map<String, dynamic>> items = order.items!
-        .map((e) => {
-              'name': e.name,
-              'qty': e.quantity,
-              'price': e.unitPrice,
-              'total': (e.quantity ?? 0) * (e.unitPrice ?? 0),
-            })
-        .toList();
+    // Prepare data for thermal receipt
+    // List<Map<String, dynamic>> items = order.items!
+    //     .map((e) => {
+    //           'name': e.name,
+    //           'qty': e.quantity,
+    //           'price': e.unitPrice,
+    //           'total': (e.quantity ?? 0) * (e.unitPrice ?? 0),
+    //         })
+    //     .toList();
+    //
+    String businessName = widget.getReportModel.businessName ?? 'Business Name';
+    String userName = widget.getReportModel.userName ?? '';
+    String address = widget.getReportModel.address ?? 'Business Address';
+    String phone = widget.getReportModel.phone ?? '';
+    double totalAmount = (widget.getReportModel.finalAmount ?? 0.0).toDouble();
+    int totalQty = (widget.getReportModel.finalQty ?? 0.0).toInt();
+    String date = DateFormat('dd/MM/yyyy hh:mm a').format(DateTime.now());
 
-    String businessName = invoice.businessName ?? 'Business Name';
-    String address = invoice.address ?? 'Business Address';
-    double taxAmount = (order.tax ?? 0.0).toDouble();
-    String orderNumber = order.orderNumber ?? 'N/A';
-    String paymentMethod = invoice.paidBy ?? '';
-    String phone = invoice.phone ?? '';
-    double subTotal = (invoice.subtotal ?? 0.0).toDouble();
-    double total = (invoice.total ?? 0.0).toDouble();
-    String orderType = order.orderType ?? '';
-    String orderStatus = order.orderStatus ?? '';
-    String tableName =
-        orderType == 'DINE-IN' ? (invoice.tableNum ?? 'N/A') : 'N/A';
-    String date = DateFormat('dd/MM/yyyy hh:mm a').format(
-        DateFormat('M/d/yyyy, h:mm:ss a').parse(invoice.date.toString()));
-
-    return widget.getViewOrderModel.data == null
+    return widget.getReportModel.data == null
         ? Container(
             padding:
                 EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.1),
             alignment: Alignment.center,
             child: Text(
-              "No Orders found",
+              "No Report found",
               style: MyTextStyle.f16(
                 greyColor,
                 weight: FontWeight.w500,
@@ -99,7 +95,7 @@ class _ThermalReceiptDialogState extends State<ThermalReceiptDialog> {
                       children: [
                         Center(
                           child: const Text(
-                            "Order Receipt",
+                            "Report",
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -113,25 +109,22 @@ class _ThermalReceiptDialogState extends State<ThermalReceiptDialog> {
                       ],
                     ),
                     const SizedBox(height: 16),
+
+                    // Thermal Receipt Widget
                     RepaintBoundary(
                       key: receiptKey,
-                      child: getThermalReceiptWidget(
+                      child: getReportReceiptWidget(
                         businessName: businessName,
+                        tamilTagline: "ஒரே ஒரு முறை சுவைத்து பாருங்கள்",
                         address: address,
-                        items: items,
-                        tax: taxAmount,
-                        paidBy: paymentMethod,
-                        tamilTagline: 'ஒரே ஒரு முறை சுவைத்து பாருங்கள்',
                         phone: phone,
-                        subtotal: subTotal,
-                        total: total,
-                        orderNumber: orderNumber,
-                        tableName: tableName,
-                        orderType: orderType,
-                        date: date,
-                        status: orderStatus,
+                        reportDate: date,
+                        takenBy: userName,
+                        totalQuantity: totalQty,
+                        totalAmount: totalAmount,
                       ),
                     ),
+
                     const SizedBox(height: 20),
 
                     // Action Buttons

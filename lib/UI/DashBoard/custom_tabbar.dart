@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:simple/Alertbox/AlertDialogBox.dart';
 import 'package:simple/Bloc/Category/category_bloc.dart';
+import 'package:simple/Bloc/Report/report_bloc.dart';
 import 'package:simple/Bloc/demo/demo_bloc.dart';
 import 'package:simple/ModelClass/Order/Get_view_order_model.dart';
 import 'package:simple/UI/CustomAppBar/custom_appbar.dart';
 import 'package:simple/UI/Home_screen/home_screen.dart';
 import 'package:simple/UI/Order/order_list.dart';
 import 'package:simple/UI/Order/order_tab_page.dart';
+
+import '../Report/report_order.dart';
 
 class DashBoardScreen extends StatelessWidget {
   final int? selectTab;
@@ -50,9 +53,12 @@ class _DashBoardState extends State<DashBoard> {
       GlobalKey<OrderViewViewState>();
   final GlobalKey<FoodOrderingScreenViewState> foodKey =
       GlobalKey<FoodOrderingScreenViewState>();
+  final GlobalKey<ReportViewViewState> reportKey =
+      GlobalKey<ReportViewViewState>();
   int selectedIndex = 0;
   bool orderLoad = false;
   bool hasRefreshedOrder = false;
+  bool hasRefreshedReport = false;
 
   @override
   void initState() {
@@ -74,9 +80,19 @@ class _DashBoardState extends State<DashBoard> {
     final foodKeyState = foodKey.currentState;
     if (foodKeyState != null) {
       debugPrint("foodKeyState exists, calling refreshHome()");
-      foodKeyState?.refreshHome();
+      foodKeyState.refreshHome();
     } else {
       debugPrint("foodKeyState is NULL — check if key is assigned properly");
+    }
+  }
+
+  void _refreshReport() {
+    final reportKeyState = reportKey.currentState;
+    if (reportKeyState != null) {
+      debugPrint("reportKeyState exists, calling refreshReport()");
+      reportKeyState.refreshReport();
+    } else {
+      debugPrint("reportKeyState is NULL — check if key is assigned properly");
     }
   }
 
@@ -99,6 +115,12 @@ class _DashBoardState extends State<DashBoard> {
               hasRefreshedOrder = false;
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 _refreshOrders();
+              });
+            }
+            if (index == 2 && !hasRefreshedReport) {
+              hasRefreshedReport = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _refreshReport();
               });
             }
           },
@@ -131,6 +153,20 @@ class _DashBoardState extends State<DashBoard> {
               key: PageStorageKey('OrdersTabbedScreen'),
               orderAllKey: orderAllTabKey,
             ),
+            hasRefreshedReport == true
+                ? BlocProvider(
+                    create: (_) => ReportTodayBloc(),
+                    child: ReportViewView(
+                      key: reportKey,
+                      hasRefreshedReport: hasRefreshedReport,
+                    ))
+                : BlocProvider(
+                    create: (_) => ReportTodayBloc(),
+                    child: ReportView(
+                      key: reportKey,
+                      hasRefreshedReport: hasRefreshedReport,
+                    ),
+                  ),
           ],
         ),
       ),
