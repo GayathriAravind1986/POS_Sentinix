@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -329,34 +330,64 @@ class OrderViewViewState extends State<OrderViewView> {
           return true;
         }
         if (current is GetViewOrderModel) {
-          getViewOrderModel = current;
-          if (getViewOrderModel.errorResponse?.isUnauthorized == true) {
-            _handle401Error();
-            return true;
-          }
-          if (getViewOrderModel.success == true) {
-            if (view == true) {
-              showDialog(
-                context: context,
-                builder: (context) => ThermalReceiptDialog(getViewOrderModel),
+          try {
+            getViewOrderModel = current;
+            if (getViewOrderModel.errorResponse?.isUnauthorized == true) {
+              _handle401Error();
+              return true;
+            }
+            if (getViewOrderModel.success == true) {
+              if (view == true) {
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  },
+                );
+                Future.delayed(Duration(seconds: 1));
+
+                Navigator.of(context).pop();
+                showDialog(
+                  context: context,
+                  builder: (context) => ThermalReceiptDialog(getViewOrderModel),
+                );
+              } else {
+                Navigator.of(context)
+                    .pushAndRemoveUntil(
+                        MaterialPageRoute(
+                            builder: (context) => DashBoardScreen(
+                                  selectTab: 0,
+                                  existingOrder: getViewOrderModel,
+                                  isEditingOrder: true,
+                                )),
+                        (Route<dynamic> route) => false)
+                    .then((value) {
+                  if (value == true) {
+                    context
+                        .read<OrderTodayBloc>()
+                        .add(OrderTodayList(yesterdayDate, todayDate));
+                  }
+                });
+              }
+            }
+          } catch (e, stackTrace) {
+            debugPrint("Error in processing view order: $e");
+            print(stackTrace);
+            if (e is DioException) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text("Error: ${e.message}"),
+                ),
               );
             } else {
-              Navigator.of(context)
-                  .pushAndRemoveUntil(
-                      MaterialPageRoute(
-                          builder: (context) => DashBoardScreen(
-                                selectTab: 0,
-                                existingOrder: getViewOrderModel,
-                                isEditingOrder: true,
-                              )),
-                      (Route<dynamic> route) => false)
-                  .then((value) {
-                if (value == true) {
-                  context
-                      .read<OrderTodayBloc>()
-                      .add(OrderTodayList(yesterdayDate, todayDate));
-                }
-              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text("Something went wrong: ${e.toString()}"),
+                ),
+              );
             }
           }
           return true;

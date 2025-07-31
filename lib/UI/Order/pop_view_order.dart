@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:simple/ModelClass/Order/Get_view_order_model.dart';
 import 'package:simple/Reusable/color.dart';
@@ -23,19 +24,15 @@ class ThermalReceiptDialog extends StatefulWidget {
 class _ThermalReceiptDialogState extends State<ThermalReceiptDialog> {
   late IPrinterService printerService;
   final GlobalKey receiptKey = GlobalKey();
-
   @override
   void initState() {
     super.initState();
     if (kIsWeb) {
       printerService = MockPrinterService();
-      debugPrint("Using MockPrinterService (Web)");
     } else if (Platform.isAndroid) {
       printerService = RealPrinterService();
-      debugPrint("Using RealPrinterService (Android)");
     } else {
       printerService = MockPrinterService();
-      debugPrint("Using fallback MockPrinterService");
     }
   }
 
@@ -48,8 +45,8 @@ class _ThermalReceiptDialogState extends State<ThermalReceiptDialog> {
         .map((e) => {
               'name': e.name,
               'qty': e.quantity,
-              'price': e.unitPrice,
-              'total': (e.quantity ?? 0) * (e.unitPrice ?? 0),
+              'price': (e.unitPrice ?? 0).toDouble(),
+              'total': ((e.quantity ?? 0) * (e.unitPrice ?? 0)).toDouble(),
             })
         .toList();
 
@@ -153,12 +150,9 @@ class _ThermalReceiptDialogState extends State<ThermalReceiptDialog> {
                                 await Future.delayed(
                                     const Duration(seconds: 3));
                                 await printerService.fullCut();
-                                debugPrint(
-                                    "Printed monochrome receipt successfully.");
                                 Navigator.pop(context);
                               }
                             } catch (e) {
-                              print("Monochrome print failed: $e");
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text("Print failed: $e")),
                               );

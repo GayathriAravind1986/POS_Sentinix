@@ -71,7 +71,6 @@ class _DashBoardState extends State<DashBoard> {
   void _refreshOrders() {
     final orderAllTabState = orderAllTabKey.currentState;
     if (orderAllTabState != null) {
-      debugPrint("foodKeyState exists, calling refreshOrder()");
       orderAllTabState.refreshOrders();
     }
   }
@@ -79,7 +78,6 @@ class _DashBoardState extends State<DashBoard> {
   void _refreshHome() {
     final foodKeyState = foodKey.currentState;
     if (foodKeyState != null) {
-      debugPrint("foodKeyState exists, calling refreshHome()");
       foodKeyState.refreshHome();
     } else {
       debugPrint("foodKeyState is NULL — check if key is assigned properly");
@@ -89,7 +87,6 @@ class _DashBoardState extends State<DashBoard> {
   void _refreshReport() {
     final reportKeyState = reportKey.currentState;
     if (reportKeyState != null) {
-      debugPrint("reportKeyState exists, calling refreshReport()");
       reportKeyState.refreshReport();
     } else {
       debugPrint("reportKeyState is NULL — check if key is assigned properly");
@@ -108,16 +105,19 @@ class _DashBoardState extends State<DashBoard> {
             });
             if (index == 0 && !hasRefreshedOrder) {
               hasRefreshedOrder = true;
+              hasRefreshedReport = false;
               WidgetsBinding.instance
                   .addPostFrameCallback((_) => _refreshHome());
             }
             if (index == 1) {
               hasRefreshedOrder = false;
+              hasRefreshedReport = false;
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 _refreshOrders();
               });
             }
             if (index == 2 && !hasRefreshedReport) {
+              hasRefreshedOrder = false;
               hasRefreshedReport = true;
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 _refreshReport();

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:another_imin_printer/imin_printer_platform_interface.dart';
 import 'package:collection/collection.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -176,14 +177,21 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
 
   Future<void> printGenerateOrderReceipt() async {
     try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
       printerService.init();
 
       List<Map<String, dynamic>> items = postGenerateOrderModel.order!.items!
           .map((e) => {
                 'name': e.name,
                 'qty': e.quantity,
-                'price': e.unitPrice,
-                'total': (e.quantity ?? 0) * (e.unitPrice ?? 0),
+                'price': (e.unitPrice ?? 0).toDouble(),
+                'total': ((e.quantity ?? 0) * (e.unitPrice ?? 0)).toDouble(),
               })
           .toList();
 
@@ -204,10 +212,9 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
           ? postGenerateOrderModel.invoice!.tableName.toString()
           : 'N/A';
       String date = formatInvoiceDate(postGenerateOrderModel.invoice?.date);
-
+      Navigator.of(context).pop();
       await showDialog(
         context: context,
-        barrierColor: blackColor45,
         builder: (_) => Dialog(
           backgroundColor: Colors.transparent,
           insetPadding:
@@ -246,12 +253,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                     children: [
                       ElevatedButton.icon(
                         onPressed: () async {
-                          // if (kIsWeb ||
-                          //     defaultTargetPlatform != TargetPlatform.android) {
-                          //   debugPrint("printBitmap is only supported on Android.");
-                          //   Navigator.pop(context);
-                          //   return;
-                          // }
                           try {
                             await Future.delayed(
                                 const Duration(milliseconds: 300));
@@ -263,12 +264,12 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                               await printerService.printBitmap(imageBytes);
                               await Future.delayed(Duration(seconds: 3));
                               await printerService.fullCut();
-                              debugPrint(
-                                  "Printed monochrome receipt successfully.");
                               Navigator.pop(context);
                             }
                           } catch (e) {
-                            print("Monochrome print failed: $e");
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Print failed: $e")),
+                            );
                           }
                         },
                         icon: const Icon(Icons.print),
@@ -298,19 +299,39 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
         ),
       );
     } catch (e) {
-      debugPrint("Error printing receipt: $e");
+      Navigator.of(context).pop();
+      if (e is DioException) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error: ${e.message}"),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Something went wrong: ${e.toString()}"),
+          ),
+        );
+      }
     }
   }
 
   Future<void> printUpdateOrderReceipt() async {
     try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
       await printerService.init();
       List<Map<String, dynamic>> items = updateGenerateOrderModel.order!.items!
           .map((e) => {
                 'name': e.name,
                 'qty': e.quantity,
-                'price': e.unitPrice,
-                'total': (e.quantity ?? 0) * (e.unitPrice ?? 0),
+                'price': (e.unitPrice ?? 0).toDouble(),
+                'total': ((e.quantity ?? 0) * (e.unitPrice ?? 0)).toDouble(),
               })
           .toList();
 
@@ -333,10 +354,9 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
           ? updateGenerateOrderModel.invoice!.tableName.toString()
           : 'N/A';
       String date = formatInvoiceDate(updateGenerateOrderModel.invoice?.date);
-
+      Navigator.of(context).pop();
       await showDialog(
         context: context,
-        barrierColor: blackColor45,
         builder: (_) => Dialog(
           backgroundColor: Colors.transparent,
           insetPadding:
@@ -374,12 +394,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                     children: [
                       ElevatedButton.icon(
                         onPressed: () async {
-                          // if (kIsWeb ||
-                          //     defaultTargetPlatform != TargetPlatform.android) {
-                          //   debugPrint("printBitmap is only supported on Android.");
-                          //   Navigator.pop(context);
-                          //   return;
-                          // }
                           try {
                             await Future.delayed(
                                 const Duration(milliseconds: 300));
@@ -391,12 +405,12 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                               await printerService.printBitmap(imageBytes);
                               await Future.delayed(Duration(seconds: 3));
                               await printerService.fullCut();
-                              debugPrint(
-                                  "Printed monochrome receipt successfully.");
                               Navigator.pop(context);
                             }
                           } catch (e) {
-                            print("Monochrome print failed: $e");
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Print failed: $e")),
+                            );
                           }
                         },
                         icon: const Icon(Icons.print),
@@ -426,12 +440,24 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
         ),
       );
     } catch (e) {
-      debugPrint("Error printing receipt: $e");
+      Navigator.of(context).pop();
+      if (e is DioException) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error: ${e.message}"),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Something went wrong: ${e.toString()}"),
+          ),
+        );
+      }
     }
   }
 
   void refreshHome() {
-    debugPrint("welcome refresh");
     if (!mounted || !context.mounted) return;
     context.read<FoodCategoryBloc>().add(FoodCategory());
     context
@@ -453,7 +479,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
     } else {
       printerService = MockPrinterService();
     }
-    debugPrint("refreshHome:${widget.hasRefreshedOrder}");
     if (widget.hasRefreshedOrder == true) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         widget.foodKey?.currentState?.refreshHome();
@@ -1086,7 +1111,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                 setState(() {
                                                                   isSplitPayment =
                                                                       false;
-
                                                                   if (widget
                                                                           .isEditingOrder !=
                                                                       true) {
@@ -1290,7 +1314,9 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                                   : () {
                                                                                 setState(() {
                                                                                   isSplitPayment = false;
-                                                                                  selectDineIn = true;
+                                                                                  if (widget.isEditingOrder != true) {
+                                                                                    selectDineIn = true;
+                                                                                  }
                                                                                   final index = billingItems.indexWhere((item) => item['_id'] == p.id);
                                                                                   if (index != -1 && billingItems[index]['qty'] > 1) {
                                                                                     billingItems[index]['qty'] = billingItems[index]['qty'] - 1;
@@ -1305,7 +1331,6 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                                   }
 
                                                                                   context.read<FoodCategoryBloc>().add(AddToBilling(List.from(billingItems), isDiscountApplied));
-                                                                                  debugPrint("isDiscountwhen remove item:$isDiscountApplied");
                                                                                 });
                                                                               },
                                                                             ),
@@ -1330,7 +1355,9 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                               onPressed: () {
                                                                                 setState(() {
                                                                                   isSplitPayment = false;
-                                                                                  selectDineIn = true;
+                                                                                  if (widget.isEditingOrder != true) {
+                                                                                    selectDineIn = true;
+                                                                                  }
                                                                                   final index = billingItems.indexWhere((item) => item['_id'] == p.id);
                                                                                   if (index != -1) {
                                                                                     billingItems[index]['qty'] = billingItems[index]['qty'] + 1;

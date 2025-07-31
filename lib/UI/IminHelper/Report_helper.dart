@@ -164,6 +164,7 @@ Widget _buildThermalLabelRow(String label, String value) {
 
 Widget _buildThermalTotalRow(String label, double amount,
     {bool isBold = false}) {
+  final isAmountField = label.toLowerCase().contains("amount");
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 1.0),
     child: Row(
@@ -180,7 +181,9 @@ Widget _buildThermalTotalRow(String label, double amount,
           ),
         ),
         Text(
-          '₹${amount.toStringAsFixed(2)}',
+          isAmountField
+              ? '₹${amount.toStringAsFixed(2)}'
+              : amount.toStringAsFixed(2),
           style: TextStyle(
             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
             fontSize: isBold
@@ -194,7 +197,7 @@ Widget _buildThermalTotalRow(String label, double amount,
   );
 }
 
-Future<Uint8List?> captureMonochromeReceipt(GlobalKey key) async {
+Future<Uint8List?> captureMonochromeReport(GlobalKey key) async {
   try {
     RenderRepaintBoundary boundary =
         key.currentContext!.findRenderObject() as RenderRepaintBoundary;

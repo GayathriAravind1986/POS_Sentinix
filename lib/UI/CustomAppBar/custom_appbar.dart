@@ -85,7 +85,7 @@ class CustomAppBarViewState extends State<CustomAppBarView> {
                         color: appPrimaryColor,
                       ),
                     ),
-              SizedBox(width: size.width * 0.3),
+              SizedBox(width: size.width * 0.2),
               Row(
                 children: [
                   TextButton.icon(

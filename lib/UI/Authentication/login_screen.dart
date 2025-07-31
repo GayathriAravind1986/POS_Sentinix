@@ -199,7 +199,6 @@ class LoginScreenViewState extends State<LoginScreenView> {
             if (current is PostLoginModel) {
               postLoginModel = current;
               if (postLoginModel.success == true) {
-                debugPrint("LoginIn success: ${postLoginModel.message}");
                 setState(() {
                   loginLoad = false;
                 });
@@ -216,8 +215,6 @@ class LoginScreenViewState extends State<LoginScreenView> {
                     postLoginModel.errorResponse?.errors?.first.message ??
                         postLoginModel.message ??
                         "Login failed. Please try again.";
-
-                debugPrint("Login error: $errorMsg");
                 showToast(errorMsg, context, color: false);
                 setState(() {
                   loginLoad = false;

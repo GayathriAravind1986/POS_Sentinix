@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -53,148 +54,71 @@ class ReportViewView extends StatefulWidget {
 
 class ReportViewViewState extends State<ReportViewView> {
   GetReportModel getReportModel = GetReportModel();
-  late IPrinterService printerService;
-  final GlobalKey receiptKey = GlobalKey();
+
   String? errorMessage;
   bool reportLoad = false;
   final todayDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
   final yesterdayDate = DateFormat('yyyy-MM-dd')
       .format(DateTime.now().subtract(Duration(days: 1)));
-  String? fromDate;
-  final List<Map<String, dynamic>> items = [
-    {
-      'no': 1,
-      'product': 'Chicken Biryani',
-      'qty': 2,
-      'amount': 250,
-    },
-    {
-      'no': 2,
-      'product': 'Mutton Biryani',
-      'qty': 4,
-      'amount': 1200,
-    },
-    {
-      'no': 2,
-      'product': 'Mutton Biryani',
-      'qty': 4,
-      'amount': 1200,
-    },
-    {
-      'no': 2,
-      'product': 'Mutton Biryani',
-      'qty': 4,
-      'amount': 1200,
-    },
-    {
-      'no': 2,
-      'product': 'Mutton Biryani',
-      'qty': 4,
-      'amount': 1200,
-    },
-    {
-      'no': 2,
-      'product': 'Mutton Biryani',
-      'qty': 4,
-      'amount': 1200,
-    },
-    {
-      'no': 2,
-      'product': 'Mutton Biryani',
-      'qty': 4,
-      'amount': 1200,
-    },
-    {
-      'no': 2,
-      'product': 'Mutton Biryani',
-      'qty': 4,
-      'amount': 1200,
-    },
-    {
-      'no': 2,
-      'product': 'Mutton Biryani',
-      'qty': 4,
-      'amount': 1200,
-    },
-    {
-      'no': 2,
-      'product': 'Mutton Biryani',
-      'qty': 4,
-      'amount': 1200,
-    },
-    {
-      'no': 2,
-      'product': 'Mutton Biryani',
-      'qty': 4,
-      'amount': 1200,
-    },
-    {
-      'no': 2,
-      'product': 'Mutton Biryani',
-      'qty': 4,
-      'amount': 1200,
-    },
-    {
-      'no': 2,
-      'product': 'Mutton Biryani',
-      'qty': 4,
-      'amount': 1200,
-    },
-    {
-      'no': 2,
-      'product': 'Mutton Biryani',
-      'qty': 4,
-      'amount': 1200,
-    },
-    {
-      'no': 2,
-      'product': 'Mutton Biryani',
-      'qty': 4,
-      'amount': 1200,
-    },
-    {
-      'no': 2,
-      'product': 'Mutton Biryani',
-      'qty': 4,
-      'amount': 1200,
-    },
-    {
-      'no': 2,
-      'product': 'Mutton Biryani',
-      'qty': 4,
-      'amount': 1200,
-    },
-    {
-      'no': 2,
-      'product': 'Mutton Biryani',
-      'qty': 4,
-      'amount': 1200,
-    },
-    {
-      'no': 2,
-      'product': 'Mutton Biryani',
-      'qty': 4,
-      'amount': 1200,
-    },
-    {
-      'no': 2,
-      'product': 'Mutton Biryani',
-      'qty': 4,
-      'amount': 1200,
-    },
-    {
-      'no': 2,
-      'product': 'Mutton Biryani',
-      'qty': 4,
-      'amount': 1200,
-    },
-    {
-      'no': 2,
-      'product': 'Mutton Biryani',
-      'qty': 4,
-      'amount': 1200,
-    },
-  ];
+  final TextEditingController fromDateController = TextEditingController();
+  final TextEditingController toDateController = TextEditingController();
+
+  DateTime? fromDate;
+  DateTime? toDate;
+  DateTime? _fromDate;
+  DateTime? _toDate;
+  final DateTime now = DateTime.now();
+  Future<void> _selectDate(BuildContext context, bool isFromDate) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate:
+          isFromDate ? (_fromDate ?? now) : (_toDate ?? (_fromDate ?? now)),
+      firstDate: isFromDate ? DateTime(2000) : (_fromDate ?? DateTime(2000)),
+      lastDate: DateTime(2100),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: appPrimaryColor,
+              onPrimary: whiteColor,
+              onSurface: blackColor,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: appPrimaryColor, // OK/Cancel button
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        if (isFromDate) {
+          _fromDate = picked;
+          fromDateController.text = DateFormat('dd/MM/yyyy').format(_fromDate!);
+          if (_toDate != null && _toDate!.isBefore(_fromDate!)) {
+            _toDate = null;
+            toDateController.clear();
+          }
+        } else {
+          _toDate = picked;
+          toDateController.text = DateFormat('dd/MM/yyyy').format(_toDate!);
+        }
+        if (_fromDate != null && _toDate != null) {
+          String formattedFromDate =
+              DateFormat('yyyy-MM-dd').format(_fromDate!);
+          String formattedToDate = DateFormat('yyyy-MM-dd').format(_toDate!);
+          context.read<ReportTodayBloc>().add(
+                ReportTodayList(formattedFromDate, formattedToDate),
+              );
+        }
+      });
+    }
+  }
+
   void refreshReport() {
     if (!mounted || !context.mounted) return;
     context.read<ReportTodayBloc>().add(
@@ -208,206 +132,328 @@ class ReportViewViewState extends State<ReportViewView> {
   @override
   void initState() {
     super.initState();
+
     if (widget.hasRefreshedReport == true) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         widget.reportKey?.currentState?.refreshReport();
         setState(() {
           reportLoad = true;
+          fromDateController.clear;
+          toDateController.clear;
         });
       });
     } else {
-      debugPrint("reportInit");
-      debugPrint("reportInit:${widget.hasRefreshedReport}");
-      debugPrint("reportInit:${widget.reportKey}");
       context.read<ReportTodayBloc>().add(
             ReportTodayList(yesterdayDate, todayDate),
           );
+      setState(() {
+        reportLoad = true;
+        fromDateController.clear;
+        toDateController.clear;
+      });
     }
   }
 
   @override
   void dispose() {
     super.dispose();
+    fromDateController.clear;
+    toDateController.clear;
   }
 
   @override
   Widget build(BuildContext context) {
-    int totalQty =
-        items.fold(0, (sum, item) => sum + (item['qty'] as num).toInt());
-    double totalAmount = items.fold(
-        0.0, (sum, item) => sum + (item['amount'] as num).toDouble());
     Widget mainContainer() {
-      return reportLoad
-          ? Container(
-              padding: EdgeInsets.only(
-                  top: MediaQuery.of(context).size.height * 0.1),
-              alignment: Alignment.center,
-              child: const SpinKitChasingDots(color: appPrimaryColor, size: 30))
-          : getReportModel.data == null ||
-                  getReportModel.data == [] ||
-                  getReportModel.data!.isEmpty
-              ? Container(
-                  padding: EdgeInsets.only(
-                      top: MediaQuery.of(context).size.height * 0.1),
-                  alignment: Alignment.center,
-                  child: Text(
-                    "No Report Today !!!",
-                    style: MyTextStyle.f16(
-                      greyColor,
-                      weight: FontWeight.w500,
-                    ),
-                  ))
-              : Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Center(
-                          child: Text("Report",
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold)),
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Text("Report",
+                    style:
+                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              ),
+              verticalSpace(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: Theme(
+                      data: Theme.of(context).copyWith(
+                        textSelectionTheme: const TextSelectionThemeData(
+                          selectionColor: Colors.transparent,
+                          selectionHandleColor: Colors.transparent,
                         ),
-                        verticalSpace(height: 10),
-                        Table(
-                          border: TableBorder.all(),
-                          columnWidths: const {
-                            0: FixedColumnWidth(50), // S.No
-                            1: FlexColumnWidth(), // Product Name
-                            2: FixedColumnWidth(75), // Quantity
-                            3: FixedColumnWidth(80), // Amount
-                          },
-                          children: [
-                            const TableRow(
-                              decoration: BoxDecoration(color: appPrimaryColor),
-                              children: [
-                                Padding(
-                                  padding: EdgeInsets.all(8),
-                                  child: Text("S.No",
-                                      style: TextStyle(
-                                          color: whiteColor,
-                                          fontWeight: FontWeight.bold)),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.all(8),
-                                  child: Text("Product Name",
-                                      style: TextStyle(
-                                          color: whiteColor,
-                                          fontWeight: FontWeight.bold)),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.all(8),
-                                  child: Text("Quantity",
-                                      style: TextStyle(
-                                          color: whiteColor,
-                                          fontWeight: FontWeight.bold)),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.all(8),
-                                  child: Text("Amount",
-                                      style: TextStyle(
-                                          color: whiteColor,
-                                          fontWeight: FontWeight.bold)),
-                                ),
-                              ],
-                            ),
-                            // Data Rows
-                            ...List.generate(getReportModel.data!.length,
-                                (index) {
-                              final item = getReportModel.data![index];
-                              return TableRow(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.all(8),
-                                    child: Center(
-                                        child: Text("${index + 1}")), // S.No
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8),
-                                    child: Text(item.productName ?? ""),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8),
-                                    child: Center(
-                                        child: Text("${item.totalQty ?? ""}")),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8),
-                                    child: Center(
-                                        child: Text(item.totalAmount
-                                                ?.toStringAsFixed(2) ??
-                                            "")),
-                                  ),
-                                ],
-                              );
-                            }),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Total Section
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                "Total Quantity: $totalQty",
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              Text(
-                                "Total Amount: ₹$totalAmount",
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
+                      ),
+                      child: TextField(
+                        controller: fromDateController,
+                        readOnly: true,
+                        decoration: InputDecoration(
+                          labelText: 'From Date',
+                          labelStyle: TextStyle(color: greyColor),
+                          border: OutlineInputBorder(),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: appPrimaryColor, width: 2),
                           ),
+                          suffixIcon: fromDateController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: Icon(Icons.clear),
+                                  onPressed: () {
+                                    setState(() {
+                                      fromDateController.clear();
+                                      _fromDate = null;
+                                      if (fromDateController.text.isEmpty &&
+                                          toDateController.text.isEmpty) {
+                                        context.read<ReportTodayBloc>().add(
+                                              ReportTodayList(
+                                                  yesterdayDate, todayDate),
+                                            );
+                                      }
+                                    });
+                                  },
+                                )
+                              : null,
                         ),
-                        const SizedBox(height: 16),
-                        Center(
-                          child: ElevatedButton.icon(
-                            onPressed: () async {
-                              showDialog(
-                                context: context,
-                                builder: (context) =>
-                                    ThermalReportReceiptDialog(getReportModel),
-                              );
-                            },
-                            icon: const Icon(Icons.print),
-                            label: const Text("Print"),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: greenColor,
-                              foregroundColor: whiteColor,
-                            ),
-                          ),
-                        ),
-                      ],
+                        onTap: () => _selectDate(context, true),
+                      ),
                     ),
                   ),
-                );
+                  SizedBox(width: 16),
+                  Flexible(
+                    child: Theme(
+                      data: Theme.of(context).copyWith(
+                        textSelectionTheme: const TextSelectionThemeData(
+                          selectionColor: Colors.transparent,
+                          selectionHandleColor: Colors.transparent,
+                        ),
+                      ),
+                      child: TextField(
+                        controller: toDateController,
+                        readOnly: true,
+                        decoration: InputDecoration(
+                          labelText: 'To Date',
+                          labelStyle: TextStyle(color: greyColor),
+                          border: OutlineInputBorder(),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide:
+                                BorderSide(color: appPrimaryColor, width: 2),
+                          ),
+                          suffixIcon: toDateController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: Icon(Icons.clear),
+                                  onPressed: () {
+                                    setState(() {
+                                      toDateController.clear();
+                                      _toDate = null;
+                                      if (fromDateController.text.isEmpty &&
+                                          toDateController.text.isEmpty) {
+                                        context.read<ReportTodayBloc>().add(
+                                              ReportTodayList(
+                                                  yesterdayDate, todayDate),
+                                            );
+                                      }
+                                    });
+                                  },
+                                )
+                              : null,
+                        ),
+                        onTap: () => _selectDate(context, false),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 24),
+              reportLoad
+                  ? Container(
+                      padding: EdgeInsets.only(
+                          top: MediaQuery.of(context).size.height * 0.1),
+                      alignment: Alignment.center,
+                      child: const SpinKitChasingDots(
+                          color: appPrimaryColor, size: 30))
+                  : getReportModel.data == null ||
+                          getReportModel.data == [] ||
+                          getReportModel.data!.isEmpty
+                      ? Container(
+                          padding: EdgeInsets.only(
+                              top: MediaQuery.of(context).size.height * 0.3),
+                          alignment: Alignment.center,
+                          child: Text(
+                            "No Report found !!!",
+                            style: MyTextStyle.f16(
+                              greyColor,
+                              weight: FontWeight.w500,
+                            ),
+                          ))
+                      : Column(
+                          children: [
+                            Table(
+                              border: TableBorder.all(),
+                              columnWidths: const {
+                                0: FixedColumnWidth(50), // S.No
+                                1: FlexColumnWidth(), // Product Name
+                                2: FixedColumnWidth(75), // Quantity
+                                3: FixedColumnWidth(80), // Amount
+                              },
+                              children: [
+                                const TableRow(
+                                  decoration:
+                                      BoxDecoration(color: appPrimaryColor),
+                                  children: [
+                                    Padding(
+                                      padding: EdgeInsets.all(8),
+                                      child: Text("S.No",
+                                          style: TextStyle(
+                                              color: whiteColor,
+                                              fontWeight: FontWeight.bold)),
+                                    ),
+                                    Padding(
+                                      padding: EdgeInsets.all(8),
+                                      child: Text("Product Name",
+                                          style: TextStyle(
+                                              color: whiteColor,
+                                              fontWeight: FontWeight.bold)),
+                                    ),
+                                    Padding(
+                                      padding: EdgeInsets.all(8),
+                                      child: Text("Quantity",
+                                          style: TextStyle(
+                                              color: whiteColor,
+                                              fontWeight: FontWeight.bold)),
+                                    ),
+                                    Padding(
+                                      padding: EdgeInsets.all(8),
+                                      child: Text("Amount",
+                                          style: TextStyle(
+                                              color: whiteColor,
+                                              fontWeight: FontWeight.bold)),
+                                    ),
+                                  ],
+                                ),
+                                // Data Rows
+                                ...List.generate(getReportModel.data!.length,
+                                    (index) {
+                                  final item = getReportModel.data![index];
+                                  return TableRow(
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(8),
+                                        child: Center(
+                                            child:
+                                                Text("${index + 1}")), // S.No
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8),
+                                        child: Text(item.productName ?? ""),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8),
+                                        child: Center(
+                                            child:
+                                                Text("${item.totalQty ?? ""}")),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(8),
+                                        child: Center(
+                                            child: Text(item.totalAmount
+                                                    ?.toStringAsFixed(2) ??
+                                                "")),
+                                      ),
+                                    ],
+                                  );
+                                }),
+                              ],
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            // Total Section
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    "Total Quantity: ${getReportModel.finalQty}",
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  Text(
+                                    "Total Amount: ₹${getReportModel.finalAmount?.toStringAsFixed(2) ?? '0.00'}",
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Center(
+                              child: ElevatedButton.icon(
+                                onPressed: () async {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) =>
+                                        ThermalReportReceiptDialog(
+                                            getReportModel),
+                                  );
+                                },
+                                icon: const Icon(Icons.print),
+                                label: const Text("Print"),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: greenColor,
+                                  foregroundColor: whiteColor,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+            ],
+          ),
+        ),
+      );
     }
 
     return BlocBuilder<ReportTodayBloc, dynamic>(
       buildWhen: ((previous, current) {
         if (current is GetReportModel) {
-          getReportModel = current;
-          if (getReportModel.errorResponse?.isUnauthorized == true) {
-            _handle401Error();
-            return true;
-          }
-          if (getReportModel.success == true) {
-            setState(() {
-              reportLoad = false;
-            });
-          } else {
-            setState(() {
-              reportLoad = false;
-            });
+          try {
+            getReportModel = current;
+            if (getReportModel.errorResponse?.isUnauthorized == true) {
+              _handle401Error();
+              return true;
+            }
+            if (getReportModel.success == true) {
+              setState(() {
+                reportLoad = false;
+              });
+            } else {
+              setState(() {
+                reportLoad = false;
+              });
+            }
+          } catch (e, stackTrace) {
+            debugPrint("Error in processing report order: $e");
+            print(stackTrace);
+            if (e is DioException) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text("Error: ${e.message}"),
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text("Something went wrong: ${e.toString()}"),
+                ),
+              );
+            }
           }
           return true;
         }

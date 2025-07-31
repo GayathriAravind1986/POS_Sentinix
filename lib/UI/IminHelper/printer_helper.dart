@@ -174,13 +174,7 @@ Widget getThermalReceiptWidget({
               ),
             ),
           ),
-          // const SizedBox(height: 96),
-          const SizedBox(
-            height: 80,
-            child: DecoratedBox(
-              decoration: BoxDecoration(color: whiteColor),
-            ),
-          ),
+          const SizedBox(height: 80),
         ],
       ),
     ),
@@ -350,26 +344,6 @@ Widget _buildThermalTotalRow(String label, double amount,
   );
 }
 
-// Enhanced image capture function optimized for thermal printing
-Future<Uint8List?> captureThermalReceiptAsImage(GlobalKey key) async {
-  try {
-    RenderRepaintBoundary boundary =
-        key.currentContext!.findRenderObject() as RenderRepaintBoundary;
-
-    // Capture at higher resolution for better quality
-    ui.Image image = await boundary.toImage(pixelRatio: 2.0);
-    ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-
-    if (byteData == null) return null;
-
-    return byteData.buffer.asUint8List();
-  } catch (e) {
-    print("Error capturing thermal image: $e");
-    return null;
-  }
-}
-
-// Alternative: Convert to monochrome bitmap for better thermal printing
 Future<Uint8List?> captureMonochromeReceipt(GlobalKey key) async {
   try {
     RenderRepaintBoundary boundary =

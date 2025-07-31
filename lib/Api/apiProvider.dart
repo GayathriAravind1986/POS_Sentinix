@@ -380,7 +380,7 @@ class ApiProvider {
     try {
       var dio = Dio();
       var response = await dio.request(
-        '${Constants.baseUrl}api/generate-order/sales-report?from_date=$fromDate&to_date=$toDate',
+        '${Constants.baseUrl}api/generate-order/sales-report?from_date=$fromDate&to_date=$toDate&limit=200',
         options: Options(
           method: 'GET',
           headers: {

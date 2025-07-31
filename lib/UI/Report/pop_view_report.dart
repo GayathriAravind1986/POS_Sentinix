@@ -26,36 +26,23 @@ class ThermalReportReceiptDialog extends StatefulWidget {
 class _ThermalReportReceiptDialogState
     extends State<ThermalReportReceiptDialog> {
   late IPrinterService printerService;
-  final GlobalKey receiptKey = GlobalKey();
+  final GlobalKey reportKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
     if (kIsWeb) {
       printerService = MockPrinterService();
-      debugPrint("Using MockPrinterService (Web)");
     } else if (Platform.isAndroid) {
       printerService = RealPrinterService();
-      debugPrint("Using RealPrinterService (Android)");
     } else {
       printerService = MockPrinterService();
-      debugPrint("Using fallback MockPrinterService");
     }
   }
 
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
-    // Prepare data for thermal receipt
-    // List<Map<String, dynamic>> items = order.items!
-    //     .map((e) => {
-    //           'name': e.name,
-    //           'qty': e.quantity,
-    //           'price': e.unitPrice,
-    //           'total': (e.quantity ?? 0) * (e.unitPrice ?? 0),
-    //         })
-    //     .toList();
-    //
     String businessName = widget.getReportModel.businessName ?? 'Business Name';
     String userName = widget.getReportModel.userName ?? '';
     String address = widget.getReportModel.address ?? 'Business Address';
@@ -112,7 +99,7 @@ class _ThermalReportReceiptDialogState
 
                     // Thermal Receipt Widget
                     RepaintBoundary(
-                      key: receiptKey,
+                      key: reportKey,
                       child: getReportReceiptWidget(
                         businessName: businessName,
                         tamilTagline: "ஒரே ஒரு முறை சுவைத்து பாருங்கள்",
@@ -138,7 +125,7 @@ class _ThermalReportReceiptDialogState
                                   const Duration(milliseconds: 300));
                               await WidgetsBinding.instance.endOfFrame;
                               Uint8List? imageBytes =
-                                  await captureMonochromeReceipt(receiptKey);
+                                  await captureMonochromeReport(reportKey);
 
                               if (imageBytes != null) {
                                 await printerService.init();
@@ -146,12 +133,9 @@ class _ThermalReportReceiptDialogState
                                 await Future.delayed(
                                     const Duration(seconds: 3));
                                 await printerService.fullCut();
-                                debugPrint(
-                                    "Printed monochrome receipt successfully.");
                                 Navigator.pop(context);
                               }
                             } catch (e) {
-                              print("Monochrome print failed: $e");
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text("Print failed: $e")),
                               );
