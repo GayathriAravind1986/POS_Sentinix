@@ -45,7 +45,7 @@ dependencies:
   dio: ^5.1.1
   qr_flutter: ^4.0.0
   another_imin_printer: ^0.6.0
-  razorpay_flutter: ^1.4.0
+  device_info_plus:
 
 dev_dependencies:
   flutter_test:

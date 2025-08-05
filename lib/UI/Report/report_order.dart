@@ -9,18 +9,12 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple/Alertbox/snackBarAlert.dart';
-import 'package:simple/Bloc/Order/order_list_bloc.dart';
 import 'package:simple/Bloc/Report/report_bloc.dart';
-import 'package:simple/Bloc/demo/demo_bloc.dart';
-import 'package:simple/ModelClass/Order/Delete_order_model.dart';
-import 'package:simple/ModelClass/Order/Get_view_order_model.dart';
-import 'package:simple/ModelClass/Order/get_order_list_today_model.dart';
 import 'package:simple/ModelClass/Report/Get_report_model.dart';
 import 'package:simple/Reusable/color.dart';
 import 'package:simple/Reusable/space.dart';
 import 'package:simple/Reusable/text_styles.dart';
 import 'package:simple/UI/Authentication/login_screen.dart';
-import 'package:simple/UI/Home_screen/Widget/another_imin_printer/imin_abstract.dart';
 import 'package:simple/UI/Report/pop_view_report.dart';
 
 class ReportView extends StatelessWidget {

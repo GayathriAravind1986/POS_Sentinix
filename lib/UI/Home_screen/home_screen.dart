@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:another_imin_printer/imin_printer_platform_interface.dart';
 import 'package:collection/collection.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:cached_network_image/cached_network_image.dart';
@@ -155,7 +156,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
   List<Map<String, dynamic>> billingItems = [];
   late IPrinterService printerService;
   GlobalKey receiptKey = GlobalKey();
-
+  String serialNumber = '';
   String formatInvoiceDate(String? dateStr) {
     DateTime dateTime;
 
@@ -469,39 +470,29 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
     });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    if (kIsWeb) {
-      printerService = MockPrinterService();
-    } else if (Platform.isAndroid) {
-      printerService = RealPrinterService();
-    } else {
-      printerService = MockPrinterService();
-    }
-    if (widget.hasRefreshedOrder == true) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        widget.foodKey?.currentState?.refreshHome();
+  Future<void> getDeviceInfo() async {
+    final deviceInfoPlugin = DeviceInfoPlugin();
+    try {
+      if (Platform.isAndroid) {
+        AndroidDeviceInfo androidInfo = await deviceInfoPlugin.androidInfo;
         setState(() {
-          categoryLoad = true;
+          serialNumber = androidInfo.id ?? 'Unknown Android ID';
+          debugPrint("Device ID: $serialNumber");
         });
-      });
-    } else {
-      context.read<FoodCategoryBloc>().add(FoodCategory());
-      context.read<FoodCategoryBloc>().add(
-          FoodProductItem(selectedCatId.toString(), searchController.text));
-    }
-    context.read<FoodCategoryBloc>().add(TableDine());
-    setState(() {
-      categoryLoad = true;
-    });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.isEditingOrder == true && widget.existingOrder != null) {
-        loadExistingOrder(widget.existingOrder!);
-      } else {
-        resetCartState();
+      } else if (Platform.isIOS) {
+        IosDeviceInfo iosInfo = await deviceInfoPlugin.iosInfo;
+        setState(() {
+          serialNumber =
+              iosInfo.identifierForVendor ?? 'Unknown iOS Identifier';
+          debugPrint("Device ID: $serialNumber");
+        });
       }
-    });
+    } catch (e) {
+      setState(() {
+        serialNumber = 'Error getting device info';
+        debugPrint("Device ID: $serialNumber");
+      });
+    }
   }
 
   void loadExistingOrder(GetViewOrderModel? order) {
@@ -560,6 +551,43 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
         isDiscountApplied = false;
       }
       context.read<FoodCategoryBloc>().add(AddToBilling([], isDiscountApplied));
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (kIsWeb) {
+      printerService = MockPrinterService();
+    } else if (Platform.isAndroid) {
+      printerService = RealPrinterService();
+    } else {
+      printerService = MockPrinterService();
+    }
+    if (widget.hasRefreshedOrder == true) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.foodKey?.currentState?.refreshHome();
+        setState(() {
+          categoryLoad = true;
+          getDeviceInfo();
+        });
+      });
+    } else {
+      context.read<FoodCategoryBloc>().add(FoodCategory());
+      context.read<FoodCategoryBloc>().add(
+          FoodProductItem(selectedCatId.toString(), searchController.text));
+      getDeviceInfo();
+    }
+    context.read<FoodCategoryBloc>().add(TableDine());
+    setState(() {
+      categoryLoad = true;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.isEditingOrder == true && widget.existingOrder != null) {
+        loadExistingOrder(widget.existingOrder!);
+      } else {
+        resetCartState();
+      }
     });
   }
 
@@ -661,6 +689,13 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                   children: [
                                     Column(
                                       children: [
+                                        Text(
+                                          serialNumber,
+                                          style: MyTextStyle.f16(
+                                            blackColor,
+                                            weight: FontWeight.w500,
+                                          ),
+                                        ),
                                         Padding(
                                           padding: const EdgeInsets.all(20.0),
                                           child: Row(
@@ -3280,8 +3315,7 @@ class FoodOrderingScreenViewState extends State<FoodOrderingScreenView> {
                                                                                   if ((selectedValue == null || selectedValue == 'N/A') && selectDineIn == true) {
                                                                                     showToast("Table number is required for DINE-IN orders", context, color: false);
                                                                                     setState(() {
-                                                                                      // orderLoad =
-                                                                                      //     false;
+                                                                                      orderLoad = false;
                                                                                     });
                                                                                   } else {
                                                                                     setState(() {
